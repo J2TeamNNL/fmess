@@ -31,6 +31,10 @@ a window of their own again and makes it feel like the old app.
 
 - **Real notifications.** Sender photos, group names and quick reply right in
   the banner (macOS). Reading a chat clears its notifications.
+- **Instagram too, if you want it.** Turn it on in Settings and your Instagram
+  chats sit one click away on a rail down the left, with their own unread badge
+  and notifications. Hide its rail icon and switch with `⌃⌘1` / `⌃⌘2` instead.
+  The Zalo, WhatsApp and Teams themes dress Instagram as well.
 - **Voice and video calls**, end-to-end encrypted chats included on macOS.
 - **Just your chats.** No feed, no reels, no top bar; the window buttons float
   over the page like the old app.
@@ -77,6 +81,7 @@ On Windows and Linux, use Ctrl instead of ⌘.
 | `⌘K` | Search chats |
 | `⌘N` | New message |
 | `⌘1` … `⌘9` | Open the 1st … 9th chat |
+| `⌃⌘1` / `⌃⌘2` | Messenger / Instagram (`Ctrl+Win+1` / `2` on Windows and Linux) |
 | `⌘⇧]` / `⌘⇧[`, `⌃Tab` / `⌃⇧Tab` | Next / previous chat |
 | `⌘⇧H` | Back to the chat list |
 | `⌘+` / `⌘−` / `⌘0` | Zoom in / out / actual size |
@@ -99,10 +104,11 @@ Why the source matters: a Messenger app holds your Facebook login and sees every
 
 ## Privacy
 
-fMess shows facebook.com/messages in your system's own webview. You sign in on
+fMess shows facebook.com/messages (and instagram.com/direct, if you turn it on)
+in your system's own webview. You sign in on
 Facebook's page; fMess never sees your password, has no server and sends no
 analytics. The page can ask fMess for only a handful of things, like showing a
-notification (`src-tauri/capabilities/messenger-web.json`); it can't read your
+notification (`src-tauri/capabilities/messenger-web.json`, `instagram-web.json`); it can't read your
 files or run programs.
 
 ## Build from source
@@ -139,7 +145,9 @@ The website in `site/` is deployed to [fmess.app](https://fmess.app) by
 The window loads facebook.com/messages directly. fMess adds one script to the
 page (`src-tauri/src/inject.js`) that restyles it through Facebook's own CSS
 variables, adds the shortcuts and settings, and hands notifications to the
-operating system. Calls in encrypted chats use Facebook's own WebKit path,
+operating system. Instagram gets its own, smaller script
+(`src-tauri/src/inject-instagram.js`) in a second web view beside it, and the
+rail on the left is a small local page (`ui/rail.html`). Calls in encrypted chats use Facebook's own WebKit path,
 which Facebook keeps behind a flag; fMess turns it on (Settings → Calls).
 
 ## Known limitations

@@ -106,7 +106,7 @@ can't**. Start from this (details in hooks.md):
 | Target region | Hook | Notes |
 |---|---|---|
 | Title bar / window strip | `html::before`, height `var(--fmess-title-bar)` | 28px macOS, 0 on Windows/Linux; `pointer-events: none` |
-| App rail with app icons | `[role="navigation"]` `padding-left`, `::before` (colour, current item, hover), `::after` (masked icons + avatar) | items are pictures; only `account`/`settings` in `--fmess-buttons` act |
+| App rail with app icons | `html[data-fmess-service="rail"]` in fMess's own rail web view (`ui/rail.html`, `data-fmess-rail` items) | decorative icons are pictures; Messenger, Instagram, settings and account act (see hooks.md) |
 | Avatar + account/settings card | `--fmess-avatar`, `account` button, or `#fmess-account` | opens fMess's **native** menu (name, Settings…, Log Out). The target's card can't be copied. |
 | Unread count | `html[data-fmess-unread]::after` | `content: attr(data-fmess-unread)` |
 | List title / logo | `[role="navigation"] h1 a` masked with a wordmark | |

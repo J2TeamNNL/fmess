@@ -16,6 +16,7 @@ mod update;
 mod webview;
 #[cfg(windows)]
 mod webview2;
+mod window_state;
 
 use tauri::{AppHandle, Manager, Runtime, WindowEvent};
 use tauri_plugin_window_state::StateFlags;
@@ -73,6 +74,7 @@ fn main() {
         .on_menu_event(menu::handle)
         .setup(|app| {
             let handle = app.handle();
+            app.manage(window_state::Closed::default());
             #[cfg(windows)]
             notify::register_app_id(handle);
             let settings = settings::init(handle);
@@ -92,6 +94,7 @@ fn main() {
             }
             match event {
                 WindowEvent::CloseRequested { api, .. } => {
+                    window_state::save_on_close(window);
                     if settings::current(window.app_handle()).close_to_tray {
                         // Keep running in the tray and Dock so messages keep arriving.
                         api.prevent_close();
@@ -106,11 +109,11 @@ fn main() {
         })
         .build(tauri::generate_context!())
         .expect("failed to build fMess")
-        .run(|_app, _event| {
+        .run(|app, event| match event {
+            tauri::RunEvent::Exit => window_state::save_on_exit(app),
             #[cfg(target_os = "macos")]
-            if let tauri::RunEvent::Reopen { .. } = _event {
-                show_main_window(_app);
-            }
+            tauri::RunEvent::Reopen { .. } => show_main_window(app),
+            _ => {}
         });
 }
 

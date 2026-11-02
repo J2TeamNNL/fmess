@@ -32,6 +32,10 @@ trải nghiệm như ứng dụng gốc.
 
 - **Thông báo native.** Hiển thị ảnh đại diện người gửi, tên nhóm và trả lời
   nhanh ngay trên banner (macOS). Đọc đoạn chat là thông báo tự biến mất.
+- **Thêm Instagram nếu muốn.** Bật trong Cài đặt là đoạn chat Instagram nằm ngay
+  trên thanh dọc bên trái, có badge tin chưa đọc và thông báo riêng. Có thể ẩn
+  icon Instagram trên thanh và chuyển bằng `⌃⌘1` / `⌃⌘2`. Theme Zalo, WhatsApp và
+  Teams cũng khoác lên cả Instagram.
 - **Gọi thoại và video**, hỗ trợ cả cuộc trò chuyện mã hoá đầu cuối trên macOS.
 - **Giao diện tập trung.** Lược bỏ News Feed, Reels và thanh công cụ; nút cửa sổ
   nổi trên trang như bản gốc.
@@ -77,6 +81,7 @@ Trên Windows và Linux, thay ⌘ bằng Ctrl.
 | `⌘K` | Tìm kiếm đoạn chat |
 | `⌘N` | Tin nhắn mới |
 | `⌘1` … `⌘9` | Mở đoạn chat thứ 1 … 9 |
+| `⌃⌘1` / `⌃⌘2` | Messenger / Instagram (`Ctrl+Win+1` / `2` trên Windows và Linux) |
 | `⌘⇧]` / `⌘⇧[`, `⌃Tab` / `⌃⇧Tab` | Đoạn chat kế tiếp / trước đó |
 | `⌘⇧H` | Về danh sách chat |
 | `⌘+` / `⌘−` / `⌘0` | Phóng to / thu nhỏ / mặc định |
@@ -99,10 +104,10 @@ Vì sao mã nguồn quan trọng: app Messenger nào cũng giữ phiên đăng n
 
 ## Quyền riêng tư
 
-fMess hiển thị facebook.com/messages bằng webview có sẵn của hệ điều hành. Bạn
+fMess hiển thị facebook.com/messages (và instagram.com/direct nếu bạn bật) bằng webview có sẵn của hệ điều hành. Bạn
 đăng nhập trực tiếp trên trang của Facebook; fMess không thấy mật khẩu, không có
 máy chủ riêng và không gửi dữ liệu phân tích. Trang web chỉ được nhờ fMess làm vài
-việc như hiện thông báo (`src-tauri/capabilities/messenger-web.json`), không đọc
+việc như hiện thông báo (`src-tauri/capabilities/messenger-web.json`, `instagram-web.json`), không đọc
 được file hay chạy chương trình trên máy bạn.
 
 ## Build từ mã nguồn
@@ -138,7 +143,9 @@ Website trong `site/` được [GitHub Pages](.github/workflows/pages.yml) tri�
 
 Cửa sổ tải trực tiếp facebook.com/messages. fMess chèn một script vào trang
 (`src-tauri/src/inject.js`) để chỉnh giao diện qua chính các biến CSS của Facebook,
-thêm phím tắt và cài đặt, rồi chuyển thông báo sang hệ điều hành. Cuộc gọi trong
+thêm phím tắt và cài đặt, rồi chuyển thông báo sang hệ điều hành. Instagram có script riêng, gọn hơn
+(`src-tauri/src/inject-instagram.js`) trong một webview thứ hai đặt cạnh, còn
+thanh dọc bên trái là một trang nội bộ nhỏ (`ui/rail.html`). Cuộc gọi trong
 chat mã hoá dùng đường WebKit có sẵn của Facebook, vốn đang bị Facebook khoá bằng
 cờ; fMess bật cờ đó lên (Cài đặt → Calls).
 

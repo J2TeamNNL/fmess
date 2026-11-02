@@ -193,6 +193,7 @@ pub fn menu_shortcut<R: Runtime>(app: AppHandle<R>, id: String) {
 
 fn run<R: Runtime>(app: &AppHandle<R>, id: &str) {
     let webview = services::webview(app, Service::Messenger);
+    let shown = services::webview(app, services::selected(app));
     match id {
         SHOW => show_main_window(app),
         MESSAGES => {
@@ -203,18 +204,18 @@ fn run<R: Runtime>(app: &AppHandle<R>, id: &str) {
             }
         }
         RELOAD => {
-            if let Some(webview) = webview {
-                let _ = webview.reload();
+            if let Some(shown) = shown {
+                let _ = shown.reload();
             }
         }
         BACK => {
-            if let Some(webview) = webview {
-                let _ = webview.eval("history.back()");
+            if let Some(shown) = shown {
+                let _ = shown.eval("history.back()");
             }
         }
         FORWARD => {
-            if let Some(webview) = webview {
-                let _ = webview.eval("history.forward()");
+            if let Some(shown) = shown {
+                let _ = shown.eval("history.forward()");
             }
         }
         SETTINGS => webview::open_settings_window(app),

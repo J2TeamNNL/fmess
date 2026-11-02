@@ -108,6 +108,27 @@ Sections are named by their comment headers. Write a new theme in the same order
     "Contact info" (fixed text).
 17. **Tooltips + dark islands**: the two blocks from hooks.md, verbatim.
 
+## Rail and Instagram sections (since the rail became its own web view)
+
+The same file also dresses the rail and Instagram (hooks.md, "One theme, three web
+views"). The shipped themes add, after the Messenger sections:
+
+1. **Rail** under `html[data-fmess-service="rail"]`: background on `#fmess-rail`, item
+   size and `color` on `[data-fmess-rail]`, the selected look on `[data-active]`,
+   `[data-fmess-badge]`, and `[data-fmess-avatar]`. The old picture-only rail on
+   `[role="navigation"]` (`padding-left`, `::before/::after`, `--fmess-buttons`) is gone
+   from the built-in themes; user themes that still draw it keep working.
+2. **Instagram** under `html[data-fmess-service="instagram"]`: `--ig-*` remapped to the
+   theme's tokens (on `html` and on `.__fb-dark-mode`/`.__fb-light-mode`), `ig-nav`
+   hidden and its 72px taken back (shipped themes pull `list` left with
+   `margin-left: -72px`; zeroing `ig-shell` is the cleaner way), then list, rows, header, bubbles, dates,
+   composer and details through their marks.
+3. Every bare Messenger rule that names a shared mark (`composer`, `emoji`, `attach`…)
+   gets `html:not([data-fmess-service="instagram"])` in front.
+
+These sections were written straight into `src-tauri/themes/*.css`: the theme sources
+are not on this machine, so a `build.py` run from an old source would drop them.
+
 ## Tricks that work (and keep clicks working)
 
 - **Icon swap, one colour** (preferred: one set serves light and dark):

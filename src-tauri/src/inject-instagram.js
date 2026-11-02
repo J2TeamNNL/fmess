@@ -222,12 +222,20 @@
   const isUnreadRow = ({ weights = [], dot = false }) => dot || weights.some((weight) => weight >= 600);
   // Each signal sees only part of the inbox; the biggest is nearest the truth.
   const unreadTotal = ({ title = 0, badge = 0, rows = 0 }) => Math.max(title, badge, rows);
-  // "Name", "Preview", "·", "2 giờ": the age after the dot goes.
-  const rowTexts = (texts) => {
+  // "Name", "Preview", "·", "2 giờ": which text is which, by index (-1: none).
+  const rowParts = (texts) => {
     const dot = texts.indexOf('·');
-    const kept = dot < 0 ? texts : texts.slice(0, dot);
-    return { name: kept[0] ?? '', preview: kept.slice(1).join(' ') };
+    const end = dot < 0 ? texts.length : dot;
+    const preview = [];
+    for (let i = 1; i < end; i++) preview.push(i);
+    return { name: end > 0 ? 0 : -1, preview, time: dot >= 0 && dot + 1 < texts.length ? dot + 1 : -1 };
   };
+  const rowTexts = (texts) => {
+    const { name, preview } = rowParts(texts);
+    return { name: texts[name] ?? '', preview: preview.map((i) => texts[i]).join(' ') };
+  };
+  // A bubble nearer the right edge of the chat is yours.
+  const bubbleDir = (box, area) => (box.left + box.width / 2 > area.left + area.width / 2 ? 'out' : 'in');
   // unread-pure:end
 
   // Instagram's class names are hashed and its labels translated, so the parts
@@ -271,15 +279,23 @@
       (row) => row.querySelector('img') && !row.parentElement.closest('[role="button"]') && rectOf(row).height > 48,
     );
   };
-  const visibleTexts = (row) => {
-    const texts = [];
-    const walker = document.createTreeWalker(row, NodeFilter.SHOW_TEXT);
+  const textLeaves = (root, limit = Infinity) => {
+    const leaves = [];
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
     for (let node = walker.nextNode(); node; node = walker.nextNode()) {
       const text = node.textContent.trim();
-      const box = node.parentElement?.getBoundingClientRect();
-      if (text && box && box.width > 1 && box.height > 1) texts.push(text);
+      const el = node.parentElement;
+      const box = el?.getBoundingClientRect();
+      if (text && box && box.width > 1 && box.height > 1 && leaves.push({ el, text }) >= limit) break;
     }
-    return texts;
+    return leaves;
+  };
+  const visibleTexts = (row) => textLeaves(row).map((leaf) => leaf.text);
+  // A picture's box: the picture and the masks around it, up to where text starts.
+  const pictureBox = (img, stop) => {
+    let box = img;
+    while (box?.parentElement && box.parentElement !== stop && !box.parentElement.textContent.trim()) box = box.parentElement;
+    return box;
   };
   const rowIsUnread = (row) => {
     const weights = [];
@@ -299,9 +315,12 @@
     });
     return isUnreadRow({ weights, dot });
   };
+  // The rail's Messages link: /direct/inbox/, or the last chat once one was opened.
+  const directLink = () =>
+    [...document.querySelectorAll('a[href^="/direct/"]')].find((link) => !link.getAttribute('href').startsWith('/direct/requests') && rectOf(link).width <= 100);
   // The red count on the Messages icon of Instagram's own navigation.
   const navBadge = () => {
-    const link = document.querySelector('a[href="/direct/inbox/"]');
+    const link = directLink();
     for (const el of link?.querySelectorAll('span, div') ?? []) {
       if (el.firstElementChild) continue;
       const count = badgeCount(el.textContent);
@@ -312,35 +331,69 @@
     return 0;
   };
 
-  const NAV_BY_HREF = { '/reels/': 'reels', '/direct/inbox/': 'direct', '/explore/': 'search' };
+  const NAV_BY_HREF = { '/reels/': 'reels', '/explore/': 'search' };
   const NAV_BY_ORDER = ['notifications', 'create', 'settings', 'meta'];
   const markNav = () => {
-    const inbox = document.querySelector('a[href="/direct/inbox/"]');
-    let rail = inbox;
+    let rail = directLink();
     while (rail && !(rectOf(rail).width <= 100 && rectOf(rail).height >= innerHeight * 0.9)) rail = rail.parentElement;
     if (!rail) return;
     mark(rail, 'ig-nav');
+    const direct = directLink();
     const links = [...rail.querySelectorAll('a[href]')];
     const hashed = links.filter((link) => link.getAttribute('href') === '#');
     let slashes = 0;
     for (const link of links) {
       const href = link.getAttribute('href');
       let name = NAV_BY_HREF[href];
-      if (href === '/') name = ['logo', 'home'][slashes++];
+      if (link === direct) name = 'direct';
+      else if (href === '/') name = ['logo', 'home'][slashes++];
       else if (href === '#') name = hashed.length === NAV_BY_ORDER.length ? NAV_BY_ORDER[hashed.indexOf(link)] : undefined;
       else if (!name && /^\/[^/]+\/$/.test(href)) name = 'profile';
       if (name && link.getAttribute('data-fmess-nav') !== name) link.setAttribute('data-fmess-nav', name);
     }
   };
 
-  const LIST_MARKS = ['list', 'list-header', 'list-account', 'new-message', 'search', 'notes', 'list-title', 'requests', 'row'];
-  const THREAD_MARKS = ['empty', 'chat', 'chat-header', 'audio-call', 'video-call', 'info', 'messages', 'composer', 'emoji', 'voice-clip', 'attach', 'sticker', 'send', 'more-actions', 'details'];
+  const ROW_PARTS = ['row-avatar', 'row-name', 'row-preview', 'row-time'];
+  const LIST_MARKS = ['ig-shell', 'list', 'list-header', 'list-account', 'new-message', 'search', 'notes', 'list-title', 'requests', 'row', ...ROW_PARTS];
+  const THREAD_MARKS = [
+    'empty', 'chat', 'chat-header', 'chat-avatar', 'audio-call', 'video-call', 'info', 'messages', 'bubble', 'date-break',
+    'composer', 'composer-input', 'composer-actions', 'emoji', 'voice-clip', 'attach', 'sticker', 'send', 'more-actions', 'details', 'details-title',
+  ];
+  // Bubbles and date breaks are judged once, when they first have a size and text.
+  let checked = new WeakSet();
   // Marks on elements that no longer qualify (a closed chat, a list that
   // changed layout) would style the wrong thing.
   const clearMarks = (names) => {
     for (const el of document.querySelectorAll(names.map((name) => `[${UI}="${name}"]`).join())) el.removeAttribute(UI);
+    checked = new WeakSet();
+  };
+
+  // The ancestor that keeps 72px free for Instagram's own navigation. Themes
+  // zero that space once it is marked, so the mark stays where it was found.
+  const markShell = (list) => {
+    if (list.closest(`[${UI}="ig-shell"]`)) return;
+    for (let el = list.parentElement; el && el !== document.body; el = el.parentElement) {
+      if (el.hasAttribute(UI)) continue;
+      const style = getComputedStyle(el);
+      if (parseFloat(style.marginLeft) >= 48 || parseFloat(style.paddingLeft) >= 48) return mark(el, 'ig-shell');
+    }
+  };
+  const markRowParts = (row) => {
+    const img = row.querySelector('img');
+    if (img) mark(pictureBox(img, row), 'row-avatar');
+    const leaves = textLeaves(row);
+    const parts = rowParts(leaves.map((leaf) => leaf.text));
+    const names = new Map();
+    if (parts.name >= 0) names.set(leaves[parts.name].el, 'row-name');
+    for (const i of parts.preview) names.set(leaves[i].el, 'row-preview');
+    if (parts.time >= 0) names.set(leaves[parts.time].el, 'row-time');
+    for (const { el } of leaves) {
+      if (names.has(el)) mark(el, names.get(el));
+      else if (ROW_PARTS.includes(el.getAttribute(UI))) el.removeAttribute(UI);
+    }
   };
   const markList = (list, view) => {
+    markShell(list);
     mark(list, 'list');
     const title = list.querySelector('h1')?.parentElement;
     flag(document.documentElement, 'data-fmess-compact', !title);
@@ -358,24 +411,24 @@
     const current = view === 'thread' ? /\/direct\/t\/(\d+)/.exec(location.pathname)?.[1] : null;
     for (const row of chatRows()) {
       mark(row, 'row');
+      markRowParts(row);
       flag(row, 'data-fmess-unread', rowIsUnread(row));
       flag(row, 'data-fmess-selected', Boolean(current) && threadKeyOf(row) === current);
     }
   };
 
-  // Bubbles and date breaks are marked once, when they first have a size.
-  const checked = new WeakSet();
+  // A bubble is the outermost role=presentation with text that is narrower
+  // than the chat: themes restyle bubbles, so their looks can't tell.
   const markMessages = (area) => {
     const areaBox = rectOf(area);
     for (const bubble of area.querySelectorAll('[role="presentation"]')) {
       if (checked.has(bubble)) continue;
       const box = rectOf(bubble);
-      if (!box.width) continue;
+      if (!box.width || !bubble.textContent.trim()) continue;
       checked.add(bubble);
-      const style = getComputedStyle(bubble);
-      if (style.backgroundColor === 'rgba(0, 0, 0, 0)' || parseFloat(style.borderTopLeftRadius) < 12 || !bubble.textContent.trim()) continue;
+      if (box.width > areaBox.width * 0.9 || bubble.parentElement?.closest(`[${UI}="bubble"]`)) continue;
       mark(bubble, 'bubble');
-      bubble.setAttribute('data-fmess-dir', box.left + box.width / 2 > areaBox.left + areaBox.width / 2 ? 'out' : 'in');
+      bubble.setAttribute('data-fmess-dir', bubbleDir(box, areaBox));
     }
     // A date or time line is a centred text across the whole chat, inside a row.
     for (const row of area.firstElementChild?.firstElementChild?.children ?? []) {
@@ -405,25 +458,41 @@
     if (!body) return;
     const header = body.previousElementSibling;
     mark(header, 'chat-header');
+    const avatar = header.querySelector('a[role="link"] img') ?? header.querySelector('img');
+    if (avatar) mark(pictureBox(avatar, avatar.closest('a') ?? header), 'chat-avatar');
     mark(body.parentElement, 'chat');
     mark(body.firstElementChild, 'messages');
     const details = body.parentElement.nextElementSibling;
     mark(details, 'details');
+    const title = details && textLeaves(details, 1)[0];
+    if (title) {
+      let line = title.el;
+      while (line.parentElement && line.parentElement !== details && line.parentElement.textContent.trim() === title.text) line = line.parentElement;
+      mark(line, 'details-title');
+    }
     const calls = [...header.querySelectorAll('[role="button"]')].filter((button) => !button.closest('a') && button.querySelector('svg'));
     if (calls.length >= 3) {
       mark(calls[calls.length - 3], 'audio-call');
       mark(calls[calls.length - 2], 'video-call');
       mark(calls[calls.length - 1], 'info');
     }
-    let composer = field;
-    for (let hops = 0; composer && hops < 8 && !(parseFloat(getComputedStyle(composer).borderTopWidth) > 0); hops++) composer = composer.parentElement;
-    if (composer && composer !== field) {
+    // The composer's row holds [emoji] [field] [buttons]: the nearest ancestor
+    // with a button before the field. The pill is three levels up (pill > div > div > row).
+    const before = (button) => button.compareDocumentPosition(field) & Node.DOCUMENT_POSITION_FOLLOWING;
+    let row = field.parentElement;
+    for (let hops = 0; row && ![...row.querySelectorAll('[role="button"]')].some(before); hops++) row = hops < 8 ? row.parentElement : null;
+    const composer = row?.parentElement?.parentElement?.parentElement;
+    if (composer && body.contains(composer) && !composer.contains(body.firstElementChild)) {
       mark(composer, 'composer');
       const buttons = [...composer.querySelectorAll('[role="button"]')];
-      const after = buttons.filter((button) => field.compareDocumentPosition(button) & Node.DOCUMENT_POSITION_FOLLOWING);
+      const after = buttons.filter((button) => !before(button) && !field.contains(button));
       const typing = after.some((button) => !button.querySelector('svg'));
-      mark(buttons.find((button) => !after.includes(button)), 'emoji');
+      mark(buttons.find(before), 'emoji');
       after.forEach((button, index) => mark(button, !button.querySelector('svg') ? 'send' : typing ? 'more-actions' : ['voice-clip', 'attach', 'sticker'][index] ?? 'more-actions'));
+      const partOf = (el) => el && [...row.children].find((child) => child.contains(el));
+      mark(partOf(field), 'composer-input');
+      const actions = partOf(after[0]);
+      if (actions && !actions.contains(field)) mark(actions, 'composer-actions');
     }
     markMessages(body.firstElementChild);
   };
