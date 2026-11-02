@@ -67,15 +67,26 @@
   // Whether Messenger is dark: its own setting, or the system's when it follows
   // the system (Facebook then marks only parts of the page). Themes key their
   // dark colours on it: html[data-fmess-dark].
+  // Facebook's own mark on <html>, when it has one, is what the page shows:
+  // it comes first, since the setting is read later (until then fMess has
+  // only the one it saved, which the account may have changed since), and
+  // the theme drew light colours over a page gone dark.
   const systemDark = matchMedia('(prefers-color-scheme: dark)');
   const syncDark = () => {
+    const marks = document.documentElement?.classList;
     const setting = messengerPrefs?.darkMode;
-    const dark =
-      setting === 'ENABLED' || (setting === 'DISABLED' ? false : setting === 'USE_SYSTEM' ? systemDark.matches : (window.__fmessDark ?? systemDark.matches));
-    withRoot((root) => root.toggleAttribute('data-fmess-dark', Boolean(dark)));
+    const dark = marks?.contains('__fb-dark-mode')
+      ? true
+      : marks?.contains('__fb-light-mode')
+        ? false
+        : setting === 'ENABLED' || (setting === 'DISABLED' ? false : setting === 'USE_SYSTEM' ? systemDark.matches : (window.__fmessDark ?? systemDark.matches));
+    withRoot((root) => {
+      if (root.hasAttribute('data-fmess-dark') !== Boolean(dark)) root.toggleAttribute('data-fmess-dark', Boolean(dark));
+    });
   };
   syncDark();
   systemDark.addEventListener('change', syncDark);
+  withRoot((root) => new MutationObserver(syncDark).observe(root, { attributes: true, attributeFilter: ['class'] }));
   const reportMessengerPrefs = async () => {
     const prefs = await readMessengerPrefs().catch(() => null);
     if (!prefs) return false;
