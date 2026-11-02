@@ -582,9 +582,12 @@
   const MEDIA = 'data-fmess-media';
   let viewerOpen = false;
   let viewerCloseTimer;
+  // Facebook doesn't always move to /messenger_media for the viewer, so its
+  // dialog on screen counts too.
+  const isViewerOpen = () => location.pathname.startsWith('/messenger_media') || !!viewerCloseBox();
   const syncRoute = () => {
     document.documentElement.toggleAttribute(CHATS, onChatsPage());
-    const inViewer = location.pathname.startsWith('/messenger_media');
+    const inViewer = isViewerOpen();
     document.documentElement.toggleAttribute(MEDIA, inViewer);
     if (inViewer !== viewerOpen) {
       viewerOpen = inViewer;
@@ -645,6 +648,9 @@
     };
   }
   window.addEventListener('popstate', syncRoute);
+  window.navigation?.addEventListener('currententrychange', syncRoute);
+  // The viewer can open and close without a route change.
+  setInterval(() => document.documentElement && viewerOpen !== isViewerOpen() && syncRoute(), 200);
   withRoot(syncRoute);
 
   // Facebook links in a chat (reels, posts, profiles) open in the browser, so
@@ -1192,10 +1198,16 @@
   const setStyle = (el, prop, value) => {
     if (el.style.getPropertyValue(prop) !== value) el.style.setProperty(prop, value, 'important');
   };
+  // The viewer's own copy of Facebook's top bar (logo and close), while shown.
+  function viewerCloseBox() {
+    const box = [...document.querySelectorAll('[role="dialog"] > div > a[href="/"]')]
+      .map((logo) => logo.parentElement)
+      .find((el) => el.getBoundingClientRect().width > 0);
+    return box?.querySelector('[role="button"]') ? box : null;
+  }
   function placeViewerClose() {
-    const area = (el) => el.getBoundingClientRect().width * el.getBoundingClientRect().height;
-    const dialog = [...document.querySelectorAll('[role="dialog"]')].sort((a, b) => area(b) - area(a))[0];
-    const closeBox = dialog?.querySelector(':scope > div:has(> a[href="/"])');
+    const closeBox = viewerCloseBox();
+    const dialog = closeBox?.parentElement;
     const close = closeBox?.querySelector('[role="button"]');
     if (!close) return;
     // Small buttons near the top, not the tall previous/next ones or the thumbnails.
@@ -1340,6 +1352,20 @@
     }
     event.stopPropagation();
   }
+  // Escape zooms back out, then closes the viewer as its X does.
+  document.addEventListener(
+    'keydown',
+    (event) => {
+      if (!viewerOpen || event.key !== 'Escape' || event.isComposing) return;
+      const close = viewerCloseBox()?.querySelector('[role="button"]');
+      if (!zoom && !close) return;
+      event.preventDefault();
+      event.stopPropagation();
+      if (zoom) resetZoom(true);
+      else close.click();
+    },
+    true,
+  );
   document.addEventListener(
     'dblclick',
     (event) => {
