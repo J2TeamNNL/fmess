@@ -6,6 +6,7 @@ use std::{sync::Mutex, time::Duration};
 
 use tauri::{AppHandle, Runtime};
 use tauri_plugin_dialog::{DialogExt, MessageDialogButtons, MessageDialogKind};
+use tauri_plugin_opener::OpenerExt;
 use tauri_plugin_updater::{Update, UpdaterExt};
 
 use crate::i18n::{self, pick, Lang};
@@ -82,6 +83,13 @@ async fn check<R: Runtime>(app: &AppHandle<R>, asked: bool) {
     }
 }
 
+/// Set when building the Windows app that runs without installing
+/// (fMess-windows-portable.exe, for computers that don't allow installing
+/// software): its updates are downloaded for the user to use in its place,
+/// not installed.
+const PORTABLE: bool = option_env!("FMESS_PORTABLE").is_some();
+const PORTABLE_DOWNLOAD: &str = "https://github.com/toanbku/fmess/releases/latest/download/fMess-windows-portable.exe";
+
 fn offer<R: Runtime>(app: &AppHandle<R>, update: Update) {
     let lang = i18n::current(app);
     let current = app.package_info().version.to_string();
@@ -90,21 +98,37 @@ fn offer<R: Runtime>(app: &AppHandle<R>, update: Update) {
         Lang::Vi => format!("Đã có fMess {}. Bạn đang dùng bản {current}.", update.version),
     };
     let notes = update.body.as_deref().and_then(|notes| notes_in(notes, lang));
-    let message = match notes {
+    let mut message = match notes {
         Some(notes) => format!("{available}\n\n{notes}"),
         None => available,
     };
+    if PORTABLE {
+        message.push_str(pick(
+            lang,
+            "\n\nThis fMess runs without installing: download the new one and use it in place of this file.",
+            "\n\nBản fMess này chạy không cần cài: tải bản mới về rồi dùng thay cho file này.",
+        ));
+    }
     let handle = app.clone();
     app.dialog()
         .message(message)
         .title(pick(lang, "A new version of fMess is available", "Đã có phiên bản fMess mới"))
         .buttons(MessageDialogButtons::OkCancelCustom(
-            pick(lang, "Install and Restart", "Cài và khởi động lại").into(),
+            if PORTABLE {
+                pick(lang, "Download", "Tải về")
+            } else {
+                pick(lang, "Install and Restart", "Cài và khởi động lại")
+            }
+            .into(),
             pick(lang, "Later", "Để sau").into(),
         ))
         .show(move |install| {
             if !install {
                 *POSTPONED.lock().unwrap() = Some(update.version.clone());
+                return;
+            }
+            if PORTABLE {
+                let _ = handle.opener().open_url(PORTABLE_DOWNLOAD, None::<&str>);
                 return;
             }
             tauri::async_runtime::spawn(async move {

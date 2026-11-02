@@ -5,10 +5,35 @@
   const setStyle = (el, prop, value) => {
     if (el.style.getPropertyValue(prop) !== value) el.style.setProperty(prop, value, 'important');
   };
+  // The viewer's own copy of Facebook's top bar (logo and close), while shown.
+  function viewerCloseBox() {
+    const box = [...document.querySelectorAll('[role="dialog"] > div > a[href="/"]')]
+      .map((logo) => logo.parentElement)
+      .find((el) => el.getBoundingClientRect().width > 0);
+    return box?.querySelector('[role="button"]') ? box : null;
+  }
+  // The viewer in a chat (encrypted ones at least) is a layer over the page,
+  // at the same address and with no dialog role. It is found by the download
+  // link in its top bar, next to forward and close (a chat's own files are in
+  // role="main"), and the layer is the window-wide box holding that bar and
+  // the photo.
+  function viewerBar() {
+    const link = [...document.querySelectorAll('a[download]')].find((a) => {
+      if (a.closest('[role="main"]')) return false;
+      const box = a.getBoundingClientRect();
+      return box.width > 0 && box.top < 120;
+    });
+    return link?.closest('div:has([role="button"])') ?? null;
+  }
+  function viewerLayer() {
+    for (let el = viewerBar(); el; el = el.parentElement) {
+      if (el.getBoundingClientRect().width >= innerWidth - 1 && el.querySelector('img, video')) return el;
+    }
+    return null;
+  }
   function placeViewerClose() {
-    const area = (el) => el.getBoundingClientRect().width * el.getBoundingClientRect().height;
-    const dialog = [...document.querySelectorAll('[role="dialog"]')].sort((a, b) => area(b) - area(a))[0];
-    const closeBox = dialog?.querySelector(':scope > div:has(> a[href="/"])');
+    const closeBox = viewerCloseBox();
+    const dialog = closeBox?.parentElement;
     const close = closeBox?.querySelector('[role="button"]');
     if (!close) return;
     // Small buttons near the top, not the tall previous/next ones or the thumbnails.
@@ -43,8 +68,9 @@
   // is a small thumbnail, and the thumbnails at the bottom are small).
   const viewerPhoto = () => {
     const pixels = (img) => img.naturalWidth * img.naturalHeight;
+    const layer = viewerLayer();
     return (
-      [...document.querySelectorAll('[role="dialog"] img')]
+      [...(layer ?? document).querySelectorAll(layer ? 'img' : '[role="dialog"] img')]
         .filter((img) => img.getBoundingClientRect().width > 100)
         .sort((a, b) => pixels(b) - pixels(a))[0] ?? null
     );
@@ -58,9 +84,10 @@
     Object.assign(zoom.img.style, { transition: animate ? 'transform 0.2s' : '', transform: '', cursor: '' });
     zoom = null;
   }
-  // Another photo (the viewer's URL names it) or a closed viewer starts unzoomed.
+  // Another photo (the viewer's URL names it, or the layer viewer swaps the
+  // image's source) or a closed viewer starts unzoomed.
   function dropStaleZoom() {
-    if (zoom && (!zoom.img.isConnected || zoom.page !== location.href)) resetZoom();
+    if (zoom && (!zoom.img.isConnected || zoom.page !== location.href || zoom.src !== zoom.img.src)) resetZoom();
   }
   const startZoom = () => {
     if (zoom) return zoom;
@@ -81,7 +108,7 @@
       });
     }
     img.style.transformOrigin = '0 0';
-    zoom = { img, page: location.href, base: img.getBoundingClientRect(), stage, scale: 1, x: 0, y: 0 };
+    zoom = { img, src: img.src, page: location.href, base: img.getBoundingClientRect(), stage, scale: 1, x: 0, y: 0 };
     return zoom;
   };
   // A photo smaller than the stage stays inside it; a larger one covers it.
@@ -153,6 +180,18 @@
     }
     event.stopPropagation();
   }
+  // Escape zooms back out first. Unzoomed, it is Facebook's: it closes the
+  // viewer, or the menu or dialog open over it.
+  document.addEventListener(
+    'keydown',
+    (event) => {
+      if (!viewerOpen || !zoom || event.key !== 'Escape' || event.isComposing) return;
+      event.preventDefault();
+      event.stopPropagation();
+      resetZoom(true);
+    },
+    true,
+  );
   document.addEventListener(
     'dblclick',
     (event) => {

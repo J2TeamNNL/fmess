@@ -9,9 +9,13 @@
   const MEDIA = 'data-fmess-media';
   let viewerOpen = false;
   let viewerCloseTimer;
+  // Facebook doesn't always move to /messenger_media for the viewer (a
+  // chat's photos open in a layer at the same address), so the viewer on
+  // screen counts too.
+  const isViewerOpen = () => location.pathname.startsWith('/messenger_media') || Boolean(viewerCloseBox() || viewerBar());
   const syncRoute = () => {
     document.documentElement.toggleAttribute(CHATS, onChatsPage());
-    const inViewer = location.pathname.startsWith('/messenger_media');
+    const inViewer = isViewerOpen();
     document.documentElement.toggleAttribute(MEDIA, inViewer);
     if (inViewer !== viewerOpen) {
       viewerOpen = inViewer;
@@ -72,6 +76,9 @@
     };
   }
   window.addEventListener('popstate', syncRoute);
+  window.navigation?.addEventListener('currententrychange', syncRoute);
+  // The viewer can open and close without a route change.
+  setInterval(() => document.documentElement && viewerOpen !== isViewerOpen() && syncRoute(), 200);
   withRoot(syncRoute);
 
   // Facebook links in a chat (reels, posts, profiles) open in the browser, so

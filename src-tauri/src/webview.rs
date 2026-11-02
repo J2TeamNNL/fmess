@@ -122,6 +122,8 @@ pub fn create_main_window<R: Runtime>(app: &AppHandle<R>, settings: &Settings) -
     let size = window.inner_size()?;
     let messenger = configure!(messenger, app, Service::Messenger.label(), Service::Messenger);
     let webview = window.add_child(messenger, PhysicalPosition::new(0, 0), size)?;
+    #[cfg(target_os = "macos")]
+    draw_at_screen_rate(&webview);
     if settings.zoom != 1.0 {
         let _ = webview.set_zoom(settings.zoom);
     }
@@ -138,6 +140,46 @@ pub fn create_main_window<R: Runtime>(app: &AppHandle<R>, settings: &Settings) -
     services::select(app, services::selected(app));
     retry_until_loaded(webview);
     Ok(())
+}
+
+/// WebKit draws a page at most about 60 times a second, even on a 120 Hz
+/// (ProMotion) screen where Chrome draws 120, so scrolling and animations
+/// looked less smooth than in a browser. Safari's Develop menu turns this off
+/// (Feature Flags: "Prefer Page Rendering Updates near 60fps"); fMess turns it
+/// off too, through the same switch, where this WebKit has it.
+#[cfg(target_os = "macos")]
+fn draw_at_screen_rate<R: Runtime>(webview: &Webview<R>) {
+    use objc2::{class, msg_send, runtime::AnyObject, sel};
+    use objc2_foundation::NSString;
+
+    let _ = webview.with_webview(|webview| {
+        let view = webview.inner().cast::<AnyObject>();
+        // SAFETY: WebKit's own switches, looked for before use; on the main thread.
+        unsafe {
+            let listed: bool = msg_send![class!(WKPreferences), respondsToSelector: sel!(_features)];
+            if !listed {
+                return;
+            }
+            let features: *mut AnyObject = msg_send![class!(WKPreferences), _features];
+            let count: usize = msg_send![features, count];
+            let wanted = NSString::from_str("PreferPageRenderingUpdatesNear60FPSEnabled");
+            for index in 0..count {
+                let feature: *mut AnyObject = msg_send![features, objectAtIndex: index];
+                let key: *mut AnyObject = msg_send![feature, key];
+                let found: bool = msg_send![key, isEqualToString: &*wanted];
+                if !found {
+                    continue;
+                }
+                let configuration: *mut AnyObject = msg_send![view, configuration];
+                let preferences: *mut AnyObject = msg_send![configuration, preferences];
+                let settable: bool = msg_send![preferences, respondsToSelector: sel!(_setEnabled:forFeature:)];
+                if settable {
+                    let _: () = msg_send![preferences, _setEnabled: false, forFeature: feature];
+                }
+                return;
+            }
+        }
+    });
 }
 
 /// When the first load fails, as at login before the Mac is online, macOS's
@@ -174,6 +216,8 @@ pub fn add_instagram<R: Runtime>(app: &AppHandle<R>, window: &Window<R>, setting
     let builder = configure!(builder, app, label, Service::Instagram);
     let webview = window.add_child(builder, PhysicalPosition::new(0, 0), PhysicalSize::new(0, 0))?;
     let _ = webview.hide();
+    #[cfg(target_os = "macos")]
+    draw_at_screen_rate(&webview);
     if settings.zoom != 1.0 {
         let _ = webview.set_zoom(settings.zoom);
     }

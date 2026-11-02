@@ -60,12 +60,14 @@ Download the build for your system from the
 |---|---|
 | macOS 12+, Apple silicon (M1 and later) | [fMess-mac-apple-silicon.dmg](https://github.com/toanbku/fmess/releases/latest/download/fMess-mac-apple-silicon.dmg) |
 | macOS 12+, Intel | [fMess-mac-intel.dmg](https://github.com/toanbku/fmess/releases/latest/download/fMess-mac-intel.dmg) |
-| Windows 10 and 11 | [fMess-windows-setup.exe](https://github.com/toanbku/fmess/releases/latest/download/fMess-windows-setup.exe) |
+| Windows 10 and 11 | [fMess-windows-setup.exe](https://github.com/toanbku/fmess/releases/latest/download/fMess-windows-setup.exe) · portable, no installing: [fMess-windows-portable.exe](https://github.com/toanbku/fmess/releases/latest/download/fMess-windows-portable.exe) |
 | Linux | [AppImage](https://github.com/toanbku/fmess/releases/latest/download/fMess-linux.AppImage) · [.deb](https://github.com/toanbku/fmess/releases/latest/download/fMess-linux.deb) · [.rpm](https://github.com/toanbku/fmess/releases/latest/download/fMess-linux.rpm) |
 
 On a Mac you can also use Homebrew: `brew install --cask toanbku/tap/fmess`.
 
 The Mac app is signed and notarized by Apple, so it opens like any other app.
+
+The portable app is a single .exe for computers that don't allow installing software: put it anywhere and open it. Your chats and settings stay in your user folder, as with the installed app. When there is a new version, fMess opens its download; use the new file in place of the old one.
 
 If Windows says it protected your PC, click **More info**, then **Run anyway**:
 fMess isn't code-signed for Windows yet, so SmartScreen doesn't know it.

@@ -30,7 +30,7 @@
   } catch {}
 </script>
 <script src="assets/vendor/motion-14.3.0.js" defer></script>
-<script src="assets/site.js?v=12" defer></script>
+<script src="assets/site.js?v=14" defer></script>
 <link rel="stylesheet" href="assets/site.css?v=11">
 <!-- What fMess is, for search engines and AI assistants (schema.org). -->
 <script type="application/ld+json">
@@ -372,7 +372,9 @@
         <p class="muted" data-i18n="windows_text">Windows 10 and 11</p>
         <div class="choices">
           <a class="btn btn-primary" href="https://github.com/toanbku/fmess/releases/latest/download/fMess-windows-setup.exe" data-i18n="windows_button">Download for Windows</a>
+          <a class="btn btn-ghost" href="https://github.com/toanbku/fmess/releases/latest/download/fMess-windows-portable.exe" data-i18n="windows_portable">Portable</a>
         </div>
+        <p class="which" data-i18n="windows_which">Portable: one .exe that runs without installing, for computers that don't allow installing apps.</p>
       </div>
       <div class="card platform">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2c-2.2 0-3.5 1.8-3.5 4.5 0 1.6-.6 2.6-1.5 4C5.6 12.6 4 15 5 18c.6 1.8 2.6 3 4 2.4.9-.4 1.8-.6 3-.6s2.1.2 3 .6c1.4.6 3.4-.6 4-2.4 1-3-.6-5.4-2-7.5-.9-1.4-1.5-2.4-1.5-4C15.5 3.8 14.2 2 12 2Z"/><circle cx="10.5" cy="7" r=".6" fill="currentColor"/><circle cx="13.5" cy="7" r=".6" fill="currentColor"/></svg>
@@ -397,6 +399,7 @@
     <details><summary data-i18n="q2">Why not messenger.com?</summary><p data-i18n="a2">Meta shut it down in April 2026. Chats now live inside facebook.com.</p></details>
     <details><summary data-i18n="q3">Is it safe to sign in?</summary><p data-i18n="a3">You sign in on Facebook's own page. fMess never sees your password and has no server.</p></details>
     <details><summary data-i18n="q4">Do encrypted chats work?</summary><p data-i18n="a4">Yes: chats, calls on macOS, photos and voice messages.</p></details>
+    <details><summary data-i18n="q6">My work computer doesn't allow installing apps?</summary><p data-i18n="a6">On Windows, use <a href="https://github.com/toanbku/fmess/releases/latest/download/fMess-windows-portable.exe">the portable fMess</a>: one .exe that runs without installing and needs no admin rights. Keep it anywhere, in Downloads or on a USB stick, and open it. When there is a new version, fMess opens its download; use the new file in place of the old one. On a Mac, the app from the .dmg also runs from any folder.</p></details>
     <details><summary data-i18n="q5">Windows says it can't find the WebView2 Runtime?</summary><p data-i18n="a5">fMess uses WebView2, the part of Windows that shows web pages in apps. Windows 10 and 11 come with it, but some trimmed-down builds remove it. Install it from <a href="https://developer.microsoft.com/microsoft-edge/webview2">Microsoft's WebView2 page</a> (the Evergreen installer), then open fMess again.</p></details>
   </div>
 </section>

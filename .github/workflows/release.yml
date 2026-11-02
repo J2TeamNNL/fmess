@@ -159,6 +159,25 @@ jobs:
           ls -la stable
           gh release upload "${{ github.ref_name }}" stable/* --clobber --repo "${{ github.repository }}"
 
+      # Windows also as one .exe that runs without installing, for computers
+      # that don't allow installing software. Built again with FMESS_PORTABLE
+      # set (only fMess's own crate compiles again), so its update prompt
+      # downloads the new .exe instead of running the installer.
+      - name: Attach the portable Windows app
+        if: runner.os == 'Windows'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          FMESS_PORTABLE: '1'
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        run: |
+          npx tauri build --no-bundle ${{ steps.options.outputs.args }}
+          mkdir -p portable
+          cp src-tauri/target/release/fmess.exe portable/fMess-windows-portable.exe
+          ls -la portable
+          gh release upload "${{ github.ref_name }}" portable/fMess-windows-portable.exe --clobber --repo "${{ github.repository }}"
+
   # Each build adds its platforms to latest.json, the file the app's updater
   # reads; make sure none went missing before the draft is published.
   check:
@@ -178,3 +197,4 @@ jobs:
             jq -e ".platforms[\"$platform\"]" latest.json > /dev/null || { echo "latest.json has no $platform"; exit 1; }
           done
           jq -r '.platforms | keys | join(", ")' latest.json
+          gh api "repos/$REPO/releases/$ID" --jq '.assets[].name' | grep -qx fMess-windows-portable.exe || { echo "No fMess-windows-portable.exe"; exit 1; }

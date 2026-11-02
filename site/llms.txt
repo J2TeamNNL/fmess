@@ -7,7 +7,7 @@ Key facts:
 - Website: https://fmess.app (English and Vietnamese).
 - Source code: https://github.com/toanbku/fmess (MIT license). Built with Tauri v2 (Rust) and the system webview: WebKit on macOS and Linux, WebView2 on Windows.
 - Price: free. No account other than your Facebook one.
-- Systems: macOS 12 or later (Apple silicon and Intel), Windows 10 and 11, Linux (AppImage, .deb, .rpm).
+- Systems: macOS 12 or later (Apple silicon and Intel), Windows 10 and 11 (installer or portable .exe), Linux (AppImage, .deb, .rpm).
 - Updates: the app checks GitHub for new versions and installs them when you say so.
 - Not affiliated with, endorsed by or sponsored by Meta Platforms, Inc. Messenger and Facebook are trademarks of Meta Platforms, Inc.
 
@@ -18,6 +18,7 @@ Key facts:
 - macOS with Homebrew: `brew install --cask toanbku/tap/fmess`
 - [macOS, Intel](https://github.com/toanbku/fmess/releases/latest/download/fMess-mac-intel.dmg): disk image, signed and notarized.
 - [Windows 10 and 11](https://github.com/toanbku/fmess/releases/latest/download/fMess-windows-setup.exe): installer. Not code-signed yet, so SmartScreen may warn: click "More info", then "Run anyway".
+- [Windows portable](https://github.com/toanbku/fmess/releases/latest/download/fMess-windows-portable.exe): one .exe that runs without installing, for computers that don't allow installing software. Same app; its update prompt opens the new .exe's download instead of installing.
 - [Linux AppImage](https://github.com/toanbku/fmess/releases/latest/download/fMess-linux.AppImage), [.deb](https://github.com/toanbku/fmess/releases/latest/download/fMess-linux.deb), [.rpm](https://github.com/toanbku/fmess/releases/latest/download/fMess-linux.rpm)
 
 ## Features
