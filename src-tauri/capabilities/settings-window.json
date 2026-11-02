@@ -1,7 +1,7 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "settings-window",
-  "description": "The local Settings window reads and saves fMess's settings, Messenger's preferences through fMess's window, sends a test notification, and lists, adds and removes themes.",
+  "description": "The local Settings window reads and saves fMess's settings, Messenger's preferences through fMess's window, sends a test notification, lists, adds and removes themes, and chooses or resets the app icon.",
   "windows": [
     "settings"
   ],
@@ -13,6 +13,8 @@
     "allow-test-notification",
     "allow-list-themes",
     "allow-add-theme",
-    "allow-remove-theme"
+    "allow-remove-theme",
+    "allow-choose-app-icon",
+    "allow-reset-app-icon"
   ]
 }

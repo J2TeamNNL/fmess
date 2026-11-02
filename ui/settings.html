@@ -84,7 +84,7 @@
 
   /* Flat controls: WebKit's own popup buttons keep a light gradient that
      smears in the dark theme. */
-  select, button {
+  select, button, input[type="text"] {
     font: inherit;
     color: var(--text);
     background-color: var(--control);
@@ -94,6 +94,7 @@
     min-height: 26px;
     box-shadow: 0 0.5px 1px rgba(0, 0, 0, 0.08);
   }
+  input[type="text"] { width: 160px; box-shadow: none; }
   select {
     -webkit-appearance: none;
     appearance: none;
@@ -330,6 +331,21 @@
       </span>
       <span class="switch"><input type="checkbox" data-key="themeIcon"><span></span></span>
     </label>
+    <div class="row">
+      <span class="label"><span data-i18n="appIcon">App icon</span>
+        <span class="hint" data-i18n="appIconHint">Use your own .png or .ico picture as fMess's icon in the Dock, taskbar and tray. The loading screen shows it from the next start.</span>
+      </span>
+      <span class="controls">
+        <button type="button" id="choose-icon" data-i18n="choose">Choose…</button>
+        <button type="button" id="reset-icon" data-i18n="reset" hidden>Reset</button>
+      </span>
+    </div>
+    <label class="row">
+      <span class="label"><span data-i18n="appName">App name</span>
+        <span class="hint" data-i18n="appNameHint">Shown on fMess's windows, tray icon and notifications. The Dock, Start menu and Finder keep the name fMess.</span>
+      </span>
+      <input type="text" data-key="appName" placeholder="fMess" maxlength="40" spellcheck="false" autocomplete="off">
+    </label>
     <label class="row">
       <span class="label"><span data-i18n="hideAvatars">Hide profile pictures</span>
         <span class="hint" data-i18n="hideAvatarsHint">Shows people's initials instead, for screens others can see.</span>
@@ -425,6 +441,12 @@
     remove: 'Xoá',
     themeIcon: 'Biểu tượng ứng dụng theo theme',
     themeIconHint: 'Với Zalo, WhatsApp hoặc Teams, biểu tượng là logo của app đó kèm huy hiệu fMess.',
+    appIcon: 'Biểu tượng ứng dụng',
+    appIconHint: 'Dùng ảnh .png hoặc .ico của bạn làm biểu tượng fMess trên Dock, thanh tác vụ và khay hệ thống. Màn hình chờ sẽ đổi theo từ lần mở app sau.',
+    choose: 'Chọn…',
+    reset: 'Đặt lại',
+    appName: 'Tên ứng dụng',
+    appNameHint: 'Tên hiện trên cửa sổ, khay hệ thống và thông báo. Riêng Dock, menu Start và Finder vẫn giữ tên fMess.',
     hideAvatars: 'Ẩn ảnh đại diện',
     hideAvatarsHint: 'Chỉ hiện chữ cái đầu của tên, tiện khi người khác nhìn thấy màn hình.',
     darkMode: 'Chế độ tối',
@@ -463,8 +485,11 @@
       shownPrefs = null;
     }
     renderTheme();
+    document.getElementById('reset-icon').hidden = !view.customIcon;
     for (const input of inputs) {
       const value = view[input.dataset.key];
+      // The settings are read again every few seconds; don't undo typing.
+      if (input.type === 'text' && input === document.activeElement) continue;
       if (input.type === 'checkbox') input.checked = Boolean(value);
       else input.value = String(value ?? '');
     }
@@ -587,13 +612,32 @@
     }
   });
   loadThemes();
+  document.getElementById('choose-icon').addEventListener('click', async () => {
+    try {
+      if (await invoke('choose_app_icon')) render(await invoke('get_settings'));
+      errorBox.textContent = '';
+    } catch (err) {
+      showError(err);
+    }
+  });
+  document.getElementById('reset-icon').addEventListener('click', async () => {
+    try {
+      await invoke('reset_app_icon');
+      render(await invoke('get_settings'));
+    } catch (err) {
+      showError(err);
+    }
+  });
 
   async function save() {
     const { launchAtLogin, platform, messenger, lang: _, ...settings } = current;
     for (const input of inputs) {
       const key = input.dataset.key;
       // The language is "en", "vi" or none (Automatic); the other selects are numbers.
-      const value = input.type === 'checkbox' ? input.checked : key === 'language' ? input.value || null : Number(input.value);
+      const value =
+        input.type === 'checkbox' ? input.checked
+        : input.type === 'text' || key === 'language' ? input.value.trim() || null
+        : Number(input.value);
       if (key === 'launchAtLogin') continue;
       settings[key] = value;
     }

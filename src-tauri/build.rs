@@ -44,6 +44,8 @@ fn main() {
                 "remove_theme",
                 "select_service",
                 "set_account",
+                "choose_app_icon",
+                "reset_app_icon",
             ])),
     )
     .expect("failed to run tauri-build");

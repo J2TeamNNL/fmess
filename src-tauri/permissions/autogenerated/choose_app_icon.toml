@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-choose-app-icon"
+description = "Enables the choose_app_icon command without any pre-configured scope."
+commands.allow = ["choose_app_icon"]
+
+[[permission]]
+identifier = "deny-choose-app-icon"
+description = "Denies the choose_app_icon command without any pre-configured scope."
+commands.deny = ["choose_app_icon"]

@@ -67,6 +67,8 @@ fn main() {
             themes::list_themes,
             themes::add_theme,
             themes::remove_theme,
+            icon::choose_app_icon,
+            icon::reset_app_icon,
             webview::set_viewer_open,
             menu::show_account_menu,
             menu::menu_shortcut,

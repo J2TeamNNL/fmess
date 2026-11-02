@@ -127,7 +127,7 @@ pub async fn notify<R: Runtime>(
         } else {
             communication::Notification {
                 thread: service_thread,
-                ..communication::Notification::plain(id, "fMess", new_message)
+                ..communication::Notification::plain(id, settings.app_name(), new_message)
             }
         };
         communication::show(notification);
@@ -137,7 +137,7 @@ pub async fn notify<R: Runtime>(
     let (title, body) = if settings.notification_preview {
         (title, body)
     } else {
-        ("fMess".to_owned(), new_message.to_owned())
+        (settings.app_name().to_owned(), new_message.to_owned())
     };
     app.notification()
         .builder()
@@ -153,7 +153,8 @@ pub async fn notify<R: Runtime>(
 /// path messages use, and says what went wrong when it can.
 #[tauri::command]
 pub fn test_notification<R: Runtime>(app: AppHandle<R>) -> Result<(), String> {
-    let (title, body) = ("fMess", pick(i18n::current(&app), "Notifications are working.", "Thông báo đã hoạt động."));
+    let settings = settings::current(&app);
+    let (title, body) = (settings.app_name(), pick(i18n::current(&app), "Notifications are working.", "Thông báo đã hoạt động."));
     #[cfg(target_os = "macos")]
     if communication::available() {
         communication::show(communication::Notification::plain(0, title, body));

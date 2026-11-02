@@ -47,6 +47,10 @@ pub struct Settings {
     pub theme: Option<String>,
     /// The app's icon shows the theme's (see icon.rs).
     pub theme_icon: bool,
+    /// The name on fMess's windows, tray and notifications; none is "fMess".
+    pub app_name: Option<String>,
+    /// A picture chosen in Settings is the app's icon (see icon.rs).
+    pub custom_icon: bool,
     /// Widths the panes were dragged to; none keeps Facebook's.
     pub pane_widths: PaneWidths,
     /// Instagram's chats run beside Messenger's. Off by default: its web
@@ -96,6 +100,8 @@ impl Default for Settings {
             messenger_dark_mode: None,
             theme: None,
             theme_icon: true,
+            app_name: None,
+            custom_icon: false,
             pane_widths: PaneWidths::default(),
             instagram: false,
             instagram_icon: true,
@@ -103,6 +109,12 @@ impl Default for Settings {
             sidebar_collapsed: false,
             language: None,
         }
+    }
+}
+
+impl Settings {
+    pub fn app_name(&self) -> &str {
+        self.app_name.as_deref().map(str::trim).filter(|name| !name.is_empty()).unwrap_or("fMess")
     }
 }
 
@@ -209,16 +221,24 @@ pub fn update_settings<R: Runtime>(
     }
 
     let settings = change(&app, |current| {
-        // Kept by the page and the rail, not edited in the Settings window.
-        let kept = (current.messenger_dark_mode.take(), std::mem::take(&mut current.pane_widths), current.last_service);
+        // Kept by the page, the rail and the icon commands, not edited in the Settings window.
+        let kept = (
+            current.messenger_dark_mode.take(),
+            std::mem::take(&mut current.pane_widths),
+            current.last_service,
+            current.custom_icon,
+        );
         let sidebar_collapsed = current.sidebar_collapsed && current.theme == settings.theme;
         *current = settings;
-        (current.messenger_dark_mode, current.pane_widths, current.last_service) = kept;
+        (current.messenger_dark_mode, current.pane_widths, current.last_service, current.custom_icon) = kept;
         current.sidebar_collapsed = sidebar_collapsed;
     })?;
 
     if settings.theme != previous.theme || settings.theme_icon != previous.theme_icon {
         icon::apply(&app);
+    }
+    if settings.app_name() != previous.app_name() {
+        apply_app_name(&app, settings.app_name());
     }
     let lang = Lang::from_setting(settings.language.as_deref());
     let language_changed = lang != Lang::from_setting(previous.language.as_deref());
@@ -414,6 +434,25 @@ pub fn clear_theme<R: Runtime>(app: &AppHandle<R>) -> Result<(), String> {
 
 pub fn set_last_service<R: Runtime>(app: &AppHandle<R>, service: Service) -> Result<(), String> {
     change(app, |settings| settings.last_service = service).map(drop)
+}
+
+/// Called by the icon commands (icon.rs), which keep the picture itself.
+pub fn set_custom_icon<R: Runtime>(app: &AppHandle<R>, on: bool) -> Result<(), String> {
+    change(app, |settings| settings.custom_icon = on).map(drop)
+}
+
+/// Renames fMess's open windows and tray icon; the Dock, the menu bar and the
+/// Start menu keep the name it was installed with.
+fn apply_app_name<R: Runtime>(app: &AppHandle<R>, name: &str) {
+    if let Some(window) = services::main_window(app) {
+        let _ = window.set_title(name);
+    }
+    for (label, window) in app.webview_windows() {
+        if label != SETTINGS_WINDOW {
+            let _ = window.set_title(name);
+        }
+    }
+    menu::set_tooltip(app, name);
 }
 
 /// Changes the settings and saves them. The lock is held from reading to

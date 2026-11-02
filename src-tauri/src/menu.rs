@@ -37,7 +37,7 @@ const INSTAGRAM: &str = "instagram";
 pub fn install<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<()> {
     let lang = i18n::current(app);
     let mut tray = TrayIconBuilder::with_id(TRAY)
-        .tooltip("fMess")
+        .tooltip(settings::current(app).app_name())
         .menu(&tray_menu(app, lang)?)
         // Left click shows the window; the menu stays on right click.
         .show_menu_on_left_click(false)
@@ -59,6 +59,12 @@ pub fn install<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<()> {
     #[cfg(target_os = "macos")]
     app.set_menu(app_menu(app, lang)?)?;
     Ok(())
+}
+
+pub fn set_tooltip<R: Runtime>(app: &AppHandle<R>, name: &str) {
+    if let Some(tray) = app.tray_by_id(TRAY) {
+        let _ = tray.set_tooltip(Some(name));
+    }
 }
 
 /// Builds the menus again in another language (chosen in Settings).
