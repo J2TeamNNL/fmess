@@ -31,8 +31,11 @@ Key facts:
 - Zoomable photos: pinch or double-click in the photo viewer.
 - Unread badge on the Dock or taskbar, a tray icon, keeps running in the background.
 - Resizable panes: drag the edges of the chat list and the chat details; double-click an edge to reset.
-- Themes: Messenger's own look, or Zalo and WhatsApp looks (Messenger underneath), each in light and dark. With the Zalo or WhatsApp theme, fMess's icon (Dock, taskbar, tray) becomes that app's logo with a small fMess badge while it runs (a switch in Settings turns this off).
+- Themes: Messenger's own look, or Zalo, WhatsApp and Microsoft Teams looks (Messenger underneath), each in light and dark. With the Zalo, WhatsApp or Teams theme, fMess's icon (Dock, taskbar, tray) becomes that app's logo with a small fMess badge while it runs (a switch in Settings turns this off).
+- Hide profile pictures (Settings, Appearance): people's pictures show as their initials, for screens others can see; notifications then go without them.
+- Drag files and screenshots into a chat to send them.
 - Links in chats open in the default browser without Facebook's redirect and tracking tags.
+- fMess's own interface (menus, Settings, dialogs) is in English and Vietnamese: it follows the system's language, or the one chosen in Settings. Messenger itself follows the Facebook account's language.
 
 ## Compared with other apps
 
