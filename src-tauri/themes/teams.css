@@ -951,6 +951,11 @@ html[data-fmess-chats] [role="main"] [data-message-id] [dir="auto"] {
   font-size: 14px !important;
   line-height: 20px !important;
 }
+/* Someone typing: their picture and dots in line with the messages'
+   (Messenger sets them 8px further left). */
+html[data-fmess-chats] [role="main"] [role="log"] [aria-hidden="true"]:not([data-message-id] *):has(> div[role="presentation"] + div [role="presentation"]) > div[role="presentation"]:first-child {
+  padding-left: 14px !important;
+}
 /* The sender's name above a group's messages: Teams' small grey line. */
 html[data-fmess-chats] [role="main"] [data-scope="messages_table"] h4 span {
   font-size: 12px !important;
