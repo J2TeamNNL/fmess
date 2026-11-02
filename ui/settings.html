@@ -365,7 +365,7 @@
     for (const el of document.querySelectorAll('[data-only="macos"]')) el.hidden = !mac;
     for (const el of document.querySelectorAll('[data-tray]')) el.textContent = mac ? 'menu bar' : 'tray';
     document.querySelector('[data-zoom-shortcuts]').textContent = mac ? '⌘+  ⌘−  ⌘0' : 'Ctrl+  Ctrl−  Ctrl+0';
-    document.querySelector('[data-service-shortcuts]').textContent = mac ? '⌃⌘1 and ⌃⌘2' : 'Ctrl+Win+1 and Ctrl+Win+2';
+    document.querySelector('[data-service-shortcuts]').textContent = mac ? '⌃⌘1 and ⌃⌘2' : 'Ctrl+Alt+1 and Ctrl+Alt+2';
     renderMessenger(view.messenger);
   }
 

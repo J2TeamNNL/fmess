@@ -444,7 +444,7 @@ html[data-fmess-dark] {
 
 /* Composer: a white pill floating over the chat, with + and the smiley
    before the box and the microphone after it. */
-html:not([data-fmess-service="instagram"]) [role="main"] [role="region"]:is([aria-label="Thread composer"], [data-fmess-ui="composer"]) {
+:where(html:not([data-fmess-service="instagram"])) [role="main"] [role="region"]:is([aria-label="Thread composer"], [data-fmess-ui="composer"]) {
   margin: 0 12px 12px !important;
   min-height: 52px !important;
   padding: 0 8px !important;
@@ -454,62 +454,62 @@ html:not([data-fmess-service="instagram"]) [role="main"] [role="region"]:is([ari
   background: var(--wa-composer) !important;
   box-shadow: 0 1px 6px var(--wa-shadow) !important;
 }
-html:not([data-fmess-service="instagram"]) [role="main"] div:has(> [role="region"]:is([aria-label="Thread composer"], [data-fmess-ui="composer"])) {
+:where(html:not([data-fmess-service="instagram"])) [role="main"] div:has(> [role="region"]:is([aria-label="Thread composer"], [data-fmess-ui="composer"])) {
   background: transparent !important;
 }
-html:not([data-fmess-service="instagram"]) :is([aria-label="Thread composer"], [data-fmess-ui="composer"]) > div:has(+ div [role="textbox"]) {
+:where(html:not([data-fmess-service="instagram"])) :is([aria-label="Thread composer"], [data-fmess-ui="composer"]) > div:has(+ div [role="textbox"]) {
   display: contents !important;
 }
-html:not([data-fmess-service="instagram"]) :is([aria-label="Thread composer"], [data-fmess-ui="composer"]) div:has(> span :is([aria-label="Attach a file up to 100 MB"], [data-fmess-ui="attach"])),
-html:not([data-fmess-service="instagram"]) :is([aria-label="Thread composer"], [data-fmess-ui="composer"]) div:has(> span :is([aria-label="Open more actions"], [data-fmess-ui="more-actions"])) { order: 1; }
-html:not([data-fmess-service="instagram"]) :is([aria-label="Thread composer"], [data-fmess-ui="composer"]) div:has(> span :is([aria-label="Choose a sticker"], [data-fmess-ui="sticker"])) { order: 2; }
-html:not([data-fmess-service="instagram"]) :is([aria-label="Thread composer"], [data-fmess-ui="composer"]) div:has(> span :is([aria-label="Choose a GIF"], [data-fmess-ui="gif"])) { display: none !important; }
-html:not([data-fmess-service="instagram"]) :is([aria-label="Thread composer"], [data-fmess-ui="composer"]) > div:has([role="textbox"]) { order: 3; flex: 1 1 0 !important; }
-html:not([data-fmess-service="instagram"]) :is([aria-label="Thread composer"], [data-fmess-ui="composer"]) div:has(> span :is([aria-label="Send a voice clip"], [data-fmess-ui="voice-clip"])) { order: 4; }
-html:not([data-fmess-service="instagram"]) :is([aria-label="Thread composer"], [data-fmess-ui="composer"]) > span { order: 5; }
-html:not([data-fmess-service="instagram"]) :is([aria-label="Thread composer"], [data-fmess-ui="composer"]) > span:has([role="button"]:is([aria-label^="Send a"], [data-fmess-ui="like"])) { display: none !important; }
-html:not([data-fmess-service="instagram"]) :is([aria-label="Thread composer"], [data-fmess-ui="composer"]) :is(:is([aria-label="Attach a file up to 100 MB"], [data-fmess-ui="attach"]), :is([aria-label="Open more actions"], [data-fmess-ui="more-actions"]), :is([aria-label="Choose a sticker"], [data-fmess-ui="sticker"]), :is([aria-label="Send a voice clip"], [data-fmess-ui="voice-clip"])) svg {
+:where(html:not([data-fmess-service="instagram"])) :is([aria-label="Thread composer"], [data-fmess-ui="composer"]) div:has(> span :is([aria-label="Attach a file up to 100 MB"], [data-fmess-ui="attach"])),
+:where(html:not([data-fmess-service="instagram"])) :is([aria-label="Thread composer"], [data-fmess-ui="composer"]) div:has(> span :is([aria-label="Open more actions"], [data-fmess-ui="more-actions"])) { order: 1; }
+:where(html:not([data-fmess-service="instagram"])) :is([aria-label="Thread composer"], [data-fmess-ui="composer"]) div:has(> span :is([aria-label="Choose a sticker"], [data-fmess-ui="sticker"])) { order: 2; }
+:where(html:not([data-fmess-service="instagram"])) :is([aria-label="Thread composer"], [data-fmess-ui="composer"]) div:has(> span :is([aria-label="Choose a GIF"], [data-fmess-ui="gif"])) { display: none !important; }
+:where(html:not([data-fmess-service="instagram"])) :is([aria-label="Thread composer"], [data-fmess-ui="composer"]) > div:has([role="textbox"]) { order: 3; flex: 1 1 0 !important; }
+:where(html:not([data-fmess-service="instagram"])) :is([aria-label="Thread composer"], [data-fmess-ui="composer"]) div:has(> span :is([aria-label="Send a voice clip"], [data-fmess-ui="voice-clip"])) { order: 4; }
+:where(html:not([data-fmess-service="instagram"])) :is([aria-label="Thread composer"], [data-fmess-ui="composer"]) > span { order: 5; }
+:where(html:not([data-fmess-service="instagram"])) :is([aria-label="Thread composer"], [data-fmess-ui="composer"]) > span:has([role="button"]:is([aria-label^="Send a"], [data-fmess-ui="like"])) { display: none !important; }
+:where(html:not([data-fmess-service="instagram"])) :is([aria-label="Thread composer"], [data-fmess-ui="composer"]) :is(:is([aria-label="Attach a file up to 100 MB"], [data-fmess-ui="attach"]), :is([aria-label="Open more actions"], [data-fmess-ui="more-actions"]), :is([aria-label="Choose a sticker"], [data-fmess-ui="sticker"]), :is([aria-label="Send a voice clip"], [data-fmess-ui="voice-clip"])) svg {
   width: 24px !important;
   height: 24px !important;
   background: var(--wa-icon);
 }
-html:not([data-fmess-service="instagram"]) :is([aria-label="Thread composer"], [data-fmess-ui="composer"]) :is(:is([aria-label="Attach a file up to 100 MB"], [data-fmess-ui="attach"]), :is([aria-label="Open more actions"], [data-fmess-ui="more-actions"]), :is([aria-label="Choose a sticker"], [data-fmess-ui="sticker"]), :is([aria-label="Send a voice clip"], [data-fmess-ui="voice-clip"])) svg * {
+:where(html:not([data-fmess-service="instagram"])) :is([aria-label="Thread composer"], [data-fmess-ui="composer"]) :is(:is([aria-label="Attach a file up to 100 MB"], [data-fmess-ui="attach"]), :is([aria-label="Open more actions"], [data-fmess-ui="more-actions"]), :is([aria-label="Choose a sticker"], [data-fmess-ui="sticker"]), :is([aria-label="Send a voice clip"], [data-fmess-ui="voice-clip"])) svg * {
   visibility: hidden;
 }
-html:not([data-fmess-service="instagram"]) :is([aria-label="Thread composer"], [data-fmess-ui="composer"]) :is(:is([aria-label="Attach a file up to 100 MB"], [data-fmess-ui="attach"]), :is([aria-label="Open more actions"], [data-fmess-ui="more-actions"])) svg {
+:where(html:not([data-fmess-service="instagram"])) :is([aria-label="Thread composer"], [data-fmess-ui="composer"]) :is(:is([aria-label="Attach a file up to 100 MB"], [data-fmess-ui="attach"]), :is([aria-label="Open more actions"], [data-fmess-ui="more-actions"])) svg {
   -webkit-mask: var(--wa-mask-plus) center / 24px 24px no-repeat;
 }
-html:not([data-fmess-service="instagram"]) :is([aria-label="Thread composer"], [data-fmess-ui="composer"]) :is([aria-label="Choose a sticker"], [data-fmess-ui="sticker"]) svg {
+:where(html:not([data-fmess-service="instagram"])) :is([aria-label="Thread composer"], [data-fmess-ui="composer"]) :is([aria-label="Choose a sticker"], [data-fmess-ui="sticker"]) svg {
   -webkit-mask: var(--wa-mask-smile) center / 24px 24px no-repeat;
 }
-html:not([data-fmess-service="instagram"]) :is([aria-label="Thread composer"], [data-fmess-ui="composer"]) :is([aria-label="Send a voice clip"], [data-fmess-ui="voice-clip"]) svg {
+:where(html:not([data-fmess-service="instagram"])) :is([aria-label="Thread composer"], [data-fmess-ui="composer"]) :is([aria-label="Send a voice clip"], [data-fmess-ui="voice-clip"]) svg {
   -webkit-mask: var(--wa-mask-mic) center / 24px 24px no-repeat;
 }
-html:not([data-fmess-service="instagram"]) :is([aria-label="Thread composer"], [data-fmess-ui="composer"]) :is([aria-label="Press enter to send"], [data-fmess-ui="send"]) {
+:where(html:not([data-fmess-service="instagram"])) :is([aria-label="Thread composer"], [data-fmess-ui="composer"]) :is([aria-label="Press enter to send"], [data-fmess-ui="send"]) {
   width: 40px !important;
   height: 40px !important;
   border-radius: 20px !important;
   background: var(--wa-green) !important;
 }
-html:not([data-fmess-service="instagram"]) :is([aria-label="Thread composer"], [data-fmess-ui="composer"]) :is([aria-label="Press enter to send"], [data-fmess-ui="send"]) svg {
+:where(html:not([data-fmess-service="instagram"])) :is([aria-label="Thread composer"], [data-fmess-ui="composer"]) :is([aria-label="Press enter to send"], [data-fmess-ui="send"]) svg {
   width: 24px !important;
   height: 24px !important;
   background: var(--wa-on-green);
   -webkit-mask: var(--wa-mask-send) center / 24px 24px no-repeat;
 }
-html:not([data-fmess-service="instagram"]) :is([aria-label="Thread composer"], [data-fmess-ui="composer"]) :is([aria-label="Press enter to send"], [data-fmess-ui="send"]) svg * {
+:where(html:not([data-fmess-service="instagram"])) :is([aria-label="Thread composer"], [data-fmess-ui="composer"]) :is([aria-label="Press enter to send"], [data-fmess-ui="send"]) svg * {
   visibility: hidden;
 }
-html:not([data-fmess-service="instagram"]) :is([aria-label="Thread composer"], [data-fmess-ui="composer"]) [role="textbox"] {
+:where(html:not([data-fmess-service="instagram"])) :is([aria-label="Thread composer"], [data-fmess-ui="composer"]) [role="textbox"] {
   font-size: 15px !important;
 }
 
 /* Details: WhatsApp's "Contact info". */
-html:not([data-fmess-service="instagram"]) [role="main"] [data-fmess-ui="details"] {
+:where(html:not([data-fmess-service="instagram"])) [role="main"] [data-fmess-ui="details"] {
   background: var(--wa-panel) !important;
   box-shadow: none !important;
 }
-html:not([data-fmess-service="instagram"]) [role="main"] [data-fmess-ui="details"]::before {
+:where(html:not([data-fmess-service="instagram"])) [role="main"] [data-fmess-ui="details"]::before {
   content: "Contact info";
   display: block;
   flex: none;

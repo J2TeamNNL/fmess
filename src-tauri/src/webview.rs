@@ -156,7 +156,7 @@ pub fn add_instagram<R: Runtime>(app: &AppHandle<R>, window: &Window<R>, setting
 /// The settings may have changed since the web view opened.
 fn apply_page_settings<R: Runtime>(webview: &Webview<R>) {
     let app = webview.app_handle();
-    let _ = webview.eval(settings::page_settings_script(app, &settings::current(app)));
+    let _ = webview.eval(settings::page_settings_script(webview, &settings::current(app)));
 }
 
 /// The bar down the left (ui/rail.html), which services::layout places.
@@ -296,7 +296,7 @@ fn initialization_script<R: Runtime>(app: &AppHandle<R>, service: Service) -> St
              window.__fmessDebug = {debug};\n\
              window.__fmessSettings = {};\n\
              {INSTAGRAM_SCRIPT}",
-            settings::page_settings(app, &settings)
+            settings::page_settings(app, &settings, service)
         );
     }
     let logo = base64::engine::general_purpose::STANDARD.encode(SPLASH_LOGO);
@@ -307,7 +307,7 @@ fn initialization_script<R: Runtime>(app: &AppHandle<R>, service: Service) -> St
          window.__fmessDark = {dark};\n\
          window.__fmessSplashLogo = 'data:image/png;base64,{logo}';\n\
          {INJECTED_SCRIPT}",
-        settings::page_settings(app, &settings)
+        settings::page_settings(app, &settings, service)
     )
 }
 

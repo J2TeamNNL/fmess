@@ -103,7 +103,7 @@ fn main() {
                         window.app_handle().exit(0);
                     }
                 }
-                WindowEvent::Resized(_) | WindowEvent::ScaleFactorChanged { .. } => services::layout(window),
+                WindowEvent::Resized(_) | WindowEvent::ScaleFactorChanged { .. } => services::relayout(window),
                 _ => {}
             }
         })

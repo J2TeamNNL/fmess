@@ -1447,8 +1447,10 @@
     'keydown',
     (event) => {
       const primary = isMac ? event.metaKey : event.ctrlKey;
-      // Ctrl+Cmd+1/2 switch services (menu.rs); on macOS the menu bar takes them.
-      const service = event.ctrlKey && event.metaKey && !event.shiftKey && !event.altKey && SERVICE_KEYS[event.code];
+      // Ctrl+Cmd+1/2 switch services (menu.rs); on macOS the menu bar takes
+      // them. Windows keeps Ctrl+Win+digit, so there and on Linux: Ctrl+Alt+1/2.
+      const serviceChord = isMac ? event.metaKey && !event.altKey : event.altKey && !event.metaKey;
+      const service = event.ctrlKey && serviceChord && !event.shiftKey && SERVICE_KEYS[event.code];
       if (service) {
         if (!isMac) {
           event.preventDefault();

@@ -1,4 +1,7 @@
-use std::sync::Mutex;
+use std::sync::{
+    atomic::{AtomicBool, Ordering},
+    Mutex,
+};
 
 use serde::{Deserialize, Serialize};
 use tauri::{AppHandle, Emitter, LogicalPosition, LogicalSize, Manager, Rect, Runtime, Url, Webview, Window};
@@ -66,17 +69,28 @@ fn on_rail<R: Runtime>(app: &AppHandle<R>, settings: &settings::Settings) -> Vec
         .collect()
 }
 
-/// A theme draws the rail; without one it shows only when there is more than
-/// one service to switch between.
+/// A theme with a rail section draws the rail; otherwise it shows only when
+/// there is more than one service to switch between.
 fn rail_visible<R: Runtime>(app: &AppHandle<R>, settings: &settings::Settings) -> bool {
-    settings.theme.is_some() || on_rail(app, settings).len() > 1
+    themes::draws_rail(app, settings.theme.as_deref()) || on_rail(app, settings).len() > 1
 }
+
+/// Whether layout last showed the rail: resizing reuses it rather than
+/// reading the theme again.
+static RAIL_SHOWN: AtomicBool = AtomicBool::new(false);
 
 /// Places the web views in fMess's window: the rail at the left when it is
 /// shown, the services beside it.
 pub fn layout<R: Runtime>(window: &Window<R>) {
     let app = window.app_handle();
-    place(window, rail_visible(app, &settings::current(app)));
+    let shown = rail_visible(app, &settings::current(app));
+    RAIL_SHOWN.store(shown, Ordering::Relaxed);
+    place(window, shown);
+}
+
+/// The same after the window changed size.
+pub fn relayout<R: Runtime>(window: &Window<R>) {
+    place(window, RAIL_SHOWN.load(Ordering::Relaxed));
 }
 
 pub fn place<R: Runtime>(window: &Window<R>, rail: bool) {
@@ -143,11 +157,18 @@ pub fn set_instagram<R: Runtime>(app: &AppHandle<R>, on: bool) {
             // Windows, building a web view there from a command deadlocks.
             let app = app.clone();
             tauri::async_runtime::spawn(async move {
-                let Some(window) = main_window(&app) else {
+                // Settings may have turned it off (or on again) before this ran.
+                let settings = settings::current(&app);
+                let Some(window) = main_window(&app).filter(|_| settings.instagram && webview(&app, Service::Instagram).is_none()) else {
                     return;
                 };
-                if let Err(err) = pages::add_instagram(&app, &window, &settings::current(&app)) {
-                    eprintln!("could not open Instagram: {err}");
+                match pages::add_instagram(&app, &window, &settings) {
+                    Ok(instagram) if !settings::current(&app).instagram => {
+                        let _ = instagram.close();
+                        return;
+                    }
+                    Ok(_) => {}
+                    Err(err) => eprintln!("could not open Instagram: {err}"),
                 }
                 update_rail(&app);
             });
@@ -204,7 +225,7 @@ pub fn rail_state<R: Runtime>(app: &AppHandle<R>) -> serde_json::Value {
     let dark = settings::messenger_theme(settings.messenger_dark_mode.as_deref()).map(|theme| theme == tauri::Theme::Dark);
     serde_json::json!({
         "titleBar": crate::webview::TITLE_BAR_INSET,
-        "theme": themes::for_page(app, settings.theme.as_deref()),
+        "theme": themes::for_scoped_page(app, settings.theme.as_deref()),
         "dark": dark,
         "services": on_rail(app, &settings),
         "selected": selected(app),

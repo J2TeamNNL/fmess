@@ -18,6 +18,10 @@ pub fn set_unread_count<R: Runtime>(webview: Webview<R>, count: i64) {
     let Some(service) = Service::from_label(webview.label()) else {
         return;
     };
+    // A page closing after Instagram was turned off may still report.
+    if service == Service::Instagram && !settings::current(webview.app_handle()).instagram {
+        return;
+    }
     let count = count.max(0);
     #[cfg(debug_assertions)]
     eprintln!("[fmess] unread chats in {}: {count}", service.label());

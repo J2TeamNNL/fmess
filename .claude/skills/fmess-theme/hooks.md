@@ -9,15 +9,18 @@ cd ~/projects/herald && grep -n "data-fmess\|--fmess\|fmess-account\|UNDER_EVERY
 
 ## One theme, three web views
 
-fMess's window holds three web views, and the same theme CSS goes into each. `<html>`
-says which one it is: `html[data-fmess-service="messenger" | "instagram" | "rail"]`.
+fMess's window holds three web views. `<html>` says which one it is:
+`html[data-fmess-service="messenger" | "instagram" | "rail"]`. A theme that mentions
+`data-fmess-service` goes into all three; one that doesn't (an older user theme) goes
+into Messenger only. fMess's rail shows for a theme only when its CSS has a rail
+section (`data-fmess-service="rail"`); otherwise only when Instagram is on with its icon.
 
 - **Scope Messenger-only rules away from Instagram.** Instagram's marks reuse
   Messenger's names where the meaning is the same (`composer`, `emoji`, `attach`,
   `sticker`, `voice-clip`, `send`, `chat-header`, `info`, `details`…), so a bare
   `[data-fmess-ui="composer"]` rule written for Messenger also hits Instagram. Prefix
-  such rules with `html:not([data-fmess-service="instagram"])` (that keeps working for
-  themes made before the attribute existed) and write Instagram's under
+  such rules with `:where(html:not([data-fmess-service="instagram"]))`, which adds no
+  specificity and write Instagram's under
   `html[data-fmess-service="instagram"]`.
 - **The built-in themes' sources** (`~/projects/fmess-themes/<app>/`, used by build.py
   below) are not on this machine: only `fmess-themes/instagram/spec/recon.md` and a draft

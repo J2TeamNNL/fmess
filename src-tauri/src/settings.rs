@@ -5,7 +5,7 @@ use std::{
 };
 
 use serde::{Deserialize, Serialize};
-use tauri::{AppHandle, Manager, Runtime, Theme};
+use tauri::{AppHandle, Manager, Runtime, Theme, Webview};
 use tauri_plugin_autostart::ManagerExt;
 
 use crate::{
@@ -47,7 +47,14 @@ pub struct Settings {
     /// The rail shows Instagram's icon; ⌃⌘2 switches to it either way.
     pub instagram_icon: bool,
     /// The service shown last, shown again at start. Set by the rail.
+    #[serde(deserialize_with = "lenient_service")]
     pub last_service: Service,
+}
+
+/// A service this version doesn't know (from a newer or older fMess) falls
+/// back to Messenger instead of failing the whole file, which resets every setting.
+fn lenient_service<'de, D: serde::Deserializer<'de>>(deserializer: D) -> Result<Service, D::Error> {
+    Ok(Service::deserialize(serde_json::Value::deserialize(deserializer)?).unwrap_or_default())
 }
 
 /// In CSS pixels. Set by the page (set_pane_widths), not the Settings window.
@@ -205,7 +212,7 @@ pub fn update_settings<R: Runtime>(
             let _ = webview.set_zoom(settings.zoom);
         }
         if settings.block_typing != previous.block_typing || settings.theme != previous.theme {
-            let _ = webview.eval(page_settings_script(&app, &settings));
+            let _ = webview.eval(page_settings_script(&webview, &settings));
         }
     }
     if let Some(webview) = services::webview(&app, Service::Messenger) {
@@ -310,19 +317,24 @@ pub fn zoom_by<R: Runtime>(app: &AppHandle<R>, step: i32) {
 /// The settings inject.js works with. Facebook clears localStorage keys it
 /// doesn't know within seconds, so they reach the page from here: in the
 /// window's initialization script, and again after every page load.
-pub fn page_settings<R: Runtime>(app: &AppHandle<R>, settings: &Settings) -> String {
+pub fn page_settings<R: Runtime>(app: &AppHandle<R>, settings: &Settings, service: Service) -> String {
+    let theme = match service {
+        Service::Messenger => themes::for_page(app, settings.theme.as_deref()),
+        Service::Instagram => themes::for_scoped_page(app, settings.theme.as_deref()),
+    };
     serde_json::json!({
         "macCalls": settings.mac_calls,
         "blockTyping": settings.block_typing,
-        "theme": themes::for_page(app, settings.theme.as_deref()),
+        "theme": theme,
         "paneWidths": settings.pane_widths,
     })
     .to_string()
 }
 
-/// Hands the current settings to the loaded page.
-pub fn page_settings_script<R: Runtime>(app: &AppHandle<R>, settings: &Settings) -> String {
-    format!("window.__fmessApplySettings?.({});", page_settings(app, settings))
+/// Hands the current settings to the loaded page of `webview`.
+pub fn page_settings_script<R: Runtime>(webview: &Webview<R>, settings: &Settings) -> String {
+    let service = Service::from_label(webview.label()).unwrap_or_default();
+    format!("window.__fmessApplySettings?.({});", page_settings(webview.app_handle(), settings, service))
 }
 
 /// Goes back to Messenger's own look (the theme was removed).
@@ -331,7 +343,7 @@ pub fn clear_theme<R: Runtime>(app: &AppHandle<R>) -> Result<(), String> {
     icon::apply(app);
     services::update_rail(app);
     for webview in services::webviews(app) {
-        let _ = webview.eval(page_settings_script(app, &current(app)));
+        let _ = webview.eval(page_settings_script(&webview, &current(app)));
     }
     Ok(())
 }
@@ -397,6 +409,18 @@ mod tests {
         let settings: Settings = serde_json::from_str("{}").unwrap();
         assert!(!settings.instagram);
         assert!(settings.instagram_icon);
+    }
+
+    #[test]
+    fn an_unknown_service_keeps_the_other_settings() {
+        let settings: Settings = serde_json::from_str(r#"{"zoom": 1.25, "instagram": true, "lastService": "whatsapp"}"#).unwrap();
+        assert_eq!(settings.last_service, Service::Messenger);
+        assert_eq!(settings.zoom, 1.25);
+        assert!(settings.instagram);
+        let settings: Settings = serde_json::from_str(r#"{"lastService": 2}"#).unwrap();
+        assert_eq!(settings.last_service, Service::Messenger);
+        let settings: Settings = serde_json::from_str(r#"{"lastService": "instagram"}"#).unwrap();
+        assert_eq!(settings.last_service, Service::Instagram);
     }
 
     #[cfg(debug_assertions)]

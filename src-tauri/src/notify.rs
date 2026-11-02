@@ -35,7 +35,10 @@ static SENT: Mutex<VecDeque<(i32, Service)>> = Mutex::new(VecDeque::new());
 
 /// Instagram's chats are told apart from Messenger's in the notification
 /// center by this prefix on their thread, which outlives fMess's memory.
+/// Instagram's notifications without a chat carry the prefix alone.
 const INSTAGRAM_THREAD: &str = "instagram:";
+/// The same for the notifications shown through the plugin (Windows, Linux).
+const SERVICE_EXTRA: &str = "fmessService";
 
 fn thread_key(service: Service, thread: String) -> String {
     match service {
@@ -47,7 +50,7 @@ fn thread_key(service: Service, thread: String) -> String {
 /// The service and the page's own thread id of a notification.
 fn split_thread_key(id: i32, thread: Option<String>) -> (Service, Option<String>) {
     match thread.as_deref().and_then(|thread| thread.strip_prefix(INSTAGRAM_THREAD)) {
-        Some(thread) => (Service::Instagram, Some(thread.to_owned())),
+        Some(thread) => (Service::Instagram, (!thread.is_empty()).then(|| thread.to_owned())),
         None => {
             let sent = SENT.lock().unwrap();
             let service = sent.iter().find(|(sent, _)| *sent == id).map_or(Service::Messenger, |(_, service)| *service);
@@ -100,11 +103,13 @@ pub async fn notify<R: Runtime>(
     if communication::available() {
         use base64::Engine;
         let decode = |data: Option<String>| data.and_then(|data| base64::engine::general_purpose::STANDARD.decode(data).ok());
+        let service_thread = thread_key(service, String::new());
         let notification = if settings.notification_preview {
             communication::Notification {
                 id,
                 title,
                 body,
+                thread: message.as_ref().map_or(service_thread, |message| message.thread.clone()),
                 // Replying sends in Messenger's chats only.
                 replyable: service == Service::Messenger,
                 image: decode(image),
@@ -117,7 +122,10 @@ pub async fn notify<R: Runtime>(
                 attachments_dir: app.path().app_cache_dir().ok().map(|dir| dir.join("notifications")),
             }
         } else {
-            communication::Notification::hidden(id)
+            communication::Notification {
+                thread: service_thread,
+                ..communication::Notification::hidden(id)
+            }
         };
         communication::show(notification);
         return Ok(());
@@ -133,6 +141,7 @@ pub async fn notify<R: Runtime>(
         .id(id)
         .title(title)
         .body(body)
+        .extra(SERVICE_EXTRA, service)
         .show()
         .map_err(|err| err.to_string())
 }
@@ -251,7 +260,10 @@ pub fn route_clicks<R: Runtime>(app: &AppHandle<R>) -> tauri_plugin_notification
         let clicks = app.clone();
         let replies = app.clone();
         communication::init(
-            move |id, thread| open_clicked(&clicks, id, thread),
+            move |id, thread| {
+                let (service, thread) = split_thread_key(id, thread);
+                open_clicked(&clicks, id, service, thread);
+            },
             move |id, thread, text| send_reply(&replies, id, thread, text),
         );
     }
@@ -261,7 +273,13 @@ pub fn route_clicks<R: Runtime>(app: &AppHandle<R>) -> tauri_plugin_notification
             return;
         }
         if let Some(notification) = action.notification() {
-            open_clicked(&handle, notification.id(), None);
+            let id = notification.id();
+            let service = notification
+                .extra()
+                .get(SERVICE_EXTRA)
+                .and_then(|service| Service::deserialize(service).ok())
+                .unwrap_or_else(|| split_thread_key(id, None).0);
+            open_clicked(&handle, id, service, None);
         }
     })
 }
@@ -287,9 +305,8 @@ fn send_reply<R: Runtime>(app: &AppHandle<R>, id: i32, thread: String, text: Str
 
 /// Shows the service that raised the notification, whichever is selected,
 /// and lets its page open the chat.
-fn open_clicked<R: Runtime>(app: &AppHandle<R>, id: i32, thread: Option<String>) {
+fn open_clicked<R: Runtime>(app: &AppHandle<R>, id: i32, service: Service, thread: Option<String>) {
     let app_for_main = app.clone();
-    let (service, thread) = split_thread_key(id, thread);
     // Clicks arrive on a background thread.
     let _ = app.run_on_main_thread(move || {
         show_main_window(&app_for_main);
@@ -334,6 +351,9 @@ mod communication {
         pub id: i32,
         pub title: String,
         pub body: String,
+        /// The thread macOS groups it by, which also tells its service
+        /// (see INSTAGRAM_THREAD); empty for Messenger's without a chat.
+        pub thread: String,
         /// Offers a reply field (Messenger's chats).
         pub replyable: bool,
         /// A photo in the message, shown in the notification.
@@ -358,6 +378,7 @@ mod communication {
                 id,
                 title: "fMess".to_owned(),
                 body: "New message".to_owned(),
+                thread: String::new(),
                 replyable: false,
                 image: None,
                 message: None,
@@ -474,11 +495,11 @@ mod communication {
         let content = UNMutableNotificationContent::new();
         content.setTitle(&NSString::from_str(&notification.title));
         content.setBody(&NSString::from_str(&notification.body));
-        if let Some(sender) = &notification.message {
-            content.setThreadIdentifier(&NSString::from_str(&sender.thread));
-            if notification.replyable {
-                content.setCategoryIdentifier(&NSString::from_str(MESSAGE_CATEGORY));
-            }
+        if !notification.thread.is_empty() {
+            content.setThreadIdentifier(&NSString::from_str(&notification.thread));
+        }
+        if notification.replyable && notification.message.is_some() {
+            content.setCategoryIdentifier(&NSString::from_str(MESSAGE_CATEGORY));
         }
         // Messenger plays its own sound in the page.
         if let (Some(image), Some(dir)) = (&notification.image, &notification.attachments_dir) {
@@ -636,5 +657,12 @@ mod tests {
         remember(-7, Service::Instagram);
         assert_eq!(split_thread_key(-7, None), (Service::Instagram, None));
         assert_eq!(split_thread_key(-8, None), (Service::Messenger, None));
+    }
+
+    #[test]
+    fn instagram_notifications_without_a_thread_carry_their_service() {
+        let key = thread_key(Service::Instagram, String::new());
+        assert_eq!(split_thread_key(-9, Some(key)), (Service::Instagram, None));
+        assert_eq!(thread_key(Service::Messenger, String::new()), "");
     }
 }

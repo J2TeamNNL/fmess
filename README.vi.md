@@ -81,7 +81,7 @@ Trên Windows và Linux, thay ⌘ bằng Ctrl.
 | `⌘K` | Tìm kiếm đoạn chat |
 | `⌘N` | Tin nhắn mới |
 | `⌘1` … `⌘9` | Mở đoạn chat thứ 1 … 9 |
-| `⌃⌘1` / `⌃⌘2` | Messenger / Instagram (`Ctrl+Win+1` / `2` trên Windows và Linux) |
+| `⌃⌘1` / `⌃⌘2` | Messenger / Instagram (`Ctrl+Alt+1` / `2` trên Windows và Linux) |
 | `⌘⇧]` / `⌘⇧[`, `⌃Tab` / `⌃⇧Tab` | Đoạn chat kế tiếp / trước đó |
 | `⌘⇧H` | Về danh sách chat |
 | `⌘+` / `⌘−` / `⌘0` | Phóng to / thu nhỏ / mặc định |

@@ -124,7 +124,7 @@ views"). The shipped themes add, after the Messenger sections:
    `margin-left: -72px`; zeroing `ig-shell` is the cleaner way), then list, rows, header, bubbles, dates,
    composer and details through their marks.
 3. Every bare Messenger rule that names a shared mark (`composer`, `emoji`, `attach`…)
-   gets `html:not([data-fmess-service="instagram"])` in front.
+   gets `:where(html:not([data-fmess-service="instagram"]))` in front.
 
 These sections were written straight into `src-tauri/themes/*.css`: the theme sources
 are not on this machine, so a `build.py` run from an old source would drop them.

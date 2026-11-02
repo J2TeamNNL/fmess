@@ -120,14 +120,38 @@ pub fn remove_theme<R: Runtime>(app: AppHandle<R>, id: String) -> Result<(), Str
     Ok(())
 }
 
-/// The chosen theme as the page takes it: its CSS, and whether it wants
-/// Messenger's light colours in dark mode too.
+/// The chosen theme as Messenger's page takes it: its CSS, and whether it
+/// wants Messenger's light colours in dark mode too.
 pub fn for_page<R: Runtime>(app: &AppHandle<R>, id: Option<&str>) -> serde_json::Value {
-    let Some(css) = id.and_then(|id| css(app, id)) else {
-        return serde_json::Value::Null;
-    };
+    id.and_then(|id| css(app, id)).map_or(serde_json::Value::Null, page_value)
+}
+
+/// The same for Instagram's page and the rail, which only get a theme that
+/// picks its parts by service: one written for Messenger alone would style
+/// them by accident.
+pub fn for_scoped_page<R: Runtime>(app: &AppHandle<R>, id: Option<&str>) -> serde_json::Value {
+    id.and_then(|id| css(app, id))
+        .filter(|css| is_scoped(css))
+        .map_or(serde_json::Value::Null, page_value)
+}
+
+/// Whether the chosen theme draws fMess's rail. Themes without a rail section
+/// may draw their own bar in Messenger's page (--fmess-buttons, inject.js).
+pub fn draws_rail<R: Runtime>(app: &AppHandle<R>, id: Option<&str>) -> bool {
+    id.and_then(|id| css(app, id)).is_some_and(|css| has_rail(&css))
+}
+
+fn page_value(css: String) -> serde_json::Value {
     let light = header(&css, "mode").is_some_and(|mode| mode.eq_ignore_ascii_case("light"));
     serde_json::json!({ "css": css, "light": light })
+}
+
+fn is_scoped(css: &str) -> bool {
+    css.contains("data-fmess-service")
+}
+
+fn has_rail(css: &str) -> bool {
+    css.contains(r#"data-fmess-service="rail""#)
 }
 
 fn css<R: Runtime>(app: &AppHandle<R>, id: &str) -> Option<String> {
@@ -291,6 +315,18 @@ mod tests {
             assert!(header(css, "name").is_some(), "{id} has no name");
             assert!(preview(css).is_some(), "{id} has no preview colours");
         }
+    }
+
+    #[test]
+    fn tells_scoped_themes_and_rail_sections() {
+        for (id, css) in BUILT_IN {
+            assert!(is_scoped(css) && has_rail(css), "{id} has no rail section");
+        }
+        let messenger_only = "[role=\"navigation\"] { --fmess-buttons: \"settings 12 -60 36\"; }";
+        assert!(!is_scoped(messenger_only) && !has_rail(messenger_only));
+        let scoped = "html[data-fmess-service=\"instagram\"] a { color: red }";
+        assert!(is_scoped(scoped) && !has_rail(scoped));
+        assert!(has_rail("html[data-fmess-service=\"rail\"] body { background: #005ae0 }"));
     }
 
     #[test]

@@ -79,8 +79,9 @@
     window.addEventListener(
       'keydown',
       (event) => {
-        if (event.shiftKey || event.altKey || !event.ctrlKey) return;
-        const id = event.metaKey ? SERVICE_KEYS[event.code] : MENU_KEYS[event.code];
+        if (event.shiftKey || event.metaKey || !event.ctrlKey) return;
+        // Ctrl+Alt+1/2 switch services: Windows keeps Ctrl+Win+digit.
+        const id = event.altKey ? SERVICE_KEYS[event.code] : MENU_KEYS[event.code];
         if (!id) return;
         event.preventDefault();
         event.stopPropagation();
@@ -361,11 +362,14 @@
   ];
   // Bubbles and date breaks are judged once, when they first have a size and text.
   let checked = new WeakSet();
+  // The outermost role=presentation of each message, coloured or not.
+  let messageHosts = new WeakSet();
   // Marks on elements that no longer qualify (a closed chat, a list that
   // changed layout) would style the wrong thing.
   const clearMarks = (names) => {
     for (const el of document.querySelectorAll(names.map((name) => `[${UI}="${name}"]`).join())) el.removeAttribute(UI);
     checked = new WeakSet();
+    messageHosts = new WeakSet();
   };
 
   // The ancestor that keeps 72px free for Instagram's own navigation. Themes
@@ -417,18 +421,46 @@
     }
   };
 
-  // A bubble is the outermost role=presentation with text that is narrower
-  // than the chat: themes restyle bubbles, so their looks can't tell.
+  const painted = (el) => {
+    const style = getComputedStyle(el);
+    return !/^(transparent|rgba\(.*,\s*0\))$/.test(style.backgroundColor) || style.backgroundImage.includes('gradient');
+  };
+  // The message's coloured part: the host itself, or the largest painted part
+  // with text inside it (the host may also hold a quoted reply and reactions).
+  const colouredPart = (host) => {
+    if (painted(host)) return host;
+    let best = null;
+    let bestArea = 0;
+    for (const part of host.querySelectorAll('div, span')) {
+      if (!part.textContent.trim() || !painted(part)) continue;
+      const { width, height } = rectOf(part);
+      if (width * height > bestArea) [best, bestArea] = [part, width * height];
+    }
+    return best;
+  };
+  const insideHost = (el) => {
+    for (let up = el.parentElement?.closest('[role="presentation"]'); up; up = up.parentElement?.closest('[role="presentation"]')) {
+      if (messageHosts.has(up)) return true;
+    }
+    return false;
+  };
+  // A message is the outermost role=presentation with text that is narrower
+  // than the chat; its bubble is the coloured part in it, read before any
+  // theme styles it (only marked bubbles are). Emoji-only and transparent
+  // cards have none and stay unmarked.
   const markMessages = (area) => {
     const areaBox = rectOf(area);
-    for (const bubble of area.querySelectorAll('[role="presentation"]')) {
-      if (checked.has(bubble)) continue;
-      const box = rectOf(bubble);
-      if (!box.width || !bubble.textContent.trim()) continue;
-      checked.add(bubble);
-      if (box.width > areaBox.width * 0.9 || bubble.parentElement?.closest(`[${UI}="bubble"]`)) continue;
+    for (const host of area.querySelectorAll('[role="presentation"]')) {
+      if (checked.has(host)) continue;
+      const box = rectOf(host);
+      if (!box.width || !host.textContent.trim()) continue;
+      checked.add(host);
+      if (box.width > areaBox.width * 0.9 || insideHost(host)) continue;
+      messageHosts.add(host);
+      const bubble = colouredPart(host);
+      if (!bubble) continue;
       mark(bubble, 'bubble');
-      bubble.setAttribute('data-fmess-dir', bubbleDir(box, areaBox));
+      bubble.setAttribute('data-fmess-dir', bubbleDir(rectOf(bubble), areaBox));
     }
     // A date or time line is a centred text across the whole chat, inside a row.
     for (const row of area.firstElementChild?.firstElementChild?.children ?? []) {
@@ -476,11 +508,12 @@
       mark(calls[calls.length - 2], 'video-call');
       mark(calls[calls.length - 1], 'info');
     }
-    // The composer's row holds [emoji] [field] [buttons]: the nearest ancestor
-    // with a button before the field. The pill is three levels up (pill > div > div > row).
+    // The composer's row holds [emoji] [field] [buttons]: the nearest ancestor,
+    // at most three levels up, with a button before the field. The pill is
+    // three levels above the row (pill > div > div > row).
     const before = (button) => button.compareDocumentPosition(field) & Node.DOCUMENT_POSITION_FOLLOWING;
     let row = field.parentElement;
-    for (let hops = 0; row && ![...row.querySelectorAll('[role="button"]')].some(before); hops++) row = hops < 8 ? row.parentElement : null;
+    for (let hops = 1; row && ![...row.querySelectorAll('[role="button"]')].some(before); hops++) row = hops < 3 ? row.parentElement : null;
     const composer = row?.parentElement?.parentElement?.parentElement;
     if (composer && body.contains(composer) && !composer.contains(body.firstElementChild)) {
       mark(composer, 'composer');

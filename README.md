@@ -81,7 +81,7 @@ On Windows and Linux, use Ctrl instead of ⌘.
 | `⌘K` | Search chats |
 | `⌘N` | New message |
 | `⌘1` … `⌘9` | Open the 1st … 9th chat |
-| `⌃⌘1` / `⌃⌘2` | Messenger / Instagram (`Ctrl+Win+1` / `2` on Windows and Linux) |
+| `⌃⌘1` / `⌃⌘2` | Messenger / Instagram (`Ctrl+Alt+1` / `2` on Windows and Linux) |
 | `⌘⇧]` / `⌘⇧[`, `⌃Tab` / `⌃⇧Tab` | Next / previous chat |
 | `⌘⇧H` | Back to the chat list |
 | `⌘+` / `⌘−` / `⌘0` | Zoom in / out / actual size |
