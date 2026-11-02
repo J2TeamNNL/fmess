@@ -38,7 +38,7 @@ cd ~/projects/herald && grep -rn "data-fmess\|--fmess\|fmess-account\|UNDER_EVER
 |---|---|---|
 | `html[data-fmess-dark]` | Messenger is dark: its own setting `ENABLED`, or `USE_SYSTEM` while the system is dark | Every dark colour. Do **not** key on `.__fb-dark-mode` on the root: with `USE_SYSTEM`, Facebook marks only parts of the page. |
 | `html[data-fmess-chats]` | path is `/messages…` or `/messenger_media…` | Scoping page decorations to the chats. The shipped themes don't scope, but new ones should. |
-| `html[data-fmess-media]` | photo/video viewer open (`/messenger_media`, or its dialog on screen) | Hide `html::before/::after` and other overlays. On macOS the viewer has its own title bar. |
+| `html[data-fmess-media]` | photo/video viewer open (`/messenger_media`, or the viewer on screen: in chats it is a layer at the same address) | Hide `html::before/::after` and other overlays. On macOS the viewer has its own title bar. |
 | `html[data-fmess-unread="N"]` | number of unread chats in the list, checked every 2 s; removed at 0 | `content: attr(data-fmess-unread)` badge on the rail |
 | `html[data-fmess-name]` | your full name | `content: attr(data-fmess-name)` (Zalo's title bar: `"Zalo - " attr(data-fmess-name)`) |
 | `--fmess-avatar` (inline on `<html>`) | `url("…")` of your profile picture; Facebook URLs expire, so it is refreshed every 10 min | a background layer. Always give a fallback: `var(--fmess-avatar, <gradient>)` |

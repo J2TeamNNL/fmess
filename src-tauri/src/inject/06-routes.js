@@ -9,9 +9,10 @@
   const MEDIA = 'data-fmess-media';
   let viewerOpen = false;
   let viewerCloseTimer;
-  // Facebook doesn't always move to /messenger_media for the viewer, so its
-  // dialog on screen counts too.
-  const isViewerOpen = () => location.pathname.startsWith('/messenger_media') || !!viewerCloseBox();
+  // Facebook doesn't always move to /messenger_media for the viewer (a
+  // chat's photos open in a layer at the same address), so the viewer on
+  // screen counts too.
+  const isViewerOpen = () => location.pathname.startsWith('/messenger_media') || Boolean(viewerCloseBox() || viewerBar());
   const syncRoute = () => {
     document.documentElement.toggleAttribute(CHATS, onChatsPage());
     const inViewer = isViewerOpen();
