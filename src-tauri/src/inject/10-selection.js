@@ -34,6 +34,31 @@
     },
     true,
   );
+  // Spell check (fMess Settings). It knows only the system's languages, so on
+  // a Windows set up in English nearly every Vietnamese word was underlined
+  // in red; turned off, fields don't check spelling. Fields are turned off as
+  // they take the focus, so a message box Facebook draws again is too.
+  let spellCheck = settings.spellCheck !== false;
+  const UNCHECKED = 'data-fmess-unchecked';
+  const FIELDS = 'input, textarea, [contenteditable="true"]';
+  const uncheck = (field) => {
+    if (!field?.spellcheck) return;
+    field.spellcheck = false;
+    field.setAttribute(UNCHECKED, '');
+  };
+  document.addEventListener(
+    'focusin',
+    (event) => !spellCheck && event.target instanceof Element && uncheck(event.target.closest(FIELDS)),
+    true,
+  );
+  function setSpellCheck(on) {
+    spellCheck = on;
+    if (!on) return uncheck(document.activeElement?.closest?.(FIELDS));
+    for (const field of document.querySelectorAll(`[${UNCHECKED}]`)) {
+      field.removeAttribute(UNCHECKED);
+      field.spellcheck = true;
+    }
+  }
   if (titleBarInset) {
     const dragStrip = document.createElement('div');
     dragStrip.setAttribute('data-tauri-drag-region', '');

@@ -183,6 +183,12 @@
         <option value="vi">Tiếng Việt</option>
       </select>
     </label>
+    <label class="row" data-not="macos">
+      <span class="label"><span data-i18n="spellCheck">Check spelling</span>
+        <span class="hint" data-i18n="spellCheckHint">Underlines misspelled words as you type. If words in your language get underlined even when they're right, just turn this off.</span>
+      </span>
+      <span class="switch"><input type="checkbox" data-key="spellCheck"><span></span></span>
+    </label>
     <label class="row">
       <span class="label" data-i18n="launchAtLogin">Open fMess at login</span>
       <span class="switch"><input type="checkbox" data-key="launchAtLogin"><span></span></span>
@@ -371,6 +377,8 @@
     general: 'Chung',
     language: 'Ngôn ngữ',
     languageHint: 'Menu và cửa sổ của fMess. Messenger theo ngôn ngữ tài khoản Facebook.',
+    spellCheck: 'Kiểm tra chính tả',
+    spellCheckHint: 'Tự động gạch chân đỏ những từ gõ sai. Nếu gõ tiếng Việt đúng mà vẫn bị gạch, bạn chỉ cần tắt tính năng này đi.',
     automatic: 'Tự động',
     launchAtLogin: 'Mở fMess khi đăng nhập máy',
     startHidden: 'Mở ở chế độ chạy nền',
@@ -467,6 +475,7 @@
     }
     const mac = view.platform === 'macos';
     for (const el of document.querySelectorAll('[data-only="macos"]')) el.hidden = !mac;
+    for (const el of document.querySelectorAll('[data-not="macos"]')) el.hidden = mac;
     for (const el of document.querySelectorAll('[data-tray]')) {
       el.textContent = mac ? say('menu bar', 'thanh menu') : say('tray', 'khay hệ thống');
     }

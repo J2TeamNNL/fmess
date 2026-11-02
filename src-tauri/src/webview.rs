@@ -363,6 +363,12 @@ pub fn prefer_overlay_scrollbars() {
 fn initialization_script<R: Runtime>(app: &AppHandle<R>, service: Service) -> String {
     use base64::Engine;
 
+    // Debug builds: FMESS_NO_INJECT=1 leaves the page as WebKit shows it, to
+    // measure what fMess's own script costs.
+    if cfg!(debug_assertions) && std::env::var_os("FMESS_NO_INJECT").is_some() {
+        return String::new();
+    }
+
     let settings = settings::current(app);
     let dark = match settings::messenger_theme(settings.messenger_dark_mode.as_deref()) {
         Some(tauri::Theme::Dark) => "true",

@@ -4,6 +4,8 @@
 // returns. The file is a function body: it may `await` and must `return`.
 // FMESS_PROBE_WAIT=<seconds> waits that long for it (60 by default), for a
 // probe that waits for something only a person does, like someone typing.
+// FMESS_NO_INJECT=1 (webview.rs) leaves fMess's page script out, to measure
+// what it costs.
 // FMESS_WINDOW_SIZE=<width>x<height> sizes the window first, and
 // FMESS_SNAPSHOT=<file.png> (macOS) then saves a picture of the page as the
 // probe left it, through WebKit, which needs no screen-recording permission.

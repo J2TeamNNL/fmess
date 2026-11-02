@@ -60,6 +60,7 @@
     language = next.lang;
     setHideAvatars(Boolean(next.hideAvatars));
     setSidebarCollapsed(Boolean(next.sidebarCollapsed));
+    setSpellCheck(next.spellCheck !== false);
     if (next.theme?.css !== theme?.css || Boolean(next.theme?.light) !== Boolean(theme?.light)) applyTheme(next.theme);
   };
 })();
