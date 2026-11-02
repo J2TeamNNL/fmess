@@ -1,28 +1,42 @@
-use std::sync::atomic::{AtomicI64, Ordering};
+use std::{collections::HashMap, sync::Mutex};
 
-use tauri::{Manager, Runtime, Window};
+use tauri::{Emitter, Manager, Runtime, Webview, Window};
 
-use crate::{services, settings};
+use crate::{
+    services::{self, Service},
+    settings,
+};
 
-/// The unread chat count inject.js last reported.
-static UNREAD: AtomicI64 = AtomicI64::new(0);
+/// The unread chat counts the services last reported.
+static UNREAD: Mutex<Option<HashMap<Service, i64>>> = Mutex::new(None);
 
-/// Called by inject.js with the number of unread chats in the list. (The page
-/// title counts Facebook's own notifications, so it can't be used.)
+/// Called by each service's page with the number of unread chats in its
+/// list. (Messenger's page title counts Facebook's own notifications, so it
+/// can't be used.)
 #[tauri::command]
-pub fn set_unread_count<R: Runtime>(app: tauri::AppHandle<R>, count: i64) {
+pub fn set_unread_count<R: Runtime>(webview: Webview<R>, count: i64) {
+    let Some(service) = Service::from_label(webview.label()) else {
+        return;
+    };
+    let count = count.max(0);
     #[cfg(debug_assertions)]
-    eprintln!("[fmess] unread chats: {count}");
-    UNREAD.store(count, Ordering::Relaxed);
-    if let Some(window) = services::main_window(&app) {
+    eprintln!("[fmess] unread chats in {}: {count}", service.label());
+    UNREAD.lock().unwrap().get_or_insert_with(HashMap::new).insert(service, count);
+    let app = webview.app_handle();
+    let _ = app.emit_to(services::RAIL, "unread", serde_json::json!({ "service": service, "count": count }));
+    if let Some(window) = services::main_window(app) {
         refresh(&window);
     }
 }
 
-/// Shows the last reported count, or nothing when the badge is turned off.
+pub fn counts() -> HashMap<Service, i64> {
+    UNREAD.lock().unwrap().clone().unwrap_or_default()
+}
+
+/// Shows the services' total, or nothing when the badge is turned off.
 pub fn refresh<R: Runtime>(window: &Window<R>) {
     let count = if settings::current(window.app_handle()).badge {
-        UNREAD.load(Ordering::Relaxed)
+        counts().values().sum()
     } else {
         0
     };

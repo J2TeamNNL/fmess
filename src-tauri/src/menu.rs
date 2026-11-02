@@ -28,6 +28,8 @@ const ZOOM_RESET: &str = "zoom-reset";
 const ABOUT: &str = "about";
 const CHECK_FOR_UPDATES: &str = "check-for-updates";
 const QUIT: &str = "quit";
+const MESSENGER: &str = "messenger";
+const INSTAGRAM: &str = "instagram";
 
 pub fn install<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<()> {
     let tray_menu = Menu::with_items(
@@ -99,6 +101,9 @@ fn app_menu<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<Menu<R>> {
         "Go",
         true,
         &[
+            &MenuItem::with_id(app, MESSENGER, "Messenger", true, Some("Ctrl+Cmd+1"))?,
+            &MenuItem::with_id(app, INSTAGRAM, "Instagram", true, Some("Ctrl+Cmd+2"))?,
+            &PredefinedMenuItem::separator(app)?,
             &MenuItem::with_id(app, MESSAGES, "Chats", true, Some("CmdOrCtrl+Shift+H"))?,
             &MenuItem::with_id(app, SEARCH, "Search", true, Some("CmdOrCtrl+K"))?,
             &MenuItem::with_id(app, NEW_MESSAGE, "New Message", true, Some("CmdOrCtrl+N"))?,
@@ -140,8 +145,9 @@ fn app_menu<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<Menu<R>> {
     Ok(menu)
 }
 
-/// The old desktop app's account menu: inject.js puts the account's picture
-/// above the chats, and clicking it opens this under the picture.
+/// The old desktop app's account menu: the rail and inject.js show the
+/// account's picture, and clicking it opens this beside the picture. Its
+/// items act on Messenger, whichever web view asked.
 #[tauri::command]
 pub fn show_account_menu<R: Runtime>(
     webview: Webview<R>,
@@ -160,8 +166,12 @@ pub fn show_account_menu<R: Runtime>(
             &MenuItem::with_id(app, LOG_OUT, "Log Out", true, None::<&str>)?,
         ],
     )?;
-    // The page measures in CSS pixels, which fMess's zoom setting scales.
-    let zoom = settings::current(app).zoom;
+    // The page measures in CSS pixels, which fMess's zoom setting scales (not the rail's).
+    let zoom = if Service::from_label(webview.label()).is_some() {
+        settings::current(app).zoom
+    } else {
+        1.0
+    };
     let window = webview.window();
     let origin = webview.position()?.to_logical::<f64>(window.scale_factor()?);
     window.popup_menu_at(&menu, LogicalPosition::new(origin.x + x * zoom, origin.y + y * zoom))
@@ -176,7 +186,7 @@ pub fn handle<R: Runtime>(app: &AppHandle<R>, event: MenuEvent) {
 /// page catches the same keys (Ctrl+, for Settings...) and asks for them here.
 #[tauri::command]
 pub fn menu_shortcut<R: Runtime>(app: AppHandle<R>, id: String) {
-    if [MESSAGES, SETTINGS, RELOAD, BACK, FORWARD, ZOOM_IN, ZOOM_OUT, ZOOM_RESET].contains(&id.as_str()) {
+    if [MESSAGES, SETTINGS, RELOAD, BACK, FORWARD, ZOOM_IN, ZOOM_OUT, ZOOM_RESET, MESSENGER, INSTAGRAM].contains(&id.as_str()) {
         run(&app, &id);
     }
 }
@@ -187,6 +197,7 @@ fn run<R: Runtime>(app: &AppHandle<R>, id: &str) {
         SHOW => show_main_window(app),
         MESSAGES => {
             show_main_window(app);
+            services::select(app, Service::Messenger);
             if let Some(webview) = webview {
                 let _ = webview.navigate(messages_url());
             }
@@ -229,6 +240,8 @@ fn run<R: Runtime>(app: &AppHandle<R>, id: &str) {
                 let _ = webview.eval(format!("window.__fmessShortcut?.({call})"));
             }
         }
+        MESSENGER => services::select(app, Service::Messenger),
+        INSTAGRAM => services::select(app, Service::Instagram),
         QUIT => app.exit(0),
         _ => {}
     }

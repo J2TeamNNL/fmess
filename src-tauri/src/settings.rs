@@ -41,6 +41,10 @@ pub struct Settings {
     pub theme_icon: bool,
     /// Widths the panes were dragged to; none keeps Facebook's.
     pub pane_widths: PaneWidths,
+    /// The rail shows Instagram's icon; ⌘2 switches to it either way.
+    pub instagram_icon: bool,
+    /// The service shown last, shown again at start. Set by the rail.
+    pub last_service: Service,
 }
 
 /// In CSS pixels. Set by the page (set_pane_widths), not the Settings window.
@@ -68,6 +72,8 @@ impl Default for Settings {
             theme: None,
             theme_icon: true,
             pane_widths: PaneWidths::default(),
+            instagram_icon: true,
+            last_service: Service::Messenger,
         }
     }
 }
@@ -135,14 +141,17 @@ pub fn update_settings<R: Runtime>(
     }
 
     let settings = change(&app, |current| {
-        // Kept by the page, not edited in the Settings window.
-        let kept = (current.messenger_dark_mode.take(), std::mem::take(&mut current.pane_widths));
+        // Kept by the page and the rail, not edited in the Settings window.
+        let kept = (current.messenger_dark_mode.take(), std::mem::take(&mut current.pane_widths), current.last_service);
         *current = settings;
-        (current.messenger_dark_mode, current.pane_widths) = kept;
+        (current.messenger_dark_mode, current.pane_widths, current.last_service) = kept;
     })?;
 
     if settings.theme != previous.theme || settings.theme_icon != previous.theme_icon {
         icon::apply(&app);
+    }
+    if settings.theme != previous.theme || settings.instagram_icon != previous.instagram_icon {
+        services::update_rail(&app);
     }
     if settings.badge != previous.badge {
         if let Some(window) = services::main_window(&app) {
@@ -181,7 +190,9 @@ pub fn sync_messenger_prefs<R: Runtime>(app: AppHandle<R>, prefs: MessengerPrefs
     if current(&app).messenger_dark_mode.as_deref() == Some(prefs.dark_mode.as_str()) {
         return Ok(());
     }
-    change(&app, |settings| settings.messenger_dark_mode = Some(prefs.dark_mode)).map(drop)
+    change(&app, |settings| settings.messenger_dark_mode = Some(prefs.dark_mode))?;
+    services::update_rail(&app);
+    Ok(())
 }
 
 /// Called by inject.js when a pane has been dragged to a new width.
@@ -274,12 +285,16 @@ pub fn page_settings_script<R: Runtime>(app: &AppHandle<R>, settings: &Settings)
 pub fn clear_theme<R: Runtime>(app: &AppHandle<R>) -> Result<(), String> {
     change(app, |settings| settings.theme = None)?;
     icon::apply(app);
+    services::update_rail(app);
     if let Some(webview) = services::webview(app, Service::Messenger) {
         let _ = webview.eval(page_settings_script(app, &current(app)));
     }
     Ok(())
 }
 
+pub fn set_last_service<R: Runtime>(app: &AppHandle<R>, service: Service) -> Result<(), String> {
+    change(app, |settings| settings.last_service = service).map(drop)
+}
 
 /// Changes the settings and saves them. The lock is held from reading to
 /// saving, so changes made at the same time (by the page and the Settings

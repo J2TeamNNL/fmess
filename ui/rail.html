@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="en" data-fmess-service="rail">
+<head>
+<meta charset="utf-8">
+<title>fMess</title>
+<!-- fMess's own rail, Messenger's colours. A theme (in <style id="fmess-theme">,
+     added last) draws it again under html[data-fmess-service="rail"]; these
+     rules sit in :where() so any of its selectors wins. -->
+<style>
+  :where(:root) {
+    --rail-bg: #ffffff;
+    --rail-line: rgba(0, 0, 0, 0.1);
+    --rail-icon: #65676b;
+    --rail-active: #0866ff;
+    --rail-active-bg: #ebf5ff;
+    --rail-hover: rgba(0, 0, 0, 0.05);
+    --rail-badge: #e41e3f;
+    color-scheme: light;
+  }
+  :where(html[data-fmess-dark]) {
+    --rail-bg: #1c1c1d;
+    --rail-line: rgba(255, 255, 255, 0.1);
+    --rail-icon: #b0b3b8;
+    --rail-active: #2e89ff;
+    --rail-active-bg: rgba(45, 136, 255, 0.2);
+    --rail-hover: rgba(255, 255, 255, 0.1);
+    color-scheme: dark;
+  }
+  :where(html, body) {
+    height: 100%;
+    margin: 0;
+    overflow: hidden;
+    background: var(--rail-bg);
+    -webkit-user-select: none;
+    user-select: none;
+    cursor: default;
+  }
+  :where(#fmess-rail-strip) {
+    position: fixed;
+    inset: 0 0 auto 0;
+    height: var(--fmess-title-bar, 0px);
+    z-index: 2147483647;
+  }
+  :where(#fmess-rail) {
+    position: fixed;
+    top: var(--fmess-title-bar, 0px);
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 0;
+    box-sizing: border-box;
+    box-shadow: inset -1px 0 var(--rail-line);
+  }
+  :where([data-fmess-rail]) {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border: 0;
+    border-radius: 10px;
+    background: none;
+    color: var(--rail-icon);
+    outline: none;
+  }
+  :where([data-fmess-rail][hidden]) { display: none; }
+  :where([data-fmess-rail]:hover) { background: var(--rail-hover); }
+  :where([data-fmess-rail][data-active]) { background: var(--rail-active-bg); color: var(--rail-active); }
+  :where([data-fmess-rail]:focus-visible) { box-shadow: 0 0 0 2px var(--rail-active); }
+  :where([data-fmess-rail] > svg) { width: 24px; height: 24px; pointer-events: none; }
+  :where([data-fmess-rail="settings"]) { margin-top: auto; }
+  :where([data-fmess-avatar]) {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--fmess-avatar, var(--rail-hover)) center / cover no-repeat;
+    pointer-events: none;
+  }
+  :where([data-fmess-badge]) {
+    position: absolute;
+    top: 2px;
+    left: 24px;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    box-sizing: border-box;
+    border-radius: 9px;
+    background: var(--rail-badge);
+    box-shadow: 0 0 0 2px var(--rail-bg);
+    color: #ffffff;
+    font: 600 11px/18px -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    text-align: center;
+    pointer-events: none;
+  }
+  :where([data-fmess-badge][hidden]) { display: none; }
+</style>
+</head>
+<body>
+<div id="fmess-rail-strip"></div>
+<nav id="fmess-rail">
+  <button type="button" data-fmess-rail="messenger" title="Messenger" hidden>
+    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2C6.37 2 2 6.13 2 11.7c0 2.91 1.2 5.44 3.14 7.17.16.15.26.35.27.57l.05 1.78a.8.8 0 0 0 1.12.71l1.98-.87a.8.8 0 0 1 .54-.04c.91.25 1.88.38 2.9.38 5.63 0 10-4.13 10-9.7S17.63 2 12 2Zm6 7.46-2.94 4.66a1.5 1.5 0 0 1-2.17.4l-2.34-1.75a.6.6 0 0 0-.72 0l-3.16 2.4c-.42.32-.97-.18-.69-.63l2.94-4.66a1.5 1.5 0 0 1 2.17-.4l2.34 1.75a.6.6 0 0 0 .72 0l3.16-2.4c.42-.32.97.18.69.63Z"/></svg>
+    <span data-fmess-badge hidden></span>
+  </button>
+  <button type="button" data-fmess-rail="instagram" title="Instagram" hidden>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.4" cy="6.6" r="1.2" fill="currentColor" stroke="none"/></svg>
+    <span data-fmess-badge hidden></span>
+  </button>
+  <button type="button" data-fmess-rail="settings" title="Settings">
+    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.49.49 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.48.48 0 0 0-.48-.41h-3.84a.47.47 0 0 0-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96a.48.48 0 0 0-.59.22L2.74 8.87a.47.47 0 0 0 .12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32a.48.48 0 0 0-.12-.61l-2.01-1.58ZM12 15.6a3.6 3.6 0 1 1 0-7.2 3.6 3.6 0 0 1 0 7.2Z"/></svg>
+  </button>
+  <button type="button" data-fmess-rail="account" title="Account">
+    <span data-fmess-avatar></span>
+  </button>
+</nav>
+<script>
+  (() => {
+    const tauri = window.__TAURI_INTERNALS__;
+    const invoke = (command, args) => tauri.invoke(command, args);
+    const listen = (event, handler) =>
+      invoke('plugin:event|listen', { event, target: { kind: 'Any' }, handler: tauri.transformCallback((message) => handler(message.payload)) });
+    const root = document.documentElement;
+    const rail = document.getElementById('fmess-rail');
+    const item = (name) => rail.querySelector(`[data-fmess-rail="${name}"]`);
+    const systemDark = matchMedia('(prefers-color-scheme: dark)');
+
+    // What Rust last sent (services::rail_state).
+    const state = { titleBar: 0, theme: null, dark: null, services: ['messenger'], selected: 'messenger', unread: {}, account: null };
+    let themeCss = null;
+
+    const render = () => {
+      root.style.setProperty('--fmess-title-bar', `${state.titleBar}px`);
+      document.getElementById('fmess-rail-strip').toggleAttribute('data-tauri-drag-region', state.titleBar > 0);
+      // As Messenger's page decides: its own setting, else the system's.
+      root.toggleAttribute('data-fmess-dark', state.dark ?? systemDark.matches);
+      const css = state.theme?.css || null;
+      if (css !== themeCss) {
+        themeCss = css;
+        let style = document.getElementById('fmess-theme');
+        if (!css) style?.remove();
+        else {
+          if (!style) {
+            style = document.createElement('style');
+            style.id = 'fmess-theme';
+          }
+          style.textContent = css;
+          document.head.append(style);
+        }
+      }
+      root.toggleAttribute('data-fmess-theme', Boolean(css));
+      for (const button of rail.querySelectorAll('[data-fmess-rail]')) {
+        const name = button.dataset.fmessRail;
+        if (name === 'settings' || name === 'account') continue;
+        button.hidden = !state.services.includes(name);
+        button.toggleAttribute('data-active', name === state.selected);
+        const count = Number(state.unread[name]) || 0;
+        const badge = button.querySelector('[data-fmess-badge]');
+        badge.hidden = count <= 0;
+        badge.textContent = count > 99 ? '99+' : String(count);
+      }
+      const account = item('account');
+      const picture = state.account?.picture;
+      if (picture) root.style.setProperty('--fmess-avatar', `url(${JSON.stringify(picture)})`);
+      else root.style.removeProperty('--fmess-avatar');
+      root.setAttribute('data-fmess-name', state.account?.name ?? '');
+      account.title = state.account?.name || 'Account';
+    };
+
+    // Called by Rust (services::rail_script) with the whole state or part of it.
+    window.__fmessRail = (next) => {
+      Object.assign(state, next);
+      render();
+    };
+    window.__fmessRail(window.__fmessRailInit ?? {});
+    systemDark.addEventListener('change', render);
+
+    listen('service-selected', (service) => window.__fmessRail({ selected: service }));
+    listen('unread', ({ service, count }) => window.__fmessRail({ unread: { ...state.unread, [service]: count } }));
+    listen('account', (account) => window.__fmessRail({ account }));
+
+    rail.addEventListener('click', (event) => {
+      const button = event.target instanceof Element && event.target.closest('[data-fmess-rail]');
+      if (!button) return;
+      const name = button.dataset.fmessRail;
+      if (name === 'settings') invoke('open_settings').catch(() => {});
+      else if (name === 'account') {
+        const box = button.getBoundingClientRect();
+        invoke('show_account_menu', { name: state.account?.name ?? '', x: box.right + 6, y: box.top }).catch(() => {});
+      } else invoke('select_service', { service: name }).catch(() => {});
+    });
+    // Clicks shouldn't leave the rail with the keyboard (services::select focuses the service).
+    rail.addEventListener('mousedown', (event) => event.preventDefault());
+    document.addEventListener('contextmenu', (event) => event.preventDefault());
+  })();
+</script>
+</body>
+</html>

@@ -199,91 +199,148 @@ html::before {
   pointer-events: none;
 }
 
-/* The app bar down the left (68px), with Teams' apps as pictures: Chat
-   filled with Teams' gradient, the others outlined. Only the two at the
-   bottom act: "…" opens fMess's Settings, your picture its account menu. */
+/* The chat list on Teams' grey. */
 html[data-fmess-chats] [data-fmess-list] {
   position: relative !important;
   box-sizing: border-box !important;
-  padding-left: 68px !important;
-  min-width: 348px !important;
+  min-width: 280px !important;
   background: var(--tm-window) !important;
   --messenger-card-background: transparent !important;
   --surface-background: transparent !important;
-  --fmess-buttons: settings 14 -58 40, account 14 -14 40;
 }
 html[data-fmess-chats] [data-fmess-list],
 html[data-fmess-chats] [data-fmess-list] > div:not(.fmess-pane-edge) {
   border-right: 0 !important;
   box-shadow: none !important;
 }
-html[data-fmess-chats] [data-fmess-list]::before {
-  content: "";
-  position: absolute;
-  z-index: 3;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 68px;
-  background:
-    linear-gradient(var(--tm-selected), var(--tm-selected)) 0 calc(var(--fmess-hover-top, -300px) - 2px) / 68px 44px no-repeat,
-    var(--tm-window);
-}
-html[data-fmess-chats] [data-fmess-list]::after {
-  content: "";
-  position: absolute;
-  z-index: 4;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 68px;
-  pointer-events: none;
-  background:
-    var(--tm-presence) left 38px bottom 20px / 10px 10px no-repeat,
-    radial-gradient(closest-side, var(--tm-card) 92%, transparent 100%) left 37px bottom 19px / 12px 12px no-repeat,
-    var(--fmess-avatar, linear-gradient(var(--tm-bg6), var(--tm-bg6))) left 20px bottom 20px / 28px 28px no-repeat,
-    linear-gradient(var(--tm-fg3), var(--tm-fg3)) left 24px bottom 68px / 20px 20px no-repeat,
-    var(--tm-gradient) 22px 29px / 24px 24px no-repeat,
-    var(--tm-rail-icon);
-  -webkit-mask:
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 2a10 10 0 1 1-4.64 18.86l-4.3 1.12a.85.85 0 0 1-1.03-1.04l1.11-4.29A10 10 0 0 1 12 2Zm1.25 11h-4.6a.75.75 0 0 0 0 1.5H13.35a.75.75 0 0 0 0-1.5h-.1Zm2-3.5h-6.6a.75.75 0 0 0 0 1.5H15.35a.75.75 0 0 0 0-1.5h-.1Z'/%3E%3C/svg%3E") 22px 29px / 24px 24px no-repeat,
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5.25 5A3.25 3.25 0 0 0 2 8.25v7.5C2 17.55 3.46 19 5.25 19h7.5c1.8 0 3.25-1.46 3.25-3.25v-.31l3.26 2.25c1.16.8 2.74-.03 2.74-1.44v-8.5a1.75 1.75 0 0 0-2.74-1.44L16 8.56v-.31C16 6.45 14.54 5 12.75 5h-7.5ZM16 10.38l4.11-2.83c.17-.12.4 0 .4.2v8.5c0 .2-.23.32-.4.2L16 13.62v-3.24ZM3.5 8.25c0-.97.78-1.75 1.75-1.75h7.5c.97 0 1.75.78 1.75 1.75v7.5c0 .97-.78 1.75-1.75 1.75h-7.5c-.97 0-1.75-.78-1.75-1.75v-7.5Z'/%3E%3C/svg%3E") 22px 73px / 24px 24px no-repeat,
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6.5 2A2.5 2.5 0 0 0 4 4.5v15A2.5 2.5 0 0 0 6.5 22h12.75a.75.75 0 0 0 0-1.5H6.5a1 1 0 0 1-1-1h13.75c.41 0 .75-.34.75-.75V4.5A2.5 2.5 0 0 0 17.5 2h-11Zm-1 16V4.5a1 1 0 0 1 1-1h11a1 1 0 0 1 1 1V18h-13ZM14 8a2 2 0 1 1-4 0 2 2 0 0 1 4 0Zm1.5 4.5c0 1.25-1 2.5-3.5 2.5s-3.5-1.25-3.5-2.5c0-.83.67-1.5 1.5-1.5h4c.83 0 1.5.67 1.5 1.5Z'/%3E%3C/svg%3E") 22px 117px / 24px 24px no-repeat,
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M14.75 10c.97 0 1.75.78 1.75 1.75v4.75a4.5 4.5 0 0 1-9 0v-4.75c0-.97.79-1.75 1.75-1.75h5.5Zm0 1.5h-5.5a.25.25 0 0 0-.25.25v4.75a3 3 0 0 0 6 0v-4.75a.25.25 0 0 0-.25-.25Zm-11-1.5h3.38c-.34.41-.57.93-.62 1.5H3.75a.25.25 0 0 0-.25.25V15a2.5 2.5 0 0 0 3.08 2.43c.09.5.24.99.45 1.43A4 4 0 0 1 2 15v-3.24c0-.97.78-1.75 1.75-1.75Zm13.12 0h3.38c.97 0 1.75.78 1.75 1.75V15a4 4 0 0 1-5.03 3.87c.21-.45.37-.93.46-1.44A2.5 2.5 0 0 0 20.5 15v-3.25a.25.25 0 0 0-.25-.25h-2.76a2.74 2.74 0 0 0-.62-1.5ZM12 3a3 3 0 1 1 0 6 3 3 0 0 1 0-6Zm6.5 1a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5Zm-13 0a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5Zm6.5.5a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3Zm6.5 1a1 1 0 1 0 0 2 1 1 0 0 0 0-2Zm-13 0a1 1 0 1 0 0 2 1 1 0 0 0 0-2Z'/%3E%3C/svg%3E") 22px 161px / 24px 24px no-repeat,
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M17.75 3C19.55 3 21 4.46 21 6.25v11.5c0 1.8-1.46 3.25-3.25 3.25H6.25A3.25 3.25 0 0 1 3 17.75V6.25C3 4.45 4.46 3 6.25 3h11.5Zm1.75 5.5h-15v9.25c0 .97.78 1.75 1.75 1.75h11.5c.97 0 1.75-.78 1.75-1.75V8.5Zm-11.75 6a1.25 1.25 0 1 1 0 2.5 1.25 1.25 0 0 1 0-2.5Zm4.25 0a1.25 1.25 0 1 1 0 2.5 1.25 1.25 0 0 1 0-2.5Zm-4.25-4a1.25 1.25 0 1 1 0 2.5 1.25 1.25 0 0 1 0-2.5Zm4.25 0a1.25 1.25 0 1 1 0 2.5 1.25 1.25 0 0 1 0-2.5Zm4.25 0a1.25 1.25 0 1 1 0 2.5 1.25 1.25 0 0 1 0-2.5Zm1.5-6H6.25c-.97 0-1.75.78-1.75 1.75V7h15v-.75c0-.97-.78-1.75-1.75-1.75Z'/%3E%3C/svg%3E") 22px 205px / 24px 24px no-repeat,
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 2a7.5 7.5 0 0 1 7.5 7.25v4.35l1.38 3.15a1.25 1.25 0 0 1-1.15 1.75H15a3 3 0 0 1-6 .18v-.18H4.27a1.25 1.25 0 0 1-1.14-1.75L4.5 13.6V9.5C4.5 5.35 7.85 2 12 2Zm1.5 16.5h-3a1.5 1.5 0 0 0 3 .15v-.15ZM12 3.5c-3.32 0-6 2.67-6 6v4.4L4.66 17h14.7L18 13.9V9.29a5.99 5.99 0 0 0-6-5.78Z'/%3E%3C/svg%3E") 22px 249px / 24px 24px no-repeat,
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M6.25 10a1.25 1.25 0 1 1-2.5 0 1.25 1.25 0 0 1 2.5 0Zm5 0a1.25 1.25 0 1 1-2.5 0 1.25 1.25 0 0 1 2.5 0ZM15 11.25a1.25 1.25 0 1 0 0-2.5 1.25 1.25 0 0 0 0 2.5Z'/%3E%3C/svg%3E") left 24px bottom 68px / 20px 20px no-repeat,
-    radial-gradient(circle 14px at 34px calc(100% - 34px), #000 96%, transparent 100%),
-    radial-gradient(circle 6px at 43px calc(100% - 25px), #000 96%, transparent 100%);
-}
-/* Unread chats: Teams' count on the Chat app. UNMEASURED: no badge was on
-   screen in Teams; Fluent's CounterBadge in danger red. */
-html[data-fmess-chats][data-fmess-unread]::after {
-  content: attr(data-fmess-unread);
-  position: fixed;
-  z-index: 2147483000;
-  left: 36px;
-  top: calc(var(--fmess-title-bar, 0px) + 24px);
-  min-width: 16px;
-  height: 16px;
-  padding: 0 4px;
-  box-sizing: border-box;
-  border-radius: 8px;
-  background: var(--tm-badge);
-  color: #ffffff;
-  font: 600 10px/16px -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
-  text-align: center;
-  pointer-events: none;
-}
-/* No strip, bar or badge over the photo viewer, which has a title bar of
-   its own; and no grey window showing at its edge. */
-html[data-fmess-media]::before,
-html[data-fmess-media]::after {
+/* No strip over the photo viewer, which has a title bar of its own; and no
+   grey window showing at its edge. */
+html[data-fmess-media]::before {
   display: none !important;
 }
 html[data-fmess-chats][data-fmess-media],
 html[data-fmess-chats][data-fmess-media] body {
   background: #000000 !important;
+}
+
+/* The rail (rail.html): the app bar down the left (68px), with Teams' apps
+   as pictures: the selected one filled with Teams' gradient, the others
+   outlined. Chat, "…" (fMess's Settings) and your picture (its account
+   menu) act. */
+html[data-fmess-service="rail"] body {
+  background: var(--tm-window);
+}
+html[data-fmess-service="rail"] #fmess-rail {
+  padding: 0;
+  box-shadow: none;
+  background: var(--tm-window);
+  --tm-instagram: 0px;
+}
+/* Instagram goes below Chat and moves the others down. */
+html[data-fmess-service="rail"] #fmess-rail:has(> [data-fmess-rail="instagram"]:not([hidden])) {
+  --tm-instagram: 44px;
+}
+html[data-fmess-service="rail"] #fmess-rail::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: var(--tm-rail-icon);
+  -webkit-mask:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5.25 5A3.25 3.25 0 0 0 2 8.25v7.5C2 17.55 3.46 19 5.25 19h7.5c1.8 0 3.25-1.46 3.25-3.25v-.31l3.26 2.25c1.16.8 2.74-.03 2.74-1.44v-8.5a1.75 1.75 0 0 0-2.74-1.44L16 8.56v-.31C16 6.45 14.54 5 12.75 5h-7.5ZM16 10.38l4.11-2.83c.17-.12.4 0 .4.2v8.5c0 .2-.23.32-.4.2L16 13.62v-3.24ZM3.5 8.25c0-.97.78-1.75 1.75-1.75h7.5c.97 0 1.75.78 1.75 1.75v7.5c0 .97-.78 1.75-1.75 1.75h-7.5c-.97 0-1.75-.78-1.75-1.75v-7.5Z'/%3E%3C/svg%3E") 22px calc(73px + var(--tm-instagram)) / 24px 24px no-repeat,
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6.5 2A2.5 2.5 0 0 0 4 4.5v15A2.5 2.5 0 0 0 6.5 22h12.75a.75.75 0 0 0 0-1.5H6.5a1 1 0 0 1-1-1h13.75c.41 0 .75-.34.75-.75V4.5A2.5 2.5 0 0 0 17.5 2h-11Zm-1 16V4.5a1 1 0 0 1 1-1h11a1 1 0 0 1 1 1V18h-13ZM14 8a2 2 0 1 1-4 0 2 2 0 0 1 4 0Zm1.5 4.5c0 1.25-1 2.5-3.5 2.5s-3.5-1.25-3.5-2.5c0-.83.67-1.5 1.5-1.5h4c.83 0 1.5.67 1.5 1.5Z'/%3E%3C/svg%3E") 22px calc(117px + var(--tm-instagram)) / 24px 24px no-repeat,
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M14.75 10c.97 0 1.75.78 1.75 1.75v4.75a4.5 4.5 0 0 1-9 0v-4.75c0-.97.79-1.75 1.75-1.75h5.5Zm0 1.5h-5.5a.25.25 0 0 0-.25.25v4.75a3 3 0 0 0 6 0v-4.75a.25.25 0 0 0-.25-.25Zm-11-1.5h3.38c-.34.41-.57.93-.62 1.5H3.75a.25.25 0 0 0-.25.25V15a2.5 2.5 0 0 0 3.08 2.43c.09.5.24.99.45 1.43A4 4 0 0 1 2 15v-3.24c0-.97.78-1.75 1.75-1.75Zm13.12 0h3.38c.97 0 1.75.78 1.75 1.75V15a4 4 0 0 1-5.03 3.87c.21-.45.37-.93.46-1.44A2.5 2.5 0 0 0 20.5 15v-3.25a.25.25 0 0 0-.25-.25h-2.76a2.74 2.74 0 0 0-.62-1.5ZM12 3a3 3 0 1 1 0 6 3 3 0 0 1 0-6Zm6.5 1a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5Zm-13 0a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5Zm6.5.5a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3Zm6.5 1a1 1 0 1 0 0 2 1 1 0 0 0 0-2Zm-13 0a1 1 0 1 0 0 2 1 1 0 0 0 0-2Z'/%3E%3C/svg%3E") 22px calc(161px + var(--tm-instagram)) / 24px 24px no-repeat,
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M17.75 3C19.55 3 21 4.46 21 6.25v11.5c0 1.8-1.46 3.25-3.25 3.25H6.25A3.25 3.25 0 0 1 3 17.75V6.25C3 4.45 4.46 3 6.25 3h11.5Zm1.75 5.5h-15v9.25c0 .97.78 1.75 1.75 1.75h11.5c.97 0 1.75-.78 1.75-1.75V8.5Zm-11.75 6a1.25 1.25 0 1 1 0 2.5 1.25 1.25 0 0 1 0-2.5Zm4.25 0a1.25 1.25 0 1 1 0 2.5 1.25 1.25 0 0 1 0-2.5Zm-4.25-4a1.25 1.25 0 1 1 0 2.5 1.25 1.25 0 0 1 0-2.5Zm4.25 0a1.25 1.25 0 1 1 0 2.5 1.25 1.25 0 0 1 0-2.5Zm4.25 0a1.25 1.25 0 1 1 0 2.5 1.25 1.25 0 0 1 0-2.5Zm1.5-6H6.25c-.97 0-1.75.78-1.75 1.75V7h15v-.75c0-.97-.78-1.75-1.75-1.75Z'/%3E%3C/svg%3E") 22px calc(205px + var(--tm-instagram)) / 24px 24px no-repeat,
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 2a7.5 7.5 0 0 1 7.5 7.25v4.35l1.38 3.15a1.25 1.25 0 0 1-1.15 1.75H15a3 3 0 0 1-6 .18v-.18H4.27a1.25 1.25 0 0 1-1.14-1.75L4.5 13.6V9.5C4.5 5.35 7.85 2 12 2Zm1.5 16.5h-3a1.5 1.5 0 0 0 3 .15v-.15ZM12 3.5c-3.32 0-6 2.67-6 6v4.4L4.66 17h14.7L18 13.9V9.29a5.99 5.99 0 0 0-6-5.78Z'/%3E%3C/svg%3E") 22px calc(249px + var(--tm-instagram)) / 24px 24px no-repeat;
+}
+html[data-fmess-service="rail"] [data-fmess-rail] {
+  position: absolute;
+  left: 14px;
+  width: 40px;
+  height: 40px;
+  margin: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--tm-rail-icon);
+}
+html[data-fmess-service="rail"] [data-fmess-rail][data-active] {
+  color: var(--tm-brand-icon);
+}
+/* The hover band is as wide as the bar. */
+html[data-fmess-service="rail"] [data-fmess-rail]:hover::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  left: -14px;
+  right: -14px;
+  top: -2px;
+  bottom: -2px;
+  background: var(--tm-selected);
+}
+html[data-fmess-service="rail"] [data-fmess-rail]:not([data-fmess-rail="instagram"]) > svg {
+  display: none;
+}
+html[data-fmess-service="rail"] [data-fmess-rail="messenger"] {
+  top: 21px;
+}
+html[data-fmess-service="rail"] [data-fmess-rail="messenger"]::before {
+  content: "";
+  position: absolute;
+  inset: 8px;
+  background: var(--tm-rail-icon);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 2a10 10 0 1 1-4.64 18.86l-4.3 1.12a.85.85 0 0 1-1.03-1.04l1.11-4.29A10 10 0 0 1 12 2Zm1.25 11h-4.6a.75.75 0 0 0 0 1.5H13.35a.75.75 0 0 0 0-1.5h-.1Zm2-3.5h-6.6a.75.75 0 0 0 0 1.5H15.35a.75.75 0 0 0 0-1.5h-.1Z'/%3E%3C/svg%3E") center / 24px 24px no-repeat;
+}
+html[data-fmess-service="rail"] [data-fmess-rail="messenger"][data-active]::before {
+  background: var(--tm-gradient);
+}
+html[data-fmess-service="rail"] [data-fmess-rail="instagram"] {
+  top: 65px;
+}
+html[data-fmess-service="rail"] [data-fmess-rail="settings"] {
+  top: auto;
+  bottom: 58px;
+}
+html[data-fmess-service="rail"] [data-fmess-rail="settings"]::before {
+  content: "";
+  position: absolute;
+  inset: 10px;
+  background: var(--tm-fg3);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M6.25 10a1.25 1.25 0 1 1-2.5 0 1.25 1.25 0 0 1 2.5 0Zm5 0a1.25 1.25 0 1 1-2.5 0 1.25 1.25 0 0 1 2.5 0ZM15 11.25a1.25 1.25 0 1 0 0-2.5 1.25 1.25 0 0 0 0 2.5Z'/%3E%3C/svg%3E") center / 20px 20px no-repeat;
+}
+html[data-fmess-service="rail"] [data-fmess-rail="account"] {
+  top: auto;
+  bottom: 14px;
+}
+html[data-fmess-service="rail"] [data-fmess-avatar] {
+  width: 28px;
+  height: 28px;
+  background: var(--fmess-avatar, linear-gradient(var(--tm-bg6), var(--tm-bg6))) center / cover no-repeat;
+}
+/* Available: the green dot in a ring of the card's colour. */
+html[data-fmess-service="rail"] [data-fmess-rail="account"]::before {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  left: 23px;
+  bottom: 5px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--tm-presence) center / 10px 10px no-repeat, var(--tm-card);
+}
+/* Unread chats: Teams' count on the app. UNMEASURED: no badge was on
+   screen in Teams; Fluent's CounterBadge in danger red. */
+html[data-fmess-service="rail"] [data-fmess-badge] {
+  left: 22px;
+  top: 3px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 8px;
+  background: var(--tm-badge);
+  box-shadow: none;
+  color: #ffffff;
+  font: 600 10px/16px -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
 }
 
 /* Chat list: "Chats" as Teams' "Chat" title, Teams' header icons. */

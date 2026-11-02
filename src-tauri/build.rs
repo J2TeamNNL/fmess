@@ -21,6 +21,8 @@ fn main() {
                 "list_themes",
                 "add_theme",
                 "remove_theme",
+                "select_service",
+                "set_account",
             ])),
     )
     .expect("failed to run tauri-build");

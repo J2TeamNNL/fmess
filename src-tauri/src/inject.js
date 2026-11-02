@@ -48,6 +48,10 @@
     wait.observe(document, { childList: true });
   };
 
+  // One theme serves Messenger and the rail (rail.html): each picks its own
+  // part by this attribute.
+  if (!window.opener) withRoot((root) => root.setAttribute('data-fmess-service', 'messenger'));
+
   // fMess's loading screen in place of Facebook's, in Messenger's colours
   // (set by fMess before this script), until the chat list is up. Login and
   // other pages show at once.
@@ -1436,16 +1440,27 @@
     BracketLeft: 'back',
     BracketRight: 'forward',
   };
+  const SERVICE_KEYS = { Digit1: 'messenger', Digit2: 'instagram' };
   // With Ctrl+Shift (Ctrl+Shift+= is Ctrl++ on most keyboards).
   const MENU_SHIFT_KEYS = { KeyH: 'messages', Equal: 'zoom-in' };
   window.addEventListener(
     'keydown',
     (event) => {
       const primary = isMac ? event.metaKey : event.ctrlKey;
+      // Ctrl+Cmd+1/2 switch services (menu.rs); on macOS the menu bar takes them.
+      const service = event.ctrlKey && event.metaKey && !event.shiftKey && !event.altKey && SERVICE_KEYS[event.code];
+      if (service) {
+        if (!isMac) {
+          event.preventDefault();
+          event.stopPropagation();
+          invoke('menu_shortcut', { id: service }).catch(() => {});
+        }
+        return;
+      }
       let action = null;
       if (primary && !event.shiftKey && !event.altKey && event.code === 'KeyK') action = ['search'];
       else if (primary && !event.shiftKey && !event.altKey && event.code === 'KeyN') action = ['newMessage'];
-      else if (primary && !event.shiftKey && !event.altKey && /^Digit[1-9]$/.test(event.code))
+      else if (primary && !event.shiftKey && !event.altKey && !(event.ctrlKey && event.metaKey) && /^Digit[1-9]$/.test(event.code))
         action = ['openChat', Number(event.code.slice(5)) - 1];
       else if (primary && event.shiftKey && event.code === 'BracketRight') action = ['moveChat', 1];
       else if (primary && event.shiftKey && event.code === 'BracketLeft') action = ['moveChat', -1];
@@ -2108,7 +2123,10 @@
     // A theme can show your picture and name (var(--fmess-avatar), attr(data-fmess-name)).
     const root = document.documentElement;
     if (contactPicture) root.style.setProperty('--fmess-avatar', `url("${contactPicture}")`);
-    root.setAttribute('data-fmess-name', window.require('CurrentUserInitialData').NAME || '');
+    const name = window.require('CurrentUserInitialData').NAME || '';
+    root.setAttribute('data-fmess-name', name);
+    // The rail shows them too (Rust skips what it already has).
+    invoke('set_account', { picture: contactPicture, name }).catch(() => {});
   };
   const currentAccount = () => {
     try {

@@ -1,0 +1,17 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "rail",
+  "description": "The local bar down the left of fMess's window switches between the services, opens Settings and the account menu, hears of unread counts, your picture and the selected service, and drags the window by its title strip.",
+  "webviews": [
+    "rail"
+  ],
+  "permissions": [
+    "allow-select-service",
+    "allow-open-settings",
+    "allow-show-account-menu",
+    "core:event:allow-listen",
+    "core:event:allow-unlisten",
+    "core:window:allow-start-dragging",
+    "core:window:allow-internal-toggle-maximize"
+  ]
+}

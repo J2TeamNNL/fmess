@@ -5,9 +5,18 @@
 // FMESS_WINDOW_SIZE=<width>x<height> sizes the window first, and
 // FMESS_SNAPSHOT=<file.png> (macOS) then saves a picture of the page as the
 // probe left it, through WebKit, which needs no screen-recording permission.
+// For the rail: FMESS_THEME=<id> shows that theme in both web views without
+// saving it, FMESS_RAIL_STATE=<json> overrides the rail's state (services,
+// unread, account, dark...), FMESS_RAIL=1 shows the rail without a theme, and
+// FMESS_SNAPSHOT_RAIL=<file.png> saves a picture of it too.
 use std::{thread, time::Duration};
 
-use tauri::{AppHandle, LogicalSize, Runtime};
+use tauri::{AppHandle, LogicalSize, Manager, Runtime};
+
+use crate::{
+    services::{self, RAIL},
+    themes,
+};
 
 pub fn run<R: Runtime>(app: AppHandle<R>) {
     let Some(path) = std::env::var_os("FMESS_PROBE") else {
@@ -36,6 +45,7 @@ pub fn run<R: Runtime>(app: AppHandle<R>) {
             let _ = window.set_size(LogicalSize::new(width, height));
             thread::sleep(Duration::from_secs(2));
         }
+        override_rail(&app, &window, &webview);
         let _ = webview.eval(format!(
             "window.__fmessProbe = undefined; (async () => {{ {script}\n}})().then(\
              (result) => {{ window.__fmessProbe = JSON.stringify(result ?? null); }},\
@@ -54,6 +64,10 @@ pub fn run<R: Runtime>(app: AppHandle<R>) {
                     if let Ok(path) = std::env::var("FMESS_SNAPSHOT") {
                         snapshot(&webview, path);
                     }
+                    #[cfg(target_os = "macos")]
+                    if let (Ok(path), Some(rail)) = (std::env::var("FMESS_SNAPSHOT_RAIL"), app.get_webview(RAIL)) {
+                        snapshot(&rail, path);
+                    }
                     return;
                 }
                 _ => {}
@@ -61,6 +75,25 @@ pub fn run<R: Runtime>(app: AppHandle<R>) {
         }
         eprintln!("[probe] no result after 60 s");
     });
+}
+
+fn override_rail<R: Runtime>(app: &AppHandle<R>, window: &tauri::Window<R>, messenger: &tauri::Webview<R>) {
+    let theme = std::env::var("FMESS_THEME").ok().map(|id| themes::for_page(app, Some(&id)));
+    let mut state = std::env::var("FMESS_RAIL_STATE")
+        .ok()
+        .and_then(|json| serde_json::from_str::<serde_json::Value>(&json).map_err(|err| eprintln!("[probe] FMESS_RAIL_STATE: {err}")).ok())
+        .unwrap_or_else(|| serde_json::json!({}));
+    if let Some(theme) = &theme {
+        state["theme"] = theme.clone();
+        let _ = messenger.eval(format!("window.__fmessApplySettings?.({});", serde_json::json!({ "theme": theme })));
+    }
+    if let Some(rail) = app.get_webview(RAIL) {
+        let _ = rail.eval(format!("window.__fmessRail?.({state});"));
+    }
+    if theme.is_some() || std::env::var("FMESS_RAIL").is_ok_and(|value| value == "1") {
+        services::place(window, true);
+    }
+    thread::sleep(Duration::from_secs(1));
 }
 
 /// Saves a picture of the page as a PNG, at the screen's scale.
@@ -77,12 +110,21 @@ fn snapshot<R: Runtime>(webview: &tauri::Webview<R>, path: String) {
                 return eprintln!("[snapshot] failed");
             }
             // SAFETY: an NSImage from WebKit; NSBitmapImageFileTypePNG is 4.
+            // An empty image (a hidden rail) has no bitmap, hence the checks.
             let saved: bool = unsafe {
                 let tiff: *mut AnyObject = msg_send![image, TIFFRepresentation];
-                let bitmap: *mut AnyObject = msg_send![class!(NSBitmapImageRep), imageRepWithData: tiff];
-                let options: *mut AnyObject = msg_send![class!(NSDictionary), dictionary];
-                let png: *mut AnyObject = msg_send![bitmap, representationUsingType: 4usize, properties: options];
-                msg_send![png, writeToFile: &*NSString::from_str(&path), atomically: true]
+                let bitmap: *mut AnyObject = if tiff.is_null() {
+                    std::ptr::null_mut()
+                } else {
+                    msg_send![class!(NSBitmapImageRep), imageRepWithData: tiff]
+                };
+                if bitmap.is_null() {
+                    false
+                } else {
+                    let options: *mut AnyObject = msg_send![class!(NSDictionary), dictionary];
+                    let png: *mut AnyObject = msg_send![bitmap, representationUsingType: 4usize, properties: options];
+                    !png.is_null() && msg_send![png, writeToFile: &*NSString::from_str(&path), atomically: true]
+                }
             };
             eprintln!("[snapshot] {} {path}", if saved { "saved" } else { "not saved" });
         });

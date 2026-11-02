@@ -1,7 +1,7 @@
 {
   "$schema": "../gen/schemas/remote-schema.json",
   "identifier": "messenger-web",
-  "description": "Lets facebook.com/messages show and clear native notifications, report its unread chat count, switch the title bar for the photo viewer, open the account menu, use the menu bar's shortcuts on Windows and Linux, report Messenger's preferences, keep the widths its panes are dragged to, keep Facebook's bar shown or hidden and drag the window by its title strip, and nothing else.",
+  "description": "Lets facebook.com/messages show and clear native notifications, report its unread chat count and your name and picture for the rail, switch the title bar for the photo viewer, open the account menu, use the menu bar's shortcuts on Windows and Linux, report Messenger's preferences, keep the widths its panes are dragged to, keep Facebook's bar shown or hidden and drag the window by its title strip, and nothing else.",
   "webviews": [
     "messenger"
   ],
@@ -15,6 +15,7 @@
     "allow-notify",
     "allow-clear-notifications",
     "allow-set-unread-count",
+    "allow-set-account",
     "allow-set-viewer-open",
     "allow-show-account-menu",
     "allow-menu-shortcut",

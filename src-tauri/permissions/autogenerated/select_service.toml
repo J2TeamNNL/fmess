@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-select-service"
+description = "Enables the select_service command without any pre-configured scope."
+commands.allow = ["select_service"]
+
+[[permission]]
+identifier = "deny-select-service"
+description = "Denies the select_service command without any pre-configured scope."
+commands.deny = ["select_service"]

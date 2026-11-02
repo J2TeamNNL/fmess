@@ -67,6 +67,8 @@ fn main() {
             webview::set_viewer_open,
             menu::show_account_menu,
             menu::menu_shortcut,
+            services::select_service,
+            services::set_account,
         ])
         .on_menu_event(menu::handle)
         .setup(|app| {

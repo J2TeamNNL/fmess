@@ -7,7 +7,7 @@ use tauri::{
     utils::config::BackgroundThrottlingPolicy,
     webview::{NewWindowFeatures, NewWindowResponse, PageLoadEvent, WebviewBuilder},
     window::WindowBuilder,
-    AppHandle, Manager, PhysicalPosition, Runtime, Url, WebviewUrl, WebviewWindowBuilder,
+    AppHandle, Manager, PhysicalPosition, PhysicalSize, Runtime, Url, WebviewUrl, WebviewWindowBuilder,
 };
 
 use crate::{
@@ -61,7 +61,7 @@ const SPLASH_DARK: tauri::window::Color = tauri::window::Color(28, 28, 29, 255);
 const SPLASH_LIGHT: tauri::window::Color = tauri::window::Color(255, 255, 255, 255);
 
 /// Height of the strip inject.js keeps free under the overlaid macOS title bar.
-const TITLE_BAR_INSET: u32 = if cfg!(target_os = "macos") { 28 } else { 0 };
+pub const TITLE_BAR_INSET: u32 = if cfg!(target_os = "macos") { 28 } else { 0 };
 
 pub fn messages_url() -> Url {
     Url::parse(MESSAGES_URL).expect("MESSAGES_URL is valid")
@@ -88,9 +88,13 @@ pub fn create_main_window<R: Runtime>(app: &AppHandle<R>, settings: &Settings) -
             }
         });
     // Messenger's colours from the first frame, before the page paints.
-    let (builder, messenger) = match settings::messenger_theme(settings.messenger_dark_mode.as_deref()) {
-        Some(tauri::Theme::Dark) => (builder.background_color(SPLASH_DARK), messenger.background_color(SPLASH_DARK)),
-        Some(_) => (builder.background_color(SPLASH_LIGHT), messenger.background_color(SPLASH_LIGHT)),
+    let background = match settings::messenger_theme(settings.messenger_dark_mode.as_deref()) {
+        Some(tauri::Theme::Dark) => Some(SPLASH_DARK),
+        Some(_) => Some(SPLASH_LIGHT),
+        None => None,
+    };
+    let (builder, messenger) = match background {
+        Some(colour) => (builder.background_color(colour), messenger.background_color(colour)),
         None => (builder, messenger),
     };
     // Like the old desktop app: no separate title bar, window buttons over the page.
@@ -105,10 +109,33 @@ pub fn create_main_window<R: Runtime>(app: &AppHandle<R>, settings: &Settings) -
     if settings.zoom != 1.0 {
         let _ = webview.set_zoom(settings.zoom);
     }
+    // After the services, whose icons it shows.
+    let rail = match background {
+        Some(colour) => rail(app).background_color(colour),
+        None => rail(app),
+    };
+    window.add_child(rail, PhysicalPosition::new(0, 0), PhysicalSize::new(0, size.height))?;
+    services::layout(&window);
+    services::select(app, services::selected(app));
     Ok(())
 }
 
-/// Called by the Messenger page (a theme's Settings button).
+/// The bar down the left (ui/rail.html), which services::layout places.
+fn rail<R: Runtime>(app: &AppHandle<R>) -> WebviewBuilder<R> {
+    WebviewBuilder::new(services::RAIL, WebviewUrl::App("rail.html".into()))
+        // Its state from the first frame, so a theme's rail shows at once.
+        .initialization_script(format!("window.__fmessRailInit = {};", services::rail_state(app)))
+        .on_page_load(|webview, payload| {
+            if let PageLoadEvent::Finished = payload.event() {
+                // Events sent while it was loading were missed.
+                let _ = webview.eval(services::rail_script(webview.app_handle()));
+            }
+        })
+        // A local page with nothing to link to.
+        .on_navigation(|url| url.scheme() == "tauri" || url.host_str() == Some("tauri.localhost"))
+}
+
+/// Called by the rail and the Messenger page (a theme's Settings button).
 #[tauri::command]
 pub fn open_settings<R: Runtime>(app: AppHandle<R>) {
     open_settings_window(&app);
