@@ -1,10 +1,10 @@
 # What a theme can hook into
 
-Everything here was read from `src-tauri/src/inject.js`, `src-tauri/src/themes.rs`
+Everything here was read from the page script (`src-tauri/src/inject/`, joined into inject.js at build time), `src-tauri/src/themes.rs`
 and the shipped themes on 2026-11-02. Facebook and inject.js change: re-check with
 
 ```sh
-cd ~/projects/herald && grep -n "data-fmess\|--fmess\|fmess-account\|UNDER_EVERY_THEME" src-tauri/src/inject.js
+cd ~/projects/herald && grep -rn "data-fmess\|--fmess\|fmess-account\|UNDER_EVERY_THEME" src-tauri/src/inject/
 ```
 
 ## One theme, three web views
@@ -42,13 +42,16 @@ so any theme selector wins. Scope everything with `html[data-fmess-service="rail
 | `[data-fmess-rail][hidden]` | a service that is off, or Instagram with its icon hidden in Settings |
 | `[data-fmess-rail] > svg` | the icon, `fill`/`stroke: currentColor`: set `color` |
 | `[data-fmess-badge]` | the unread count in a service item; `hidden` at 0, text `1`…`99+` |
-| `[data-fmess-avatar]` | the picture in `account`, background `var(--fmess-avatar)` |
+| `[data-fmess-avatar]` | the picture in `account`, background `var(--fmess-avatar)` (your initial when Hide profile pictures is on) |
 | `html[data-fmess-dark]`, `html[data-fmess-name]`, `--fmess-avatar`, `--fmess-title-bar` | as on Messenger's page |
 | `html[data-fmess-theme]` | a theme is on |
 
 Decorative items the target app has (Zalo's contacts, cloud…) are drawn on `#fmess-rail`
 or its pseudo-elements; react to Instagram's item with
 `#fmess-rail:has(> [data-fmess-rail="instagram"]:not([hidden]))`.
+
+Nothing can show past the rail's 68px (it is its own web view): a target's tooltips beside
+its app bar can't be drawn; the real items have native ones (`title`).
 
 ### Instagram (`src-tauri/src/inject-instagram.js`)
 
@@ -112,7 +115,8 @@ after the page changes.
 | `html[data-fmess-name]` | your full name | `content: attr(data-fmess-name)` (Zalo's title bar: `"Zalo - " attr(data-fmess-name)`) |
 | `--fmess-avatar` (inline on `<html>`) | `url("…")` of your profile picture; Facebook URLs expire, so it is refreshed every 10 min | a background layer. Always give a fallback: `var(--fmess-avatar, <gradient>)` |
 | `--fmess-title-bar` (on `:root`) | 28px in the main window on macOS (the strip under the window buttons); 0 on Windows/Linux and in popups | height of a drawn title strip (`html::before`) and anything placed under it |
-| `--header-height` | forced on every element: in the chats = the same inset; elsewhere 56px + inset (Facebook's top bar); 56px inside the viewer dialog | WhatsApp's strip uses it; prefer `--fmess-title-bar`, which stays the strip's height outside the chats too |
+| `--header-height` | forced on every element: in the chats = the same inset; elsewhere 56px + inset (Facebook's top bar); 56px inside the viewer dialog | WhatsApp's strip uses it; prefer `--fmess-title-bar`, which stays the strip's height outside the chats too. A theme may **raise** it in the chats for a taller title band: `html[data-fmess-chats], html[data-fmess-chats] * { --header-height: 48px !important }` (Teams); Messenger's page then starts under the band, and the viewer keeps its 56px (a more specific rule) |
+| `[data-tauri-drag-region]` | macOS only: fMess's transparent strip, `--fmess-title-bar` tall, z-index max, that drags the window | A taller band can make it taller (`height: 48px !important`) and cut a hole where a real control sits (`clip-path: polygon(evenodd, outer…, hole…)`), so the control gets the clicks. Window buttons (below) need no hole |
 | `html[data-fmess-logged-out]` | login pages | (rarely needed) |
 | `html[data-fmess-main]`, `[data-fmess-overlay-scrollbars]` | fMess's own scroll bars: thin native overlay ones on macOS, hidden plus a floating `#fmess-scroll-indicator` elsewhere | Don't restyle `::-webkit-scrollbar` against it. `--chat-scrollbar-thumb-color` is all a theme needs. |
 | `[data-fmess-list]`, `[data-fmess-chat-row]`, `.fmess-pane-edge` | the chat list nav, the row holding chat + details, the 9px resize handles (z-index 5, line colour `--primary-button-background`) | Don't cover or hide the handles |
@@ -166,7 +170,11 @@ emoji picker.
 | Sender's name above a group's messages | `[data-scope="messages_table"] h4 span` |
 | Unread chat row | the row's link holds Messenger's unread dot, a `[role="button"]`; read rows: `a[role="link"]:not(:has([role="button"]))` |
 | Row picture box (68px, 56px picture inside) | `[role="row"] a[role="link"] > div > div > div:first-child`; resize the picture with `zoom` on its child (it holds the presence dot and group pictures too) |
-| Header picture (40px) | `[data-fmess-ui="chat-header"] a[role="link"] > div > div > div:first-child` | To style one, find a structural selector with a probe (roles, `dir`,
+| Header picture (40px) | `[data-fmess-ui="chat-header"] a[role="link"] > div > div > div:first-child` |
+| Composer placeholder ("Aa") | `[role="textbox"] + div[aria-hidden="true"] > div`, there only while the box is empty (the 1×1 "Aa" before the editor is for screen readers) |
+| A chat row's time | `div[style*="height: 8px"] + div > span:last-child:has(abbr)` (line 2: preview, " · ", time) |
+| The list's title row, pills row | `[data-fmess-list] div:has(> div > div > #fmess-account)`; `div:has(> div > div > [role="tablist"])` (the tablist and its two wrappers are 36px by class) |
+| Page language | `html[lang]` (`en` for an English Facebook): the place to write the target's own words for English only | To style one, find a structural selector with a probe (roles, `dir`,
 `data-*`, inline `style*=` pieces), never text, and note it in the mapping table. If the
 only way is new JS, that is an inject.js change for the user to decide on, not part of the
 theme.
@@ -183,14 +191,107 @@ negative `top` counts from the bottom (top = bottom + top − size).
 }
 ```
 
-- While the pointer is over one, fMess sets `--fmess-hover-left` / `--fmess-hover-top` and
-  `cursor: pointer` on the nav. Paint a highlight at that position (default off-screen):
+- While the pointer is over one, fMess sets `--fmess-hover-left` / `--fmess-hover-top`,
+  `data-fmess-hover="<name>"` and `cursor: pointer` on the nav (all removed when none is
+  lit). The name lets a theme label the lit button (Teams' tooltips: the nav's free
+  pseudo-element with `content: var(--label)`, the label set per
+  `[data-fmess-hover="…"]`) or treat one differently (Teams keeps the open app's slot
+  clear). Paint a highlight at that position (default off-screen):
   `radial-gradient(…) var(--fmess-hover-left, -100px) var(--fmess-hover-top, -100px) / 40px 40px no-repeat`.
 - Clicks: **only `account` and `settings` do anything.** `account` opens fMess's native
   account menu (your name, Settings…, Log Out) to the right of the button. `settings` opens
   fMess's Settings. Every other name only lights up on hover.
 - The native menu is not HTML. A theme can't restyle it or reproduce the target's profile
   card. Put the `account` button where the target shows your avatar, and stop there.
+
+## Buttons anywhere in the window: `--fmess-window-buttons`
+
+The same idea, for buttons drawn outside the chat list (Teams' "…" and avatar at the
+right of its title bar). Declare on `:root` (scope it, e.g.
+`html[data-fmess-chats]:not([data-fmess-media])`): `name left top size, …` in px from the
+window's top left. A negative `left` counts from the right edge and a negative `top` from
+the bottom, as `--fmess-buttons` does: left = window width + left − size.
+
+```css
+html[data-fmess-chats]:not([data-fmess-media]) {
+  --fmess-window-buttons: settings -53 8 32, account -12 8 32;
+}
+```
+
+- Hover: fMess sets `--fmess-window-hover-left` / `--fmess-window-hover-top` (window px),
+  `data-fmess-window-hover="<name>"` and `cursor: pointer` on `:root`. Draw the highlight
+  in a fixed pseudo-element at those positions (default off-screen).
+- Clicks: `account` opens fMess's native account menu **under** the button (kept inside the
+  window), `settings` opens Settings, `sidebar` folds the theme's sidebar away and back
+  (below); other names only light up. A press on one never starts a window drag, even over
+  the macOS drag strip.
+- `sidebar` toggles `data-fmess-sidebar-collapsed` on `<html>`, kept in fMess's settings
+  (`sidebarCollapsed`) for the next start; choosing another theme unfolds it. With a theme
+  that draws fMess's rail (a `data-fmess-service="rail"` section) fMess folds the rail web
+  view away too and the page takes the window's full width, so the page's own window
+  buttons move by the rail's 68px (the Teams theme puts `sidebar` at 40 with the rail, 108
+  folded, both 108px from the window's edge). Without a rail section the theme does the
+  folding. Folded, the rail's service icons are gone: ⌃⌘1/⌃⌘2 still switch, and only
+  Messenger's page has the button to unfold.
+- fMess reads the list at most once a second.
+- Draw the pictures in fixed pseudo-elements with `pointer-events: none`: `body::before` and
+  `body::after` (the Teams theme uses both), `html::before` is the strip/band.
+
+## A search box of the theme's own: `--fmess-search-box: 1`
+
+Moving Messenger's own search field out of the list (`position: fixed` in a title band)
+looked right in WebKit snapshots and passed hit tests, but **on screen WebKit clipped it**
+(the list's panel is transformed so it can slide). Don't move it. Ask fMess for a box
+instead: `--fmess-search-box: 1` on `:root` makes fMess add `#fmess-search-box` to
+`<body>`, a `role=button` div that carries the field's (translated) placeholder and
+focuses Messenger's field on click. Style the box where the target has its search; fold
+Messenger's field until it has the focus (Teams puts its row over the title row then).
+
+## Quick reactions in a message's hover actions: `--fmess-quick-reactions`
+
+`--fmess-quick-reactions: 1f44d 2764 1f606 1f62e` on `:root` (codepoints, `_` between the
+parts of a sequence). fMess adds a `.fmess-quick-reactions` group (`role=group`) first in
+the hovered message's actions, with one `.fmess-quick-reaction` button per emoji
+(`data-emoji`, `aria-label` = the emoji), each holding Messenger's own emoji picture (an
+`<img>` from `emoji.php`, so a theme's emoji swap applies), or the emoji as text if fMess
+hasn't seen that picture yet: Messenger's emoji URLs carry a checksum (`/v9/t55/2/32/…`),
+so fMess knows the six of the reaction picker and learns others from the page. A click
+opens Messenger's reaction picker for that message and picks the emoji there (which also
+takes it back if it is already yours); an emoji the picker lacks just closes it. Style the
+group inside the actions (`order`, sizes); hide it to opt out per place.
+
+After a quick-reaction click the message row (`[data-scope="messages_table"]`) carries
+`data-fmess-reacted` until the pointer leaves it: hide the actions box for such rows, as
+Messenger's own actions close once a reaction is picked. Hide it with `visibility`, not
+`display: none`: Messenger's picker is anchored to the react button while fMess picks.
+
+## A message's hover actions
+
+No marks; found by structure and icons (2026-11-02):
+
+| What | Selector |
+|---|---|
+| The actions' box (present only while hovered) | `[role="toolbar"] > [role="presentation"] > [role="presentation"]:has([role="button"])` |
+| React, reply, more | `[role="button"]:has(path[d^="M111 203a9.5"])`, `…"M101 936.5c"`, `…"M456 410a2"` (each in `div > span > div`, 28px) |
+| The actions' column | `[data-scope="messages_table"] > [role="presentation"] > [role="presentation"]:has(> [role="presentation"] > [role="toolbar"])`; `[role="toolbar"]` itself is `position: relative` |
+| Your message vs theirs | the row content (`[data-scope="messages_table"] > [role="presentation"]`) is `row-reverse` for yours; its first column is the read-receipt one, `> [role="presentation"]:first-child > [role="presentation"] > [role="none"]`; theirs holds the picture column. Flag it and use `@container style()` |
+| The time shown on hover | a normal `[role="tooltip"]` |
+
+To hang the box above the message (Teams): make the toolbar and its column `static`, the
+box `absolute` from the row (`top: -40px`; theirs `left: 50px`, yours `right: 8px`),
+`width: max-content`, `flex-direction: row` (yours are reversed), and `flex: none` on the
+items. Rules inside `@container` need the same specificity as the rules they override.
+
+## Replying and link previews: `composer-bar`
+
+`[data-fmess-ui="composer-bar"]` (marked only while replying or showing a link's preview)
+is the composer's previous sibling: `> div` (flex, the content) holds the text block
+(`h3` "Replying to <name>", then the quoted text, 13px) and Messenger's 12px close button
+(`[role="button"]`, the X path starts `M9.942 2.942`). To make bar and box one box (Teams'
+quote inside the box): the bar gets the box's side margins, border and top corners
+(`border-bottom: 0`), and `[data-fmess-ui="composer-bar"] + [data-fmess-ui="composer"]`
+loses its top border and corners. Its content can become the quote card; mind
+UNDER_EVERY_THEME's `padding-bottom: 8px !important` on `> div`.
 
 ## `#fmess-account`
 
@@ -305,6 +406,12 @@ keep the text colour following its own background.
   `x:has(y)` plus `@container style(--flag: 1) { z { … } }` (Teams: read rows, reaction
   pills, the like button, the composer field). The flag inherits, so the query matches every
   descendant.
+- **One masked pseudo-element, one icon filled under the pointer:** `-webkit-mask-composite`
+  across many layers didn't give "outline icons ∪ (strip of filled icons ∩ hovered slot)"
+  in WebKit. What works: the strip as the last mask layer with `-webkit-mask-clip:
+  content-box`, and padding that makes the content box the hovered slot (`padding-top:
+  max(0px, calc(var(--fmess-hover-top, -300px) + 10px))`, the bottom likewise against a
+  fixed height); the other layers keep `border-box` (Teams' app bar).
 - **`zoom`** shrinks Messenger's nested picture boxes (avatar + ring + presence dot) in one
   rule. `getBoundingClientRect()` of zoomed children reports odd numbers; trust the snapshot.
 - **Hit areas.** Never hide a button's box to restyle it. Hide its `svg *` (or the svg's

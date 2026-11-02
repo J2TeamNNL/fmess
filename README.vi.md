@@ -142,7 +142,7 @@ Website trong `site/` được [GitHub Pages](.github/workflows/pages.yml) tri�
 ## Cách hoạt động
 
 Cửa sổ tải trực tiếp facebook.com/messages. fMess chèn một script vào trang
-(`src-tauri/src/inject.js`) để chỉnh giao diện qua chính các biến CSS của Facebook,
+(`src-tauri/src/inject/`, ghép thành một script lúc build) để chỉnh giao diện qua chính các biến CSS của Facebook,
 thêm phím tắt và cài đặt, rồi chuyển thông báo sang hệ điều hành. Instagram có script riêng, gọn hơn
 (`src-tauri/src/inject-instagram.js`) trong một webview thứ hai đặt cạnh, còn
 thanh dọc bên trái là một trang nội bộ nhỏ (`ui/rail.html`). Cuộc gọi trong

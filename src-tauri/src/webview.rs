@@ -40,6 +40,10 @@ macro_rules! configure {
             .on_new_window(move |url, features| open_popup(&popup_app, service, url, features))
             // Without a download handler, macOS cancels every download.
             .on_download(|_, _| true)
+            // Tauri takes files dropped on the window for itself (as its own
+            // events) and keeps them from the page, so a file or screenshot
+            // dragged into a chat did nothing; the pages take them as in a browser.
+            .disable_drag_drop_handler()
             // Hidden windows must keep receiving messages (macOS 14+ only).
             .background_throttling(BackgroundThrottlingPolicy::Disabled);
         match user_agent() {
@@ -57,7 +61,8 @@ const MESSAGES_URL: &str = "https://www.facebook.com/messages/";
 /// Instagram's chats, opened when the Instagram service is turned on.
 const INSTAGRAM_URL: &str = "https://www.instagram.com/direct/inbox/";
 
-const INJECTED_SCRIPT: &str = include_str!("inject.js");
+/// The page script, joined from src/inject/ by build.rs.
+const INJECTED_SCRIPT: &str = include_str!(concat!(env!("OUT_DIR"), "/inject.js"));
 const INSTAGRAM_SCRIPT: &str = include_str!("inject-instagram.js");
 
 /// The app icon, shown on fMess's loading screen in place of Facebook's.

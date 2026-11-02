@@ -69,10 +69,15 @@ fn on_rail<R: Runtime>(app: &AppHandle<R>, settings: &settings::Settings) -> Vec
         .collect()
 }
 
-/// A theme with a rail section draws the rail; otherwise it shows only when
-/// there is more than one service to switch between.
+/// A theme with a rail section draws the rail, unless its sidebar button
+/// folded it away; otherwise it shows only when there is more than one
+/// service to switch between.
 fn rail_visible<R: Runtime>(app: &AppHandle<R>, settings: &settings::Settings) -> bool {
-    themes::draws_rail(app, settings.theme.as_deref()) || on_rail(app, settings).len() > 1
+    if themes::draws_rail(app, settings.theme.as_deref()) {
+        !settings.sidebar_collapsed
+    } else {
+        on_rail(app, settings).len() > 1
+    }
 }
 
 /// Whether layout last showed the rail: resizing reuses it rather than
@@ -231,6 +236,7 @@ pub fn rail_state<R: Runtime>(app: &AppHandle<R>) -> serde_json::Value {
         "selected": selected(app),
         "unread": badge::counts(),
         "account": *ACCOUNT.lock().unwrap(),
+        "hideAvatars": settings.hide_avatars,
     })
 }
 

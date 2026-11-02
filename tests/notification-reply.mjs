@@ -1,10 +1,17 @@
-// Runs inject.js's reply from a notification against a fake Messenger: chats
+// Runs the page script's reply from a notification against a fake Messenger: chats
 // with message boxes, an editor that shows changes a moment later, and a user
 // who can open another chat at any time. `node tests/notification-reply.mjs`
-import { readFileSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 
+// The page script's parts, joined in file-name order as build.rs does.
 // Windows checkouts may have CRLF line ends.
-const src = readFileSync(new URL('../src-tauri/src/inject.js', import.meta.url), 'utf8').replace(/\r\n/g, '\n');
+const parts = new URL('../src-tauri/src/inject/', import.meta.url);
+const src = readdirSync(parts)
+  .filter((name) => name.endsWith('.js'))
+  .sort()
+  .map((name) => readFileSync(new URL(name, parts), 'utf8'))
+  .join('')
+  .replace(/\r\n/g, '\n');
 const waitFor = src.match(/  const waitFor = async[\s\S]*?\n  };\n/)[0];
 const reply = src.match(/  let replying = Promise\.resolve\(\);[\s\S]*?\n    return true;\n  };\n/)[0];
 

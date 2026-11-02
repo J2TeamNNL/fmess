@@ -37,7 +37,7 @@ same things for each one; this skill holds them, so run it end to end without as
 | Theme workspace (private, not in git) | `~/projects/fmess-themes/<app>/`: `spec/`, `icons.json`, `<app>.src.css`, `build.py`, assets |
 | The template | `~/projects/fmess-themes/whatsapp/` (and `zalo.css`, built by hand) |
 | Built-in themes | `src-tauri/themes/<id>.css`, listed in `BUILT_IN` in `src-tauri/src/themes.rs` |
-| Hooks | `src-tauri/src/inject.js` (marks, `--fmess-buttons`, `#fmess-account`, `applyTheme`) |
+| Hooks | `src-tauri/src/inject/` (the page script in parts: 09-marks.js, 17-theme-hooks.js, 20-theme.js; `--fmess-buttons`, `#fmess-account`, `applyTheme`) |
 | Probe/snapshot | `src-tauri/src/probe.rs`; demo content: `~/projects/fmess-themes/demo-shot.js`, `shoot.sh` |
 | App icon per theme | `branding/icon.py --themes`, `branding/brands/<id>.svg`, `src-tauri/icons/themes/<id>-{256,512}.png`, `src-tauri/src/icon.rs` |
 | User settings | `~/Library/Application Support/io.github.toanbku.fmess/settings.json` (`theme`, `zoom`, `themeIcon`) |
@@ -105,9 +105,9 @@ can't**. Start from this (details in hooks.md):
 
 | Target region | Hook | Notes |
 |---|---|---|
-| Title bar / window strip | `html::before`, height `var(--fmess-title-bar)` | 28px macOS, 0 on Windows/Linux; `pointer-events: none` |
+| Title bar / window strip | `html::before`, height `var(--fmess-title-bar)`; a taller band by raising `--header-height` in the chats | 28px macOS, 0 on Windows/Linux; `pointer-events: none`. Real controls in it: Messenger's search field moved there, `--fmess-window-buttons` (hooks.md) |
 | App rail with app icons | `html[data-fmess-service="rail"]` in fMess's own rail web view (`ui/rail.html`, `data-fmess-rail` items) | decorative icons are pictures; Messenger, Instagram, settings and account act (see hooks.md) |
-| Avatar + account/settings card | `--fmess-avatar`, `account` button, or `#fmess-account` | opens fMess's **native** menu (name, Settings…, Log Out). The target's card can't be copied. |
+| Avatar + account/settings card | `--fmess-avatar`, the rail's `account` item, `account` in `--fmess-window-buttons` (anywhere in the page), or `#fmess-account` | opens fMess's **native** menu (name, Settings…, Log Out). The target's card can't be copied. |
 | Unread count | `html[data-fmess-unread]::after` | `content: attr(data-fmess-unread)` |
 | List title / logo | `[role="navigation"] h1 a` masked with a wordmark | |
 | New chat, list ⋯ | `a[href="/messages/new/"]`, `[data-fmess-ui="list-menu"]` | svg mask |

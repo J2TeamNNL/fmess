@@ -58,6 +58,8 @@
   --tm-presence: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10' fill='%2313a10e'%3E%3Cpath d='M5 10A5 5 0 1 0 5 0a5 5 0 0 0 0 10Zm2.1-5.9L4.85 6.35a.5.5 0 0 1-.7 0l-1-1a.5.5 0 0 1 .7-.7l.65.64 1.9-1.9a.5.5 0 0 1 .7.71Z'/%3E%3C/svg%3E");
   --tm-eye: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%235b5fc7'%3E%3Cpath d='M3.26 11.6A6.97 6.97 0 0 1 10 6c3.2 0 6.06 2.33 6.74 5.6a.5.5 0 0 0 .98-.2A7.97 7.97 0 0 0 10 5a7.97 7.97 0 0 0-7.72 6.4.5.5 0 0 0 .98.2Z'/%3E%3Cpath d='M9.99 8a3.5 3.5 0 1 1 0 7 3.5 3.5 0 0 1 0-7Z'/%3E%3C/svg%3E");
   --tm-gradient: linear-gradient(to top left, #5c55e0 5%, #6a6ae6 17%, #7882f0 49%, #a392f7 90%);
+  --tm-hover-pill: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32'%3E%3Crect width='32' height='32' rx='4' fill='white' fill-opacity='.7'/%3E%3C/svg%3E");
+  --tm-quote-bar: #c7c7c7;
 }
 html[data-fmess-dark] {
   --tm-window: #0a0a0a;
@@ -106,6 +108,9 @@ html[data-fmess-dark] {
   --tm-ambient: rgba(0, 0, 0, 0.24);
   --tm-key: rgba(0, 0, 0, 0.28);
   --tm-presence: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10' fill='%233db838'%3E%3Cpath d='M5 10A5 5 0 1 0 5 0a5 5 0 0 0 0 10Zm2.1-5.9L4.85 6.35a.5.5 0 0 1-.7 0l-1-1a.5.5 0 0 1 .7-.7l.65.64 1.9-1.9a.5.5 0 0 1 .7.71Z'/%3E%3C/svg%3E");
+  /* UNMEASURED in dark: Teams' quote bar is #c7c7c7 (colorNeutralStroke1Hover) in light. */
+  --tm-quote-bar: #757575;
+  --tm-hover-pill: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32'%3E%3Crect width='32' height='32' rx='4' fill='%23242424' fill-opacity='.8'/%3E%3C/svg%3E");
   --tm-eye: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%237f85f5'%3E%3Cpath d='M3.26 11.6A6.97 6.97 0 0 1 10 6c3.2 0 6.06 2.33 6.74 5.6a.5.5 0 0 0 .98-.2A7.97 7.97 0 0 0 10 5a7.97 7.97 0 0 0-7.72 6.4.5.5 0 0 0 .98.2Z'/%3E%3Cpath d='M9.99 8a3.5 3.5 0 1 1 0 7 3.5 3.5 0 0 1 0-7Z'/%3E%3C/svg%3E");
 }
 
@@ -180,12 +185,31 @@ html :is(div, span, a, h1, h2, h3, h4, input, textarea, button, label, p) {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, "Apple Color Emoji", "Segoe UI Emoji", sans-serif !important;
 }
 
-/* The window: Teams' grey behind everything, the strip under the window
-   buttons too (it is 0 where the system draws the title bar). */
+/* The window: Teams' grey behind everything. */
 html[data-fmess-chats],
 html[data-fmess-chats] body,
 html[data-fmess-chats] :has(> [data-fmess-list]) {
   background: var(--tm-window) !important;
+}
+
+/* Teams' title bar: a 48px band over the whole window (the window buttons
+   stay where the system puts them), Messenger's search field centred in it,
+   "…" (fMess's Settings) and your picture at the right. Messenger's page
+   starts under the band (--header-height). Outside the chats only the strip
+   under the window buttons is coloured (0 where the system draws the title
+   bar). */
+:root {
+  --tm-band: 48px;
+  /* The app bar is fMess's rail, its own web view left of the page. */
+  --tm-rail: 0px;
+  --tm-search-w: min(468px, calc(100vw - 186px));
+}
+html[data-fmess-sidebar-collapsed] {
+  --tm-search-w: min(468px, calc(100vw - 254px));
+}
+html[data-fmess-chats],
+html[data-fmess-chats] * {
+  --header-height: var(--tm-band) !important;
 }
 html::before {
   content: "";
@@ -197,6 +221,74 @@ html::before {
   height: var(--fmess-title-bar, 0px);
   background: var(--tm-window);
   pointer-events: none;
+}
+/* In the chats the band sits at the bottom of the page's stack, so the
+   search field (inside the list's own stacking context) shows over it. */
+html[data-fmess-chats]::before {
+  z-index: 0;
+  height: var(--tm-band);
+  background:
+    var(--tm-hover-pill) var(--fmess-window-hover-left, -999px) var(--fmess-window-hover-top, -999px) / 32px 32px no-repeat,
+    var(--tm-window);
+}
+/* The sidebar button 108px from the window's edge: 40px into the page with
+   the rail beside it, 108px folded (the page then starts at the edge). */
+html[data-fmess-chats]:not([data-fmess-media]) {
+  --fmess-window-buttons: settings -53 8 32, account -12 8 32, sidebar 40 8 32;
+}
+html[data-fmess-chats][data-fmess-sidebar-collapsed]:not([data-fmess-media]) {
+  --fmess-window-buttons: settings -53 8 32, account -12 8 32, sidebar 108 8 32;
+}
+/* "…" and your picture with Teams' "available" dot, in one masked layer. */
+html[data-fmess-chats] body::before {
+  content: "";
+  position: fixed;
+  z-index: 1;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--tm-band);
+  pointer-events: none;
+  background:
+    var(--tm-presence) right 14px top 28px / 10px 10px no-repeat,
+    radial-gradient(closest-side, var(--tm-card) 92%, transparent 100%) right 13px top 27px / 12px 12px no-repeat,
+    var(--fmess-avatar, linear-gradient(var(--tm-bg6), var(--tm-bg6))) right 14px top 10px / 28px 28px no-repeat,
+    linear-gradient(var(--tm-brand-icon), var(--tm-brand-icon)) calc(var(--fmess-window-hover-left, -999px) + 6px) calc(var(--fmess-window-hover-top, -999px) + 6px) / 20px 20px no-repeat,
+    var(--tm-fg3);
+  -webkit-mask:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M6.25 10a1.25 1.25 0 1 1-2.5 0 1.25 1.25 0 0 1 2.5 0Zm5 0a1.25 1.25 0 1 1-2.5 0 1.25 1.25 0 0 1 2.5 0ZM15 11.25a1.25 1.25 0 1 0 0-2.5 1.25 1.25 0 0 0 0 2.5Z'/%3E%3C/svg%3E") right 59px top 14px / 20px 20px no-repeat,
+    radial-gradient(circle 14px at calc(100% - 28px) 24px, #000 96%, transparent 100%),
+    radial-gradient(circle 6px at calc(100% - 19px) 33px, #000 96%, transparent 100%);
+}
+/* Teams' sidebar button in the band, right of the window buttons: it folds
+   the app bar (fMess's rail) away and back (fMess's "sidebar" window button). */
+html[data-fmess-chats] body::after {
+  content: "";
+  position: fixed;
+  z-index: 1;
+  top: 0;
+  left: 0;
+  width: 160px;
+  height: var(--tm-band);
+  pointer-events: none;
+  background:
+    linear-gradient(var(--tm-brand-icon), var(--tm-brand-icon)) calc(var(--fmess-window-hover-left, -999px) + 6px) calc(var(--fmess-window-hover-top, -999px) + 6px) / 20px 20px no-repeat,
+    var(--tm-fg3);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M2 6a3 3 0 0 1 3-3h10a3 3 0 0 1 3 3v7a3 3 0 0 1-3 3H5a3 3 0 0 1-3-3V6Zm7 9h6a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2H9v11ZM6.59 7a.5.5 0 0 0-.09-1H4.41a.5.5 0 0 0 .09 1h2.09Zm0 3a.5.5 0 0 0-.09-1H4.41a.5.5 0 0 0 .09 1h2.09ZM7 12.5a.5.5 0 0 0-.5-.5H4.41a.5.5 0 0 0 .09 1h2.09a.5.5 0 0 0 .41-.5Z'/%3E%3C/svg%3E") 46px 14px / 20px 20px no-repeat;
+}
+html[data-fmess-chats][data-fmess-sidebar-collapsed] body::after {
+  -webkit-mask-position: 114px 14px;
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M6.59 7a.5.5 0 0 0-.09-1H4.41a.5.5 0 0 0 .09 1h2.09Zm0 3a.5.5 0 0 0-.09-1H4.41a.5.5 0 0 0 .09 1h2.09Zm0 3a.5.5 0 0 0-.09-1H4.41a.5.5 0 0 0 .09 1h2.09ZM5 3a3 3 0 0 0-3 3v7a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3V6a3 3 0 0 0-3-3H5Zm10 12H9V4h6a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2ZM5 4h3v11H5a2 2 0 0 1-2-2V6c0-1.1.9-2 2-2Z'/%3E%3C/svg%3E");
+}
+/* The strip fMess drags the window by (macOS) covers the whole band, with
+   a hole for the search field; "…" and the picture take their own clicks. */
+html[data-fmess-chats]:not([data-fmess-media]) [data-tauri-drag-region] {
+  height: var(--tm-band) !important;
+  clip-path: polygon(evenodd,
+    0 0, 100% 0, 100% 100%, 0 100%, 0 0,
+    calc(50% + var(--tm-rail) / 2 - var(--tm-search-w) / 2) 8px, calc(50% + var(--tm-rail) / 2 + var(--tm-search-w) / 2) 8px,
+    calc(50% + var(--tm-rail) / 2 + var(--tm-search-w) / 2) 40px, calc(50% + var(--tm-rail) / 2 - var(--tm-search-w) / 2) 40px,
+    calc(50% + var(--tm-rail) / 2 - var(--tm-search-w) / 2) 8px);
 }
 
 /* The chat list on Teams' grey. */
@@ -213,9 +305,11 @@ html[data-fmess-chats] [data-fmess-list] > div:not(.fmess-pane-edge) {
   border-right: 0 !important;
   box-shadow: none !important;
 }
-/* No strip over the photo viewer, which has a title bar of its own; and no
-   grey window showing at its edge. */
-html[data-fmess-media]::before {
+/* No band or buttons over the photo viewer, which has a title bar of its
+   own; and no grey window showing at its edge. */
+html[data-fmess-media]::before,
+html[data-fmess-media] body::before,
+html[data-fmess-media] body::after {
   display: none !important;
 }
 html[data-fmess-chats][data-fmess-media],
@@ -223,14 +317,22 @@ html[data-fmess-chats][data-fmess-media] body {
   background: #000000 !important;
 }
 
-/* The rail (rail.html): the app bar down the left (68px), with Teams' apps
-   as pictures: the selected one filled with Teams' gradient, the others
-   outlined. Chat, "…" (fMess's Settings) and your picture (its account
-   menu) act. */
+/* The rail (rail.html): the app bar down the left (68px), under the band
+   (which the page draws beside it), with Teams' apps as pictures: Teams'
+   logo at the top, the selected app filled with Teams' gradient, the others
+   outlined, Copilot in its own colours. Chat, "…" (fMess's Settings) and
+   your picture (its account menu) act; "…" and the picture stay here, not
+   only in Messenger's band, so Instagram has them too. Teams' tooltips
+   would fall outside the rail's web view: the items have native ones. Placed
+   from the window's top, as the page's band is. */
 html[data-fmess-service="rail"] body {
   background: var(--tm-window);
 }
+html[data-fmess-service="rail"] #fmess-rail-strip[data-tauri-drag-region] {
+  height: var(--tm-band);
+}
 html[data-fmess-service="rail"] #fmess-rail {
+  top: 0;
   padding: 0;
   box-shadow: none;
   background: var(--tm-window);
@@ -240,18 +342,31 @@ html[data-fmess-service="rail"] #fmess-rail {
 html[data-fmess-service="rail"] #fmess-rail:has(> [data-fmess-rail="instagram"]:not([hidden])) {
   --tm-instagram: 44px;
 }
+html[data-fmess-service="rail"] #fmess-rail::before {
+  content: "";
+  position: absolute;
+  left: 24px;
+  top: 60px;
+  width: 20px;
+  height: 20px;
+  pointer-events: none;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='2 2 20 20' fill='none'%3E%3Cpath d='M21.0344 10.0012H16.8734L15.7124 10.9402V15.5972C15.7124 17.3262 17.1134 18.7282 18.8424 18.7282C20.5724 18.7282 21.9734 17.3262 21.9734 15.5972V10.9402C21.9734 10.4222 21.5534 10.0012 21.0344 10.0012Z' fill='%235059C9'/%3E%3Cpath d='M22 7C22 8.104 21.105 9 20 9C18.895 9 18 8.104 18 7C18 5.896 18.895 5 20 5C21.105 5 22 5.896 22 7Z' fill='%235059C9'/%3E%3Cpath d='M9.89214 10.0046H17.0961C17.5921 10.0046 17.9941 10.4066 17.9941 10.9026V16.5946C17.9941 19.0306 16.0201 21.0046 13.5841 21.0046H13.4041C10.9681 21.0046 8.99414 19.0306 8.99414 16.5946V10.9026C8.99414 10.4066 9.39614 10.0046 9.89214 10.0046Z' fill='%237B83EB'/%3E%3Cpath d='M16.9065 5.99999C16.9065 7.60499 15.6055 8.90699 13.9995 8.90699C12.3945 8.90699 11.0935 7.60499 11.0935 5.99999C11.0935 4.39499 12.3945 3.09299 13.9995 3.09299C15.6055 3.09299 16.9065 4.39499 16.9065 5.99999Z' fill='%237B83EB'/%3E%3Cpath opacity='0.5' fill-rule='evenodd' clip-rule='evenodd' d='M15.0001 8.6814V8.0004C15.0001 7.4504 14.5281 7.0004 13.9511 7.0004H11.2711C11.6881 8.0944 12.7391 8.8754 13.9801 8.8754C14.3401 8.8754 14.6821 8.8014 15.0001 8.6814ZM8.99414 10.9024C8.99414 10.4064 9.39614 10.0044 9.89214 10.0044H15.0001V17.8394C15.0001 18.3894 14.3821 19.0004 13.7451 19.0004H9.71514C9.26214 18.3074 8.99414 17.4834 8.99414 16.5944V10.9024Z' fill='black'/%3E%3Cpath d='M3 18C2.45 18 2 17.55 2 17V7C2 6.45 2.45 6 3 6H13C13.55 6 14 6.45 14 7V17C14 17.55 13.55 18 13 18H3Z' fill='%234B53BC'/%3E%3Cpath d='M11.0001 10H8.83511V15.82H7.41211V10H5.23511V8.57001H11.0001V10Z' fill='white'/%3E%3C/svg%3E") center / 20px 20px no-repeat;
+}
 html[data-fmess-service="rail"] #fmess-rail::after {
   content: "";
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background: var(--tm-rail-icon);
+  background:
+    url("data:image/png;base64,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") 22px calc(236px + var(--tm-instagram)) / 24px 24px no-repeat,
+    var(--tm-rail-icon);
   -webkit-mask:
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5.25 5A3.25 3.25 0 0 0 2 8.25v7.5C2 17.55 3.46 19 5.25 19h7.5c1.8 0 3.25-1.46 3.25-3.25v-.31l3.26 2.25c1.16.8 2.74-.03 2.74-1.44v-8.5a1.75 1.75 0 0 0-2.74-1.44L16 8.56v-.31C16 6.45 14.54 5 12.75 5h-7.5ZM16 10.38l4.11-2.83c.17-.12.4 0 .4.2v8.5c0 .2-.23.32-.4.2L16 13.62v-3.24ZM3.5 8.25c0-.97.78-1.75 1.75-1.75h7.5c.97 0 1.75.78 1.75 1.75v7.5c0 .97-.78 1.75-1.75 1.75h-7.5c-.97 0-1.75-.78-1.75-1.75v-7.5Z'/%3E%3C/svg%3E") 22px calc(73px + var(--tm-instagram)) / 24px 24px no-repeat,
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6.5 2A2.5 2.5 0 0 0 4 4.5v15A2.5 2.5 0 0 0 6.5 22h12.75a.75.75 0 0 0 0-1.5H6.5a1 1 0 0 1-1-1h13.75c.41 0 .75-.34.75-.75V4.5A2.5 2.5 0 0 0 17.5 2h-11Zm-1 16V4.5a1 1 0 0 1 1-1h11a1 1 0 0 1 1 1V18h-13ZM14 8a2 2 0 1 1-4 0 2 2 0 0 1 4 0Zm1.5 4.5c0 1.25-1 2.5-3.5 2.5s-3.5-1.25-3.5-2.5c0-.83.67-1.5 1.5-1.5h4c.83 0 1.5.67 1.5 1.5Z'/%3E%3C/svg%3E") 22px calc(117px + var(--tm-instagram)) / 24px 24px no-repeat,
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M14.75 10c.97 0 1.75.78 1.75 1.75v4.75a4.5 4.5 0 0 1-9 0v-4.75c0-.97.79-1.75 1.75-1.75h5.5Zm0 1.5h-5.5a.25.25 0 0 0-.25.25v4.75a3 3 0 0 0 6 0v-4.75a.25.25 0 0 0-.25-.25Zm-11-1.5h3.38c-.34.41-.57.93-.62 1.5H3.75a.25.25 0 0 0-.25.25V15a2.5 2.5 0 0 0 3.08 2.43c.09.5.24.99.45 1.43A4 4 0 0 1 2 15v-3.24c0-.97.78-1.75 1.75-1.75Zm13.12 0h3.38c.97 0 1.75.78 1.75 1.75V15a4 4 0 0 1-5.03 3.87c.21-.45.37-.93.46-1.44A2.5 2.5 0 0 0 20.5 15v-3.25a.25.25 0 0 0-.25-.25h-2.76a2.74 2.74 0 0 0-.62-1.5ZM12 3a3 3 0 1 1 0 6 3 3 0 0 1 0-6Zm6.5 1a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5Zm-13 0a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5Zm6.5.5a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3Zm6.5 1a1 1 0 1 0 0 2 1 1 0 0 0 0-2Zm-13 0a1 1 0 1 0 0 2 1 1 0 0 0 0-2Z'/%3E%3C/svg%3E") 22px calc(161px + var(--tm-instagram)) / 24px 24px no-repeat,
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M17.75 3C19.55 3 21 4.46 21 6.25v11.5c0 1.8-1.46 3.25-3.25 3.25H6.25A3.25 3.25 0 0 1 3 17.75V6.25C3 4.45 4.46 3 6.25 3h11.5Zm1.75 5.5h-15v9.25c0 .97.78 1.75 1.75 1.75h11.5c.97 0 1.75-.78 1.75-1.75V8.5Zm-11.75 6a1.25 1.25 0 1 1 0 2.5 1.25 1.25 0 0 1 0-2.5Zm4.25 0a1.25 1.25 0 1 1 0 2.5 1.25 1.25 0 0 1 0-2.5Zm-4.25-4a1.25 1.25 0 1 1 0 2.5 1.25 1.25 0 0 1 0-2.5Zm4.25 0a1.25 1.25 0 1 1 0 2.5 1.25 1.25 0 0 1 0-2.5Zm4.25 0a1.25 1.25 0 1 1 0 2.5 1.25 1.25 0 0 1 0-2.5Zm1.5-6H6.25c-.97 0-1.75.78-1.75 1.75V7h15v-.75c0-.97-.78-1.75-1.75-1.75Z'/%3E%3C/svg%3E") 22px calc(205px + var(--tm-instagram)) / 24px 24px no-repeat,
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 2a7.5 7.5 0 0 1 7.5 7.25v4.35l1.38 3.15a1.25 1.25 0 0 1-1.15 1.75H15a3 3 0 0 1-6 .18v-.18H4.27a1.25 1.25 0 0 1-1.14-1.75L4.5 13.6V9.5C4.5 5.35 7.85 2 12 2Zm1.5 16.5h-3a1.5 1.5 0 0 0 3 .15v-.15ZM12 3.5c-3.32 0-6 2.67-6 6v4.4L4.66 17h14.7L18 13.9V9.29a5.99 5.99 0 0 0-6-5.78Z'/%3E%3C/svg%3E") 22px calc(249px + var(--tm-instagram)) / 24px 24px no-repeat;
+    url("data:image/png;base64,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") 22px calc(236px + var(--tm-instagram)) / 24px 24px no-repeat,
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5.25 5A3.25 3.25 0 0 0 2 8.25v7.5C2 17.55 3.46 19 5.25 19h7.5c1.8 0 3.25-1.46 3.25-3.25v-.31l3.26 2.25c1.16.8 2.74-.03 2.74-1.44v-8.5a1.75 1.75 0 0 0-2.74-1.44L16 8.56v-.31C16 6.45 14.54 5 12.75 5h-7.5ZM16 10.38l4.11-2.83c.17-.12.4 0 .4.2v8.5c0 .2-.23.32-.4.2L16 13.62v-3.24ZM3.5 8.25c0-.97.78-1.75 1.75-1.75h7.5c.97 0 1.75.78 1.75 1.75v7.5c0 .97-.78 1.75-1.75 1.75h-7.5c-.97 0-1.75-.78-1.75-1.75v-7.5Z'/%3E%3C/svg%3E") 22px calc(148px + var(--tm-instagram)) / 24px 24px no-repeat,
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6.5 2A2.5 2.5 0 0 0 4 4.5v15A2.5 2.5 0 0 0 6.5 22h12.75a.75.75 0 0 0 0-1.5H6.5a1 1 0 0 1-1-1h13.75c.41 0 .75-.34.75-.75V4.5A2.5 2.5 0 0 0 17.5 2h-11Zm-1 16V4.5a1 1 0 0 1 1-1h11a1 1 0 0 1 1 1V18h-13ZM14 8a2 2 0 1 1-4 0 2 2 0 0 1 4 0Zm1.5 4.5c0 1.25-1 2.5-3.5 2.5s-3.5-1.25-3.5-2.5c0-.83.67-1.5 1.5-1.5h4c.83 0 1.5.67 1.5 1.5Z'/%3E%3C/svg%3E") 22px calc(192px + var(--tm-instagram)) / 24px 24px no-repeat,
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M14.75 10c.97 0 1.75.78 1.75 1.75v4.75a4.5 4.5 0 0 1-9 0v-4.75c0-.97.79-1.75 1.75-1.75h5.5Zm0 1.5h-5.5a.25.25 0 0 0-.25.25v4.75a3 3 0 0 0 6 0v-4.75a.25.25 0 0 0-.25-.25Zm-11-1.5h3.38c-.34.41-.57.93-.62 1.5H3.75a.25.25 0 0 0-.25.25V15a2.5 2.5 0 0 0 3.08 2.43c.09.5.24.99.45 1.43A4 4 0 0 1 2 15v-3.24c0-.97.78-1.75 1.75-1.75Zm13.12 0h3.38c.97 0 1.75.78 1.75 1.75V15a4 4 0 0 1-5.03 3.87c.21-.45.37-.93.46-1.44A2.5 2.5 0 0 0 20.5 15v-3.25a.25.25 0 0 0-.25-.25h-2.76a2.74 2.74 0 0 0-.62-1.5ZM12 3a3 3 0 1 1 0 6 3 3 0 0 1 0-6Zm6.5 1a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5Zm-13 0a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5Zm6.5.5a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3Zm6.5 1a1 1 0 1 0 0 2 1 1 0 0 0 0-2Zm-13 0a1 1 0 1 0 0 2 1 1 0 0 0 0-2Z'/%3E%3C/svg%3E") 22px calc(280px + var(--tm-instagram)) / 24px 24px no-repeat,
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M17.75 3C19.55 3 21 4.46 21 6.25v11.5c0 1.8-1.46 3.25-3.25 3.25H6.25A3.25 3.25 0 0 1 3 17.75V6.25C3 4.45 4.46 3 6.25 3h11.5Zm1.75 5.5h-15v9.25c0 .97.78 1.75 1.75 1.75h11.5c.97 0 1.75-.78 1.75-1.75V8.5Zm-11.75 6a1.25 1.25 0 1 1 0 2.5 1.25 1.25 0 0 1 0-2.5Zm4.25 0a1.25 1.25 0 1 1 0 2.5 1.25 1.25 0 0 1 0-2.5Zm-4.25-4a1.25 1.25 0 1 1 0 2.5 1.25 1.25 0 0 1 0-2.5Zm4.25 0a1.25 1.25 0 1 1 0 2.5 1.25 1.25 0 0 1 0-2.5Zm4.25 0a1.25 1.25 0 1 1 0 2.5 1.25 1.25 0 0 1 0-2.5Zm1.5-6H6.25c-.97 0-1.75.78-1.75 1.75V7h15v-.75c0-.97-.78-1.75-1.75-1.75Z'/%3E%3C/svg%3E") 22px calc(324px + var(--tm-instagram)) / 24px 24px no-repeat,
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 2a7.5 7.5 0 0 1 7.5 7.25v4.35l1.38 3.15a1.25 1.25 0 0 1-1.15 1.75H15a3 3 0 0 1-6 .18v-.18H4.27a1.25 1.25 0 0 1-1.14-1.75L4.5 13.6V9.5C4.5 5.35 7.85 2 12 2Zm1.5 16.5h-3a1.5 1.5 0 0 0 3 .15v-.15ZM12 3.5c-3.32 0-6 2.67-6 6v4.4L4.66 17h14.7L18 13.9V9.29a5.99 5.99 0 0 0-6-5.78Z'/%3E%3C/svg%3E") 22px calc(368px + var(--tm-instagram)) / 24px 24px no-repeat;
 }
 html[data-fmess-service="rail"] [data-fmess-rail] {
   position: absolute;
@@ -281,7 +396,7 @@ html[data-fmess-service="rail"] [data-fmess-rail]:not([data-fmess-rail="instagra
   display: none;
 }
 html[data-fmess-service="rail"] [data-fmess-rail="messenger"] {
-  top: 21px;
+  top: 96px;
 }
 html[data-fmess-service="rail"] [data-fmess-rail="messenger"]::before {
   content: "";
@@ -294,7 +409,7 @@ html[data-fmess-service="rail"] [data-fmess-rail="messenger"][data-active]::befo
   background: var(--tm-gradient);
 }
 html[data-fmess-service="rail"] [data-fmess-rail="instagram"] {
-  top: 65px;
+  top: 140px;
 }
 html[data-fmess-service="rail"] [data-fmess-rail="settings"] {
   top: auto;
@@ -332,7 +447,7 @@ html[data-fmess-service="rail"] [data-fmess-rail="account"]::before {
    screen in Teams; Fluent's CounterBadge in danger red. */
 html[data-fmess-service="rail"] [data-fmess-badge] {
   left: 22px;
-  top: 3px;
+  top: 4px;
   min-width: 16px;
   height: 16px;
   padding: 0 4px;
@@ -343,29 +458,53 @@ html[data-fmess-service="rail"] [data-fmess-badge] {
   font: 600 10px/16px -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
 }
 
-/* Chat list: "Chats" as Teams' "Chat" title, Teams' header icons. */
+/* Chat list, as Teams' cluster: the "Chat" title row with its icons, a
+   line, the filter pills, a line, then the chats. */
 html[data-fmess-chats] #fmess-account {
   display: none !important;
 }
-html[data-fmess-chats] [data-fmess-list] div:has(> #fmess-account) {
-  position: relative !important;
-  padding-left: 16px !important;
+/* The title row: 60px and a line (Teams' 61), the title 32px in. */
+html[data-fmess-chats] [data-fmess-list] div:has(> div > div > #fmess-account) {
+  display: flex !important;
+  align-items: center !important;
+  box-sizing: content-box !important;
+  height: 60px !important;
+  margin: 0 !important;
+  padding: 0 16px 0 32px !important;
+  border-bottom: 1px solid var(--tm-stroke-subtle) !important;
 }
-html[data-fmess-chats] [data-fmess-list] div:has(> #fmess-account)::after {
-  content: "";
-  position: absolute;
-  left: -16px;
-  right: -16px;
-  bottom: -24px;
-  height: 1px;
-  background: var(--tm-stroke-subtle);
-  pointer-events: none;
+html[data-fmess-chats] [data-fmess-list] div:has(> div > div > #fmess-account) > div,
+html[data-fmess-chats] [data-fmess-list] div:has(> #fmess-account) {
+  flex: 1 1 auto !important;
+  padding: 0 !important;
 }
 html[data-fmess-chats] [data-fmess-list] h1 {
   font-size: 18px !important;
   font-weight: 700 !important;
   line-height: 22px !important;
   color: var(--tm-fg1) !important;
+}
+/* Teams says "Chat"; written only over an English Facebook, Messenger's
+   own (translated) title otherwise. */
+html[data-fmess-chats][lang^="en"] [data-fmess-list] h1 {
+  font-size: 0 !important;
+}
+html[data-fmess-chats][lang^="en"] [data-fmess-list] h1::after {
+  content: "Chat";
+  font: 700 18px/22px -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  color: var(--tm-fg1);
+}
+/* Its icons: 32px buttons side by side, 16px from the edge. */
+html[data-fmess-chats] [data-fmess-list] div:has(> div > span > [data-fmess-ui="list-menu"]) {
+  gap: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+html[data-fmess-chats] [data-fmess-list] div:has(> span > :is([data-fmess-ui="list-menu"], a[href="/messages/new/"])) {
+  width: 32px !important;
+  height: 32px !important;
+  margin: 0 !important;
+  padding: 0 !important;
 }
 html[data-fmess-chats] [data-fmess-list] :is([data-fmess-ui="list-menu"], a[href="/messages/new/"]) {
   width: 32px !important;
@@ -402,17 +541,106 @@ html[data-fmess-chats] [data-fmess-list] a[href="/messages/new/"]:hover svg {
   -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M17.78 3.28a.75.75 0 1 0-1.06-1.06l-7.5 7.5L9 11l1.28-.22 7.5-7.5ZM5.75 3A2.75 2.75 0 0 0 3 5.75v8.5A2.75 2.75 0 0 0 5.75 17h8.5A2.75 2.75 0 0 0 17 14.25v-5.5a.75.75 0 0 0-1.5 0v5.5c0 .69-.56 1.25-1.25 1.25h-8.5c-.69 0-1.25-.56-1.25-1.25v-8.5c0-.69.56-1.25 1.25-1.25h5.5a.75.75 0 0 0 0-1.5h-5.5Z'/%3E%3C/svg%3E");
 }
 
-/* Search: Teams' search box (the one in its title bar). */
-html[data-fmess-chats] [data-fmess-list] label:has(input[type="search"]) {
-  margin-top: 12px !important;
-  height: 32px !important;
-  border-radius: 8px !important;
-  background: var(--tm-search) !important;
-  outline: 1px solid var(--tm-stroke-alpha) !important;
+/* Search: Teams' box in the band is fMess's own (#fmess-search-box, asked
+   for with --fmess-search-box): it carries Messenger's placeholder and
+   focuses Messenger's field, as ⌘K does. That field stays in the list,
+   folded away until it is used; while searching it shows at the top of the
+   list, with the results under it. */
+html[data-fmess-chats]:not([data-fmess-media]) {
+  --fmess-search-box: 1;
+}
+#fmess-search-box {
+  position: fixed;
+  z-index: 2147483000;
+  top: 8px;
+  left: calc(50vw + var(--tm-rail) / 2 - var(--tm-search-w) / 2);
+  width: var(--tm-search-w);
+  height: 32px;
+  box-sizing: border-box;
+  padding: 0 12px 0 51px;
+  overflow: hidden;
+  border-radius: 8px;
+  background: var(--tm-search);
+  outline: 1px solid var(--tm-stroke-alpha);
   outline-offset: -1px;
+  color: var(--tm-fg2);
+  font: 400 14px/32px -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  cursor: text;
+  -webkit-user-select: none;
+}
+#fmess-search-box:hover {
+  background: var(--tm-card);
+}
+#fmess-search-box:focus-visible {
+  outline: 2px solid var(--tm-brand);
+  outline-offset: -2px;
+}
+#fmess-search-box::before {
+  content: "";
+  position: absolute;
+  left: 20px;
+  top: 6px;
+  width: 20px;
+  height: 20px;
+  background: var(--tm-fg2);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M8.5 3a5.5 5.5 0 0 1 4.23 9.02l4.12 4.13a.5.5 0 0 1-.63.76l-.07-.06-4.13-4.12A5.5 5.5 0 1 1 8.5 3Zm0 1a4.5 4.5 0 1 0 0 9 4.5 4.5 0 0 0 0-9Z'/%3E%3C/svg%3E") center / 20px 20px no-repeat;
+}
+/* Teams' word for it over an English Facebook ("Search Messenger" there). */
+html[lang^="en"] #fmess-search-box {
+  font-size: 0;
+}
+html[lang^="en"] #fmess-search-box::after {
+  content: "Search";
+  font-size: 14px;
+}
+html[data-fmess-media] #fmess-search-box {
+  display: none;
+}
+/* Messenger's field (with its back button while searching) takes no room in
+   the list and can't be seen, but can take the focus; with it, it covers the
+   "Chat" title's row, and the results show under it. */
+html[data-fmess-chats] [data-fmess-list] > div > div > div:has(input[type="search"]) {
+  /* Over the title's row, which comes before it. */
+  z-index: 5 !important;
+  height: 0 !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+}
+html[data-fmess-chats] [data-fmess-list] div:has(> label input[type="search"]):not(:focus-within) {
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+html[data-fmess-chats] [data-fmess-list] div:has(> label input[type="search"]):focus-within {
+  position: absolute !important;
+  z-index: 3 !important;
+  left: 0 !important;
+  right: 0 !important;
+  top: -61px !important;
+  height: 61px !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+  padding: 0 16px !important;
+  box-sizing: border-box !important;
+  background: var(--tm-window) !important;
 }
 html[data-fmess-chats] [data-fmess-list] label:has(input[type="search"]):is(:hover, :focus-within) {
   background: var(--tm-card) !important;
+}
+/* Focused, Teams' box only turns white: no ring. */
+html[data-fmess-chats] [data-fmess-list] label:has(input[type="search"]),
+html[data-fmess-chats] [data-fmess-list] label:has(input[type="search"]) * {
+  box-shadow: none !important;
+}
+html[data-fmess-chats] [data-fmess-list] label > span:has(> svg) {
+  flex: none !important;
+  justify-content: center !important;
+  width: 51px !important;
+  height: 32px !important;
+  padding: 0 2px 0 20px !important;
+  box-sizing: border-box !important;
 }
 html[data-fmess-chats] [data-fmess-list] label > span > svg {
   width: 18px !important;
@@ -425,11 +653,25 @@ html[data-fmess-chats] [data-fmess-list] label > span > svg * {
 }
 html[data-fmess-chats] [data-fmess-list] input[type="search"] {
   height: 32px !important;
+  padding: 0 2px 0 9px !important;
   font-size: 14px !important;
   color: var(--tm-fg1) !important;
 }
 html[data-fmess-chats] [data-fmess-list] input[type="search"]::placeholder {
   color: var(--tm-fg2) !important;
+}
+/* Teams' word for it over an English Facebook ("Search Messenger" there). */
+html[data-fmess-chats][lang^="en"] [data-fmess-list] input[type="search"]::placeholder {
+  color: transparent !important;
+}
+html[data-fmess-chats][lang^="en"] [data-fmess-list] label:has(input[type="search"]:placeholder-shown)::after {
+  content: "Search";
+  position: absolute;
+  left: 60px;
+  top: 0;
+  font: 400 14px/32px -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  color: var(--tm-fg2);
+  pointer-events: none;
 }
 
 /* Filters: Teams' pills, one line. */
@@ -441,10 +683,21 @@ html[data-fmess-chats] [data-fmess-list] [role="tablist"] {
   gap: 4px !important;
   height: auto !important;
   align-items: center !important;
-  padding: 4px 0 4px 18px !important;
+  padding: 0 !important;
 }
+/* The pills' row: 8px above and below, a line (Teams' 41px), the pills
+   32px in, under the title; the chats start 6px under the line, as Teams'
+   first section does. */
 html[data-fmess-chats] [data-fmess-list] div:has(> div > div > [role="tablist"]) {
+  margin: 0 0 6px !important;
+  padding: 8px 0 8px 32px !important;
   border-bottom: 1px solid var(--tm-stroke-subtle) !important;
+}
+html[data-fmess-chats] [data-fmess-list] div:has(> div > [role="tablist"]),
+html[data-fmess-chats] [data-fmess-list] div:has(> [role="tablist"]),
+html[data-fmess-chats] [data-fmess-list] [role="tablist"] {
+  height: 24px !important;
+  min-height: 0 !important;
 }
 html[data-fmess-chats] [data-fmess-list] [role="tablist"]::-webkit-scrollbar {
   display: none;
@@ -548,6 +801,40 @@ html[data-fmess-chats] [data-fmess-list] [role="row"] a[role="link"][aria-curren
   div[style*="height: 8px"] {
     height: 4px !important;
   }
+  /* The time on the name's line, at the right, as in Teams; the " · "
+     before it goes. Names leave it room. */
+  div:has(> div[style*="height: 8px"]) {
+    position: relative !important;
+  }
+  div[style*="height: 8px"] + div > span:last-child:has(abbr) {
+    position: absolute !important;
+    top: 2px !important;
+    right: 0 !important;
+    padding: 0 !important;
+  }
+  div[style*="height: 8px"] + div > span:has(+ span:last-child abbr) {
+    display: none !important;
+  }
+  div > span[dir="auto"]:first-child {
+    padding-right: 40px !important;
+    box-sizing: border-box !important;
+  }
+}
+/* Hovered, Teams shows the row's "…" where the time was; so does Messenger. */
+/* (Its own name: --tm-row-hover is the hover colour, which this flag
+   replaced inside the row, leaving the hovered row without its fill.) */
+html[data-fmess-chats] [data-fmess-list] [role="row"]:hover {
+  --tm-row-hovered: 1;
+}
+@container style(--tm-row-hovered: 1) {
+  span:has(> span > span > span > abbr) {
+    visibility: hidden !important;
+  }
+  /* The row's right-hand marks (the "seen by" pictures, the unread dot):
+     the third box of the row's line and after. The "…" takes their place. */
+  a[role="link"] > div > div > div:nth-child(n + 3) {
+    visibility: hidden !important;
+  }
 }
 @container style(--tm-read: 1) {
   span[dir="auto"],
@@ -566,6 +853,29 @@ html[data-fmess-chats] [data-fmess-list] [role="row"] a[aria-current="page"],
 html[data-fmess-chats] [data-fmess-list] [role="row"] a[aria-current="page"]:hover {
   background: var(--tm-selected) !important;
   box-shadow: none !important;
+}
+
+/* The row's "…" (Messenger's menu for the chat): Teams' flat icon, without
+   Messenger's white circle. */
+html[data-fmess-chats] [data-fmess-list] [role="row"] [role="button"][aria-haspopup="menu"] {
+  width: 32px !important;
+  height: 32px !important;
+  border-radius: 4px !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+html[data-fmess-chats] [data-fmess-list] [role="row"] [role="button"][aria-haspopup="menu"] svg {
+  width: 20px !important;
+  height: 20px !important;
+  background: var(--tm-fg2);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M6.25 10a1.25 1.25 0 1 1-2.5 0 1.25 1.25 0 0 1 2.5 0Zm5 0a1.25 1.25 0 1 1-2.5 0 1.25 1.25 0 0 1 2.5 0ZM15 11.25a1.25 1.25 0 1 0 0-2.5 1.25 1.25 0 0 0 0 2.5Z'/%3E%3C/svg%3E") center / 20px 20px no-repeat;
+}
+html[data-fmess-chats] [data-fmess-list] [role="row"] [role="button"][aria-haspopup="menu"] svg * {
+  visibility: hidden;
+}
+html[data-fmess-chats] [data-fmess-list] [role="row"] [role="button"][aria-haspopup="menu"]:hover svg {
+  background: var(--tm-fg1);
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M6.75 10a1.75 1.75 0 1 1-3.5 0 1.75 1.75 0 0 1 3.5 0Zm5 0a1.75 1.75 0 1 1-3.5 0 1.75 1.75 0 0 1 3.5 0ZM15 11.75a1.75 1.75 0 1 0 0-3.5 1.75 1.75 0 0 0 0 3.5Z'/%3E%3C/svg%3E");
 }
 
 /* The chat: a white card with Teams' corners and shadow, 8px from the
@@ -793,10 +1103,243 @@ html[data-fmess-chats] [role="main"] [data-fmess-ui="composer"]:focus-within {
   div[style*="margin-left: 4px"] {
     margin-left: 0 !important;
   }
+  /* Teams' "Type a message" over an English Facebook, in Messenger's
+     placeholder (shown only while the box is empty), which follows the
+     message box; Messenger's own word in other languages. */
+  html[lang^="en"] [role="textbox"] + div[aria-hidden="true"] > div {
+    font-size: 0 !important;
+  }
+  html[lang^="en"] [role="textbox"] + div[aria-hidden="true"] > div::after {
+    content: "Type a message";
+    font-size: 14px;
+    line-height: 20px;
+    white-space: nowrap;
+  }
 }
 :where(html:not([data-fmess-service="instagram"])) [data-fmess-ui="composer"] [role="textbox"] {
   font-size: 14px !important;
   line-height: 20px !important;
+}
+
+/* Replying (or a link's preview): Teams puts the quote inside the message
+   box. The bar above the box and the box read as one bordered box, the bar
+   its top part, its content Teams' quote card: light grey, a grey bar on
+   the left, 4px corners, a faint shadow, the name line small and grey, the
+   quoted text dark, an X at the right. */
+html[data-fmess-chats] [role="main"] [data-fmess-ui="composer-bar"] {
+  margin: 0 32px !important;
+  padding: 12px 12px 4px !important;
+  overflow: visible !important;
+  box-sizing: border-box !important;
+  border: 1px solid var(--tm-composer-line) !important;
+  border-bottom: 0 !important;
+  border-radius: 6px 6px 0 0 !important;
+  background: var(--tm-card) !important;
+}
+html[data-fmess-chats] [role="main"] [data-fmess-ui="composer-bar"] + [data-fmess-ui="composer"] {
+  border-top: 0 !important;
+  border-radius: 0 0 6px 6px !important;
+}
+html[data-fmess-chats] [role="main"] [data-fmess-ui="composer-bar"] > div {
+  --tm-quote-card: 1;
+  align-items: flex-start !important;
+  width: fit-content !important;
+  min-width: 240px !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+  margin: 0 !important;
+  padding: 8px 8px 8px 18px !important;
+  border: 1px solid var(--tm-stroke3) !important;
+  border-radius: 4px !important;
+  background:
+    linear-gradient(var(--tm-quote-bar), var(--tm-quote-bar)) 3px 3px / 3px calc(100% - 6px) no-repeat,
+    var(--tm-bg2) !important;
+  box-shadow: var(--tm-shadow2) !important;
+}
+@container style(--tm-quote-card: 1) {
+  h3,
+  h3 span {
+    font-size: 12px !important;
+    line-height: 16px !important;
+    font-weight: 400 !important;
+    color: var(--tm-fg3) !important;
+  }
+  span:not(h3 span),
+  span:not(h3 span) div {
+    font-size: 14px !important;
+    line-height: 20px !important;
+    color: var(--tm-fg1) !important;
+  }
+  /* Messenger's 12px close button as Teams' 20px one with its thin X. */
+  [role="button"] {
+    flex: none !important;
+    width: 20px !important;
+    height: 20px !important;
+    margin-left: 12px !important;
+    border-radius: 4px !important;
+    --hover-overlay: var(--tm-hover) !important;
+  }
+  [role="button"] svg {
+    width: 14px !important;
+    height: 14px !important;
+    margin: 3px !important;
+    background: var(--tm-fg2);
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='m4.09 4.22.06-.07a.5.5 0 0 1 .63-.06l.07.06L10 9.29l5.15-5.14a.5.5 0 0 1 .63-.06l.07.06c.18.17.2.44.06.63l-.06.07L10.71 10l5.14 5.15c.18.17.2.44.06.63l-.06.07a.5.5 0 0 1-.63.06l-.07-.06L10 10.71l-5.15 5.14a.5.5 0 0 1-.63.06l-.07-.06a.5.5 0 0 1-.06-.63l.06-.07L9.29 10 4.15 4.85a.5.5 0 0 1-.06-.63l.06-.07-.06.07Z'/%3E%3C/svg%3E") center / 14px 14px no-repeat;
+  }
+  [role="button"] svg * {
+    visibility: hidden;
+  }
+}
+
+/* A message's hover actions: one Teams card (white, 8px corners, shadow16)
+   above the message, at its right: Teams' four quick reactions (fMess adds
+   them, --fmess-quick-reactions), add-reaction, a divider, reply, more, in
+   Teams' icons. Messenger's buttons are found by their icons (react, reply,
+   more), in Teams' order. */
+html[data-fmess-chats] {
+  --fmess-quick-reactions: 1f44d 2764 1f606 1f62e;
+}
+/* Your messages are the rows whose first column is the read-receipt one
+   (an empty role=none), not a picture's; Messenger lays them out reversed. */
+html[data-fmess-chats] [role="main"] [data-scope="messages_table"] > [role="presentation"]:has(> [role="presentation"]:first-child > [role="presentation"] > [role="none"]) {
+  --tm-own: 1;
+}
+html[data-fmess-chats] [role="main"] [data-scope="messages_table"] [role="toolbar"] {
+  position: static !important;
+}
+/* The card hangs above the message, from the row (the actions' own column
+   is not positioned): theirs from the message's start (past the 50px of
+   pictures), yours ending where your messages end. */
+html[data-fmess-chats] [role="main"] [data-scope="messages_table"] > [role="presentation"] > [role="presentation"]:has(> [role="presentation"] > [role="toolbar"]) {
+  position: static !important;
+}
+/* After a quick reaction the card goes, as Messenger's own actions do,
+   until the pointer leaves the message (fMess's data-fmess-reacted). Kept
+   in place, hidden: Messenger's picker is anchored to its react button. */
+html[data-fmess-chats] [role="main"] [data-scope="messages_table"][data-fmess-reacted] [role="toolbar"] > [role="presentation"] > [role="presentation"] {
+  visibility: hidden !important;
+}
+html[data-fmess-chats] [role="main"] [role="toolbar"] > [role="presentation"] > [role="presentation"]:has([role="button"]) {
+  --tm-actions: 1;
+  position: absolute !important;
+  z-index: 2 !important;
+  top: -40px !important;
+  left: 50px !important;
+  right: auto !important;
+  flex-direction: row !important;
+  width: max-content !important;
+  max-width: none !important;
+  height: auto !important;
+  align-items: center !important;
+  padding: 4px !important;
+  border: 1px solid transparent !important;
+  border-radius: 8px !important;
+  background: var(--tm-card) !important;
+  filter: drop-shadow(0 0 2px var(--tm-ambient)) drop-shadow(0 8px 16px var(--tm-key));
+  /* As in Teams, the card comes a moment after the pointer and fades in,
+     so passing over messages doesn't flash it. */
+  animation: tm-card-in 0.16s ease-out 0.4s both;
+}
+@keyframes tm-card-in {
+  from {
+    opacity: 0;
+    translate: 0 4px;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+/* Messenger keeps a message's actions while its buttons have the focus
+   (after a reaction, say), which left Teams' big card standing on messages
+   the pointer had left: the card shows only on the message under the
+   pointer, while one of its menus is open, or while a key (Tab) has put the
+   focus on one of its buttons. */
+html[data-fmess-chats] [role="main"] [data-scope="messages_table"]:not(:hover):not(:has([aria-expanded="true"], :focus-visible)) [role="toolbar"] > [role="presentation"] > [role="presentation"]:has([role="button"]) {
+  display: none !important;
+}
+@container style(--tm-own: 1) {
+  html[data-fmess-chats] [role="main"] [role="toolbar"] > [role="presentation"] > [role="presentation"]:has([role="button"]) {
+    left: auto !important;
+    right: 8px !important;
+  }
+}
+@container style(--tm-actions: 1) {
+  .fmess-quick-reactions {
+    display: flex !important;
+    flex: none !important;
+    align-items: center !important;
+    order: 0;
+  }
+  .fmess-quick-reaction {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 32px !important;
+    height: 32px !important;
+    border-radius: 4px !important;
+    font-size: 20px;
+    line-height: 24px;
+    cursor: pointer;
+  }
+  .fmess-quick-reaction img {
+    width: 24px !important;
+    height: 24px !important;
+    transition: transform 0.1s ease-out;
+  }
+  .fmess-quick-reaction:hover img {
+    transform: scale(1.15);
+  }
+  div:has(> span > div > [role="button"]),
+  span:has(> div > [role="button"]),
+  div:not(.fmess-quick-reactions):has(> [role="button"]) {
+    flex: none !important;
+    width: 32px !important;
+    height: 32px !important;
+  }
+  div:has(> span path[d^="M111 203a9.5"]) { order: 1; }
+  div:has(> span path[d^="M101 936.5c"]) { order: 2; margin-left: 9px !important; position: relative !important; }
+  div:has(> span path[d^="M456 410a2"]) { order: 3; }
+  div:has(> span path[d^="M101 936.5c"])::before {
+    content: "";
+    position: absolute;
+    left: -5px;
+    top: 5px;
+    width: 1px;
+    height: 22px;
+    background: var(--tm-stroke2);
+  }
+  [role="button"] {
+    width: 32px !important;
+    height: 32px !important;
+    border-radius: 4px !important;
+    --hover-overlay: transparent !important;
+  }
+  [role="button"] svg {
+    width: 20px !important;
+    height: 20px !important;
+  }
+  /* Teams' icons for the three buttons it has; any other (forward, on a
+     photo or a link) keeps Messenger's, in Teams' grey. */
+  [role="button"] {
+    --primary-icon: var(--tm-fg2) !important;
+    --secondary-icon: var(--tm-fg2) !important;
+  }
+  [role="button"]:is(:has(path[d^="M111 203a9.5"]), :has(path[d^="M101 936.5c"]), :has(path[d^="M456 410a2"])) svg {
+    background: var(--tm-fg2);
+  }
+  [role="button"]:is(:has(path[d^="M111 203a9.5"]), :has(path[d^="M101 936.5c"]), :has(path[d^="M456 410a2"])) svg * {
+    visibility: hidden;
+  }
+  [role="button"]:is(:has(path[d^="M111 203a9.5"]), :has(path[d^="M101 936.5c"]), :has(path[d^="M456 410a2"])):hover svg {
+    background: var(--tm-brand-icon);
+  }
+  [role="button"]:has(path[d^="M111 203a9.5"]) svg { -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M17 9a8 8 0 1 0-7.41 7.98A5.46 5.46 0 0 1 9.2 16H9a7 7 0 1 1 7-6.8c.34.1.67.23.98.39L17 9Zm-7.98 5c.03-.34.1-.68.19-1H9a4 4 0 0 1-3.11-1.49.5.5 0 1 0-.78.63A5 5 0 0 0 9 14h.02Zm3.48-6.5a1 1 0 1 0-2 0 1 1 0 0 0 2 0Zm-5 0a1 1 0 1 0-2 0 1 1 0 0 0 2 0Zm11.5 7a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0Zm-4-2a.5.5 0 0 0-1 0V14h-1.5a.5.5 0 0 0 0 1H14v1.5a.5.5 0 0 0 1 0V15h1.5a.5.5 0 0 0 0-1H15v-1.5Z'/%3E%3C/svg%3E") center / 20px 20px no-repeat; }
+  [role="button"]:has(path[d^="M111 203a9.5"]):hover svg { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M17 9a8 8 0 1 0-7.41 7.98A5.48 5.48 0 0 1 9.02 14H9a5 5 0 0 1-3.89-1.86.5.5 0 1 1 .78-.63A4 4 0 0 0 9.2 13a5.5 5.5 0 0 1 7.77-3.41L17 9Zm-6.5-1.5a1 1 0 1 1 2 0 1 1 0 0 1-2 0Zm-5 0a1 1 0 1 1 2 0 1 1 0 0 1-2 0Zm13.5 7a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0Zm-4-2a.5.5 0 0 0-1 0V14h-1.5a.5.5 0 0 0 0 1H14v1.5a.5.5 0 0 0 1 0V15h1.5a.5.5 0 0 0 0-1H15v-1.5Z'/%3E%3C/svg%3E"); }
+  [role="button"]:has(path[d^="M101 936.5c"]) svg { -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M17.5 4c.28 0 .5.22.5.5a7.5 7.5 0 0 1-7.5 7.5H3.7l3.65 3.65a.5.5 0 0 1-.7.7l-4.5-4.5a.5.5 0 0 1 0-.7l4.5-4.5a.5.5 0 1 1 .7.7L3.71 11h6.79A6.5 6.5 0 0 0 17 4.5c0-.28.22-.5.5-.5Z'/%3E%3C/svg%3E") center / 20px 20px no-repeat; }
+  [role="button"]:has(path[d^="M101 936.5c"]):hover svg { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M17.25 4c.41 0 .75.34.75.75 0 4-3.25 7.25-7.25 7.25H4.56l3.22 3.22a.75.75 0 1 1-1.06 1.06l-4.5-4.5a.75.75 0 0 1 0-1.06l4.5-4.5a.75.75 0 0 1 1.06 1.06L4.56 10.5h6.19a5.75 5.75 0 0 0 5.75-5.75c0-.41.34-.75.75-.75Z'/%3E%3C/svg%3E"); }
+  [role="button"]:has(path[d^="M456 410a2"]) svg { -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M6.25 10a1.25 1.25 0 1 1-2.5 0 1.25 1.25 0 0 1 2.5 0Zm5 0a1.25 1.25 0 1 1-2.5 0 1.25 1.25 0 0 1 2.5 0ZM15 11.25a1.25 1.25 0 1 0 0-2.5 1.25 1.25 0 0 0 0 2.5Z'/%3E%3C/svg%3E") center / 20px 20px no-repeat; }
+  [role="button"]:has(path[d^="M456 410a2"]):hover svg { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M6.75 10a1.75 1.75 0 1 1-3.5 0 1.75 1.75 0 0 1 3.5 0Zm5 0a1.75 1.75 0 1 1-3.5 0 1.75 1.75 0 0 1 3.5 0ZM15 11.75a1.75 1.75 0 1 0 0-3.5 1.75 1.75 0 0 0 0 3.5Z'/%3E%3C/svg%3E"); }
 }
 
 /* Reactions under a message: Teams' white pill with a thin line. */

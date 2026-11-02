@@ -67,8 +67,10 @@
   applyTheme(settings.theme);
   window.addEventListener('load', () => theme && applyTheme(theme));
   // Called by fMess after every page load and when its settings change.
+  let hideAvatars = Boolean(settings.hideAvatars);
   window.__fmessApplySettings = (next) => {
     if (next.theme?.css !== theme?.css) applyTheme(next.theme);
+    hideAvatars = Boolean(next.hideAvatars);
   };
 
   // Windows and Linux have no menu bar: the shortcuts fMess's menu has there
@@ -148,7 +150,8 @@
       this.fmessId = nextId++ % 0x7fffffff;
       shown.set(this.fmessId, this);
       if (shown.size > 100) shown.delete(shown.keys().next().value);
-      within(pictureData(this.icon), 3000)
+      // Hide profile pictures (Settings): notifications go without them, as Messenger's do.
+      within(hideAvatars ? Promise.resolve(null) : pictureData(this.icon), 3000)
         .then((icon) =>
           invoke('notify', {
             id: this.fmessId,

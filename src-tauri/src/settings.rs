@@ -32,6 +32,8 @@ pub struct Settings {
     pub mac_calls: bool,
     /// Don't let people see that you're typing.
     pub block_typing: bool,
+    /// Show initials in place of people's pictures.
+    pub hide_avatars: bool,
     /// Messenger's dark mode as last reported (ENABLED, DISABLED, USE_SYSTEM),
     /// so fMess starts in the right colours before the page has loaded.
     pub messenger_dark_mode: Option<String>,
@@ -49,6 +51,9 @@ pub struct Settings {
     /// The service shown last, shown again at start. Set by the rail.
     #[serde(deserialize_with = "lenient_service")]
     pub last_service: Service,
+    /// The theme's sidebar button folded its sidebar away (the Teams look's
+    /// app bar, which is fMess's rail). Set by the page; a new theme unfolds it.
+    pub sidebar_collapsed: bool,
 }
 
 /// A service this version doesn't know (from a newer or older fMess) falls
@@ -78,6 +83,7 @@ impl Default for Settings {
             zoom: 1.0,
             mac_calls: true,
             block_typing: false,
+            hide_avatars: false,
             messenger_dark_mode: None,
             theme: None,
             theme_icon: true,
@@ -85,6 +91,7 @@ impl Default for Settings {
             instagram: false,
             instagram_icon: true,
             last_service: Service::Messenger,
+            sidebar_collapsed: false,
         }
     }
 }
@@ -189,8 +196,10 @@ pub fn update_settings<R: Runtime>(
     let settings = change(&app, |current| {
         // Kept by the page and the rail, not edited in the Settings window.
         let kept = (current.messenger_dark_mode.take(), std::mem::take(&mut current.pane_widths), current.last_service);
+        let sidebar_collapsed = current.sidebar_collapsed && current.theme == settings.theme;
         *current = settings;
         (current.messenger_dark_mode, current.pane_widths, current.last_service) = kept;
+        current.sidebar_collapsed = sidebar_collapsed;
     })?;
 
     if settings.theme != previous.theme || settings.theme_icon != previous.theme_icon {
@@ -199,7 +208,10 @@ pub fn update_settings<R: Runtime>(
     if settings.instagram != previous.instagram {
         services::set_instagram(&app, settings.instagram);
     }
-    if settings.theme != previous.theme || settings.instagram_icon != previous.instagram_icon {
+    if settings.theme != previous.theme
+        || settings.instagram_icon != previous.instagram_icon
+        || settings.hide_avatars != previous.hide_avatars
+    {
         services::update_rail(&app);
     }
     if settings.badge != previous.badge {
@@ -211,7 +223,10 @@ pub fn update_settings<R: Runtime>(
         if settings.zoom != previous.zoom {
             let _ = webview.set_zoom(settings.zoom);
         }
-        if settings.block_typing != previous.block_typing || settings.theme != previous.theme {
+        if settings.block_typing != previous.block_typing
+            || settings.hide_avatars != previous.hide_avatars
+            || settings.theme != previous.theme
+        {
             let _ = webview.eval(page_settings_script(&webview, &settings));
         }
     }
@@ -243,6 +258,20 @@ pub fn sync_messenger_prefs<R: Runtime>(app: AppHandle<R>, prefs: MessengerPrefs
     }
     change(&app, |settings| settings.messenger_dark_mode = Some(prefs.dark_mode))?;
     services::update_rail(&app);
+    Ok(())
+}
+
+/// Called by the page when the theme's sidebar button folds its sidebar away
+/// or back; with a theme that draws the rail, that folds the rail.
+#[tauri::command]
+pub fn set_sidebar_collapsed<R: Runtime>(app: AppHandle<R>, collapsed: bool) -> Result<(), String> {
+    if current(&app).sidebar_collapsed == collapsed {
+        return Ok(());
+    }
+    change(&app, |settings| settings.sidebar_collapsed = collapsed)?;
+    if let Some(window) = services::main_window(&app) {
+        services::layout(&window);
+    }
     Ok(())
 }
 
@@ -325,8 +354,10 @@ pub fn page_settings<R: Runtime>(app: &AppHandle<R>, settings: &Settings, servic
     serde_json::json!({
         "macCalls": settings.mac_calls,
         "blockTyping": settings.block_typing,
+        "hideAvatars": settings.hide_avatars,
         "theme": theme,
         "paneWidths": settings.pane_widths,
+        "sidebarCollapsed": settings.sidebar_collapsed,
     })
     .to_string()
 }

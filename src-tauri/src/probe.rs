@@ -58,6 +58,11 @@ pub fn run<R: Runtime>(app: AppHandle<R>) {
             thread::sleep(Duration::from_secs(2));
         }
         override_rail(&app, &window);
+        // Focused, as when someone uses it: WebKit matches :focus and fires
+        // focus events only in the key window.
+        let _ = window.set_focus();
+        let _ = webview.set_focus();
+        thread::sleep(Duration::from_millis(500));
         let _ = webview.eval(format!(
             "window.__fmessProbe = undefined; (async () => {{ {script}\n}})().then(\
              (result) => {{ window.__fmessProbe = JSON.stringify(result ?? null); }},\
