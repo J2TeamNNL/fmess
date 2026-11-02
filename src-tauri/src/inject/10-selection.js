@@ -34,6 +34,16 @@
     },
     true,
   );
+  // Spell check knows only the system's languages, so it underlined nearly
+  // every Vietnamese word; fields don't check spelling, as in the old app.
+  document.addEventListener(
+    'focusin',
+    (event) => {
+      const field = event.target instanceof Element && event.target.closest('input, textarea, [contenteditable="true"]');
+      if (field && field.spellcheck) field.spellcheck = false;
+    },
+    true,
+  );
   if (titleBarInset) {
     const dragStrip = document.createElement('div');
     dragStrip.setAttribute('data-tauri-drag-region', '');
