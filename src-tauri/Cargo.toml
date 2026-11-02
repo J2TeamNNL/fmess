@@ -25,6 +25,8 @@ cssparser = "0.37"
 tauri-plugin-updater = "2.12.0"
 tauri-plugin-dialog = "2.7.3"
 tokio = { version = "1.53.3", features = ["time"] }
+# The system's preferred language, for fMess's own words (see i18n.rs).
+sys-locale = "0.3"
 
 [profile.release]
 codegen-units = 1

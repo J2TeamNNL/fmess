@@ -6,6 +6,10 @@
   // Messenger may raise the same message twice; browsers show one notification
   // per tag (Messenger uses the message id), so fMess does too.
   const shownTags = new Set();
+  // The few notifications fMess writes itself are in fMess's language
+  // (settings.lang), not Facebook's: English, or Vietnamese.
+  let language = settings.lang;
+  const say = (en, vi) => (language === 'vi' ? vi : en);
 
   const invoke = (command, args) =>
     window.__TAURI_INTERNALS__
@@ -235,7 +239,7 @@
     raisingFallback = true;
     try {
       const notification = new FMessNotification(chat.name || 'Messenger', {
-        body: chat.preview || 'New message',
+        body: chat.preview || say('New message', 'Tin nhắn mới'),
         icon: link.querySelector('img')?.currentSrc,
       });
       notification.onclick = () => chatLinks().find((row) => row.getAttribute('href') === href)?.click();

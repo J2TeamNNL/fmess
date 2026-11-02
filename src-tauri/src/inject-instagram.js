@@ -68,9 +68,13 @@
   window.addEventListener('load', () => theme && applyTheme(theme));
   // Called by fMess after every page load and when its settings change.
   let hideAvatars = Boolean(settings.hideAvatars);
+  // The notifications fMess writes itself are in fMess's language (settings.lang).
+  let language = settings.lang;
+  const say = (en, vi) => (language === 'vi' ? vi : en);
   window.__fmessApplySettings = (next) => {
     if (next.theme?.css !== theme?.css) applyTheme(next.theme);
     hideAvatars = Boolean(next.hideAvatars);
+    language = next.lang;
   };
 
   // Windows and Linux have no menu bar: the shortcuts fMess's menu has there
@@ -580,7 +584,7 @@
     lastFallback = key;
     raisingFallback = true;
     try {
-      new FMessNotification(name || 'Instagram', { body: preview || 'New message', icon: row.querySelector('img')?.currentSrc, fmessThread: thread });
+      new FMessNotification(name || 'Instagram', { body: preview || say('New message', 'Tin nhắn mới'), icon: row.querySelector('img')?.currentSrc, fmessThread: thread });
     } finally {
       raisingFallback = false;
     }

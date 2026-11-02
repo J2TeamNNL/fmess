@@ -132,8 +132,9 @@
     const systemDark = matchMedia('(prefers-color-scheme: dark)');
 
     // What Rust last sent (services::rail_state).
-    const state = { titleBar: 0, theme: null, dark: null, services: ['messenger'], selected: 'messenger', unread: {}, account: null, hideAvatars: false };
+    const state = { titleBar: 0, theme: null, dark: null, services: ['messenger'], selected: 'messenger', unread: {}, account: null, hideAvatars: false, lang: 'en' };
     let themeCss = null;
+    const say = (en, vi) => (state.lang === 'vi' ? vi : en);
 
     const initialPicture = (name) => {
       const letter = (name.match(/[\p{L}\p{N}]/u)?.[0] ?? '').toLocaleUpperCase();
@@ -179,7 +180,8 @@
       if (picture) root.style.setProperty('--fmess-avatar', `url(${JSON.stringify(picture)})`);
       else root.style.removeProperty('--fmess-avatar');
       root.setAttribute('data-fmess-name', state.account?.name ?? '');
-      account.title = state.account?.name || 'Account';
+      account.title = state.account?.name || say('Account', 'Tài khoản');
+      item('settings').title = say('Settings', 'Cài đặt');
     };
 
     // Called by Rust (services::rail_script) with the whole state or part of it.

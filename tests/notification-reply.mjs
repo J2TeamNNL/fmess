@@ -56,6 +56,7 @@ function world() {
       },
     },
     FMessNotification: class { constructor(title, { body }) { w.notices.push(`${title}: ${body}`); } },
+    say: (en) => en,
     KeyboardEvent: class { constructor(type, init) { Object.assign(this, init); } },
     window: {},
   };

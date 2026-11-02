@@ -237,6 +237,7 @@ pub fn rail_state<R: Runtime>(app: &AppHandle<R>) -> serde_json::Value {
         "unread": badge::counts(),
         "account": *ACCOUNT.lock().unwrap(),
         "hideAvatars": settings.hide_avatars,
+        "lang": crate::i18n::Lang::from_setting(settings.language.as_deref()),
     })
 }
 

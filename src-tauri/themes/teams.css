@@ -775,6 +775,9 @@ html[data-fmess-chats] [data-fmess-list] [role="row"] a[role="link"] > div > div
    Messenger's unread dot (a button); their names lose Messenger's weight. */
 html[data-fmess-chats] [data-fmess-list] [role="row"] a[role="link"] {
   --tm-row: 1;
+  /* Messenger's own hover layer covered part of the row only, in another
+     shade: the row's fill is the theme's alone. */
+  --hover-overlay: transparent !important;
 }
 html[data-fmess-chats] [data-fmess-list] [role="row"] a[role="link"]:not(:has([role="button"])) {
   --primary-text: var(--tm-fg3) !important;
@@ -845,6 +848,10 @@ html[data-fmess-chats] [data-fmess-list] [role="row"]:hover {
 html[data-fmess-chats] [data-fmess-list] [role="row"] a[role="link"]:hover {
   background: var(--tm-row-hover) !important;
   box-shadow: 0 0 0 1px var(--tm-stroke-alpha) !important;
+}
+/* In dark, Teams' hovered row has no outline. */
+html[data-fmess-dark][data-fmess-chats] [data-fmess-list] [role="row"] a[role="link"]:hover {
+  box-shadow: none !important;
 }
 html[data-fmess-chats] [data-fmess-list] [role="row"] a[role="link"]:active {
   background: var(--tm-row-pressed) !important;

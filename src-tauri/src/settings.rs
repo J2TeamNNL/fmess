@@ -9,9 +9,12 @@ use tauri::{AppHandle, Manager, Runtime, Theme, Webview};
 use tauri_plugin_autostart::ManagerExt;
 
 use crate::{
-    badge, icon,
+    badge,
+    i18n::{self, pick, Lang},
+    icon, menu, notify,
     services::{self, Service},
     themes,
+    webview::{self, SETTINGS_WINDOW},
 };
 
 /// fMess's own preferences. Account settings (active status, sounds, dark
@@ -54,6 +57,8 @@ pub struct Settings {
     /// The theme's sidebar button folded its sidebar away (the Teams look's
     /// app bar, which is fMess's rail). Set by the page; a new theme unfolds it.
     pub sidebar_collapsed: bool,
+    /// fMess's own language, "en" or "vi"; none follows the system (i18n.rs).
+    pub language: Option<String>,
 }
 
 /// A service this version doesn't know (from a newer or older fMess) falls
@@ -92,6 +97,7 @@ impl Default for Settings {
             instagram_icon: true,
             last_service: Service::Messenger,
             sidebar_collapsed: false,
+            language: None,
         }
     }
 }
@@ -122,6 +128,8 @@ pub struct SettingsView {
     settings: Settings,
     launch_at_login: bool,
     platform: &'static str,
+    /// The language the window speaks: the chosen one, or the system's.
+    lang: Lang,
     /// None until the page has read them, or when logged out.
     messenger: Option<MessengerPrefs>,
 }
@@ -190,7 +198,10 @@ pub fn update_settings<R: Runtime>(
     let autostart = app.autolaunch();
     if autostart.is_enabled().unwrap_or(false) != launch_at_login {
         let result = if launch_at_login { autostart.enable() } else { autostart.disable() };
-        result.map_err(|err| format!("could not change Open at Login: {err}"))?;
+        result.map_err(|err| match Lang::from_setting(settings.language.as_deref()) {
+            Lang::En => format!("could not change Open at Login: {err}"),
+            Lang::Vi => format!("Không đổi được mục Mở khi đăng nhập: {err}"),
+        })?;
     }
 
     let settings = change(&app, |current| {
@@ -205,12 +216,24 @@ pub fn update_settings<R: Runtime>(
     if settings.theme != previous.theme || settings.theme_icon != previous.theme_icon {
         icon::apply(&app);
     }
+    let lang = Lang::from_setting(settings.language.as_deref());
+    let language_changed = lang != Lang::from_setting(previous.language.as_deref());
+    if language_changed {
+        if let Err(err) = menu::apply_language(&app, lang) {
+            eprintln!("could not change the menus' language: {err}");
+        }
+        notify::apply_language(lang);
+        if let Some(window) = app.get_webview_window(SETTINGS_WINDOW) {
+            let _ = window.set_title(webview::settings_title(lang));
+        }
+    }
     if settings.instagram != previous.instagram {
         services::set_instagram(&app, settings.instagram);
     }
     if settings.theme != previous.theme
         || settings.instagram_icon != previous.instagram_icon
         || settings.hide_avatars != previous.hide_avatars
+        || language_changed
     {
         services::update_rail(&app);
     }
@@ -226,6 +249,7 @@ pub fn update_settings<R: Runtime>(
         if settings.block_typing != previous.block_typing
             || settings.hide_avatars != previous.hide_avatars
             || settings.theme != previous.theme
+            || language_changed
         {
             let _ = webview.eval(page_settings_script(&webview, &settings));
         }
@@ -297,7 +321,8 @@ pub fn messenger_theme(dark_mode: Option<&str>) -> Option<Theme> {
 /// darkMode or muteFor (milliseconds, -1 until turned off, 0 to turn it off).
 #[tauri::command]
 pub fn set_messenger_pref<R: Runtime>(app: AppHandle<R>, name: String, value: serde_json::Value) -> Result<(), String> {
-    let webview = services::webview(&app, Service::Messenger).ok_or("fMess's window is closed")?;
+    let webview = services::webview(&app, Service::Messenger)
+        .ok_or_else(|| pick(i18n::current(&app), "fMess's window is closed", "Cửa sổ fMess đang đóng"))?;
     if let ("darkMode", Some(mode)) = (name.as_str(), value.as_str()) {
         // Recolour fMess's windows together with the page, not after it reports.
         app.set_theme(messenger_theme(Some(mode)));
@@ -358,6 +383,8 @@ pub fn page_settings<R: Runtime>(app: &AppHandle<R>, settings: &Settings, servic
         "theme": theme,
         "paneWidths": settings.pane_widths,
         "sidebarCollapsed": settings.sidebar_collapsed,
+        // For the notifications the page writes itself.
+        "lang": Lang::from_setting(settings.language.as_deref()),
     })
     .to_string()
 }
@@ -399,6 +426,7 @@ fn change<R: Runtime>(app: &AppHandle<R>, edit: impl FnOnce(&mut Settings)) -> R
 
 fn view<R: Runtime>(app: &AppHandle<R>, settings: Settings) -> SettingsView {
     SettingsView {
+        lang: Lang::from_setting(settings.language.as_deref()),
         settings,
         launch_at_login: app.autolaunch().is_enabled().unwrap_or(false),
         platform: std::env::consts::OS,
@@ -406,14 +434,20 @@ fn view<R: Runtime>(app: &AppHandle<R>, settings: Settings) -> SettingsView {
     }
 }
 
+/// Errors are in the language of the settings being saved: `change` holds
+/// the settings' lock, so `i18n::current` can't be asked here.
 fn save<R: Runtime>(app: &AppHandle<R>, settings: &Settings) -> Result<(), String> {
     #[cfg(debug_assertions)]
     if IN_MEMORY.load(std::sync::atomic::Ordering::Relaxed) {
         return Ok(());
     }
-    let path = settings_path(app).ok_or("no config directory")?;
+    let lang = Lang::from_setting(settings.language.as_deref());
+    let path = settings_path(app).ok_or(pick(lang, "no config directory", "Không tìm thấy thư mục cài đặt"))?;
     let json = serde_json::to_vec_pretty(settings).expect("settings serialize to JSON");
-    write_whole(&path, &json).map_err(|err| format!("could not save settings to {}: {err}", path.display()))
+    write_whole(&path, &json).map_err(|err| match lang {
+        Lang::En => format!("could not save settings to {}: {err}", path.display()),
+        Lang::Vi => format!("Không lưu được cài đặt vào {}: {err}", path.display()),
+    })
 }
 
 /// Writes the file beside itself, then moves it over the old one: if fMess

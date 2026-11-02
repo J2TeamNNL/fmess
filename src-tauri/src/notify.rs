@@ -5,6 +5,7 @@ use tauri::{AppHandle, Manager, Runtime, Webview};
 use tauri_plugin_notification::NotificationExt;
 
 use crate::{
+    i18n::{self, pick, Lang},
     services::{self, Service},
     settings, show_main_window,
 };
@@ -99,6 +100,8 @@ pub async fn notify<R: Runtime>(
         thread: thread_key(service, message.thread),
         ..message
     });
+    // What a notification says when it may not show the sender and message.
+    let new_message = pick(Lang::from_setting(settings.language.as_deref()), "New message", "Tin nhắn mới");
     #[cfg(target_os = "macos")]
     if communication::available() {
         use base64::Engine;
@@ -124,7 +127,7 @@ pub async fn notify<R: Runtime>(
         } else {
             communication::Notification {
                 thread: service_thread,
-                ..communication::Notification::hidden(id)
+                ..communication::Notification::plain(id, "fMess", new_message)
             }
         };
         communication::show(notification);
@@ -134,7 +137,7 @@ pub async fn notify<R: Runtime>(
     let (title, body) = if settings.notification_preview {
         (title, body)
     } else {
-        ("fMess".to_owned(), "New message".to_owned())
+        ("fMess".to_owned(), new_message.to_owned())
     };
     app.notification()
         .builder()
@@ -150,13 +153,10 @@ pub async fn notify<R: Runtime>(
 /// path messages use, and says what went wrong when it can.
 #[tauri::command]
 pub fn test_notification<R: Runtime>(app: AppHandle<R>) -> Result<(), String> {
-    let (title, body) = ("fMess", "Notifications are working.");
+    let (title, body) = ("fMess", pick(i18n::current(&app), "Notifications are working.", "Thông báo đã hoạt động."));
     #[cfg(target_os = "macos")]
     if communication::available() {
-        let mut notification = communication::Notification::hidden(0);
-        notification.title = title.to_owned();
-        notification.body = body.to_owned();
-        communication::show(notification);
+        communication::show(communication::Notification::plain(0, title, body));
         return Ok(());
     }
     app.notification()
@@ -260,6 +260,7 @@ pub fn route_clicks<R: Runtime>(app: &AppHandle<R>) -> tauri_plugin_notification
         let clicks = app.clone();
         let replies = app.clone();
         communication::init(
+            i18n::current(app),
             move |id, thread| {
                 let (service, thread) = split_thread_key(id, thread);
                 open_clicked(&clicks, id, service, thread);
@@ -282,6 +283,16 @@ pub fn route_clicks<R: Runtime>(app: &AppHandle<R>) -> tauri_plugin_notification
             open_clicked(&handle, id, service, None);
         }
     })
+}
+
+/// Notifications' Reply action in another language (chosen in Settings).
+pub fn apply_language(lang: Lang) {
+    #[cfg(target_os = "macos")]
+    if communication::available() {
+        communication::set_categories(lang);
+    }
+    #[cfg(not(target_os = "macos"))]
+    let _ = lang;
 }
 
 /// A reply typed in a notification: the page sends it in that chat, without
@@ -347,6 +358,8 @@ mod communication {
         UNUserNotificationCenterDelegate,
     };
 
+    use crate::i18n::{pick, Lang};
+
     pub struct Notification {
         pub id: i32,
         pub title: String,
@@ -372,12 +385,12 @@ mod communication {
     }
 
     impl Notification {
-        /// "New message", with nothing about who wrote it.
-        pub fn hidden(id: i32) -> Self {
+        /// Just a title and text, with nothing about who wrote what.
+        pub fn plain(id: i32, title: &str, body: &str) -> Self {
             Self {
                 id,
-                title: "fMess".to_owned(),
-                body: "New message".to_owned(),
+                title: title.to_owned(),
+                body: body.to_owned(),
                 thread: String::new(),
                 replyable: false,
                 image: None,
@@ -456,26 +469,14 @@ mod communication {
     }
 
     pub fn init(
+        lang: Lang,
         on_click: impl Fn(i32, Option<String>) + Send + Sync + 'static,
         on_reply: impl Fn(i32, String, String) + Send + Sync + 'static,
     ) {
         let _ = ON_CLICK.set(Box::new(on_click));
         let _ = ON_REPLY.set(Box::new(on_reply));
         let center = UNUserNotificationCenter::currentNotificationCenter();
-        let reply = UNTextInputNotificationAction::actionWithIdentifier_title_options_textInputButtonTitle_textInputPlaceholder(
-            &NSString::from_str(REPLY_ACTION),
-            &NSString::from_str("Reply"),
-            UNNotificationActionOptions::empty(),
-            &NSString::from_str("Send"),
-            &NSString::from_str("Aa"),
-        );
-        let category = UNNotificationCategory::categoryWithIdentifier_actions_intentIdentifiers_options(
-            &NSString::from_str(MESSAGE_CATEGORY),
-            &NSArray::from_retained_slice(&[reply.into_super()]),
-            &NSArray::from_retained_slice(&[NSString::from_str("INSendMessageIntent")]),
-            UNNotificationCategoryOptions::empty(),
-        );
-        center.setNotificationCategories(&NSSet::from_retained_slice(&[category]));
+        set_categories(lang);
         let delegate: Retained<Delegate> = unsafe { msg_send![Delegate::class(), new] };
         center.setDelegate(Some(ProtocolObject::from_ref(&*delegate)));
         // The center holds its delegate weakly, and fMess needs it until it quits.
@@ -489,6 +490,25 @@ mod communication {
             UNAuthorizationOptions::Alert | UNAuthorizationOptions::Sound | UNAuthorizationOptions::Badge,
             &done,
         );
+    }
+
+    /// The message category, with its Reply action named in `lang`.
+    pub fn set_categories(lang: Lang) {
+        let reply = UNTextInputNotificationAction::actionWithIdentifier_title_options_textInputButtonTitle_textInputPlaceholder(
+            &NSString::from_str(REPLY_ACTION),
+            &NSString::from_str(pick(lang, "Reply", "Trả lời")),
+            UNNotificationActionOptions::empty(),
+            &NSString::from_str(pick(lang, "Send", "Gửi")),
+            &NSString::from_str("Aa"),
+        );
+        let category = UNNotificationCategory::categoryWithIdentifier_actions_intentIdentifiers_options(
+            &NSString::from_str(MESSAGE_CATEGORY),
+            &NSArray::from_retained_slice(&[reply.into_super()]),
+            &NSArray::from_retained_slice(&[NSString::from_str("INSendMessageIntent")]),
+            UNNotificationCategoryOptions::empty(),
+        );
+        UNUserNotificationCenter::currentNotificationCenter()
+            .setNotificationCategories(&NSSet::from_retained_slice(&[category]));
     }
 
     pub fn show(notification: Notification) {

@@ -106,12 +106,14 @@
     if (draftOut) strayDrafts.set(thread, draft);
     if (!sent) {
       // Say so, and keep the reply: clicking opens the chat.
-      const notice = new FMessNotification('Reply not sent', { body: draftOut ? `${text}\n\nYour draft: ${draft}` : text });
+      const notice = new FMessNotification(say('Reply not sent', 'Chưa gửi được tin trả lời'), {
+        body: draftOut ? `${text}\n\n${say('Your draft', 'Bản nháp của bạn')}: ${draft}` : text,
+      });
       notice.onclick = () => openChat(id, thread);
       return false;
     }
     if (draftOut) {
-      const notice = new FMessNotification('Your draft is kept', { body: draft });
+      const notice = new FMessNotification(say('Your draft is kept', 'Bản nháp của bạn vẫn còn'), { body: draft });
       notice.onclick = () => openChat(id, thread);
     }
     // Back to the chat that was open, unless another one has been opened since.

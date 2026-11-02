@@ -57,6 +57,7 @@
   // Called by fMess after every page load and when its settings change.
   window.__fmessApplySettings = (next) => {
     privacy.blockTyping = Boolean(next.blockTyping);
+    language = next.lang;
     setHideAvatars(Boolean(next.hideAvatars));
     setSidebarCollapsed(Boolean(next.sidebarCollapsed));
     if (next.theme?.css !== theme?.css || Boolean(next.theme?.light) !== Boolean(theme?.light)) applyTheme(next.theme);

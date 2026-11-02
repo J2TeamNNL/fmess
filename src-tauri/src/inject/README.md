@@ -21,7 +21,7 @@ earlier part declares, and the numbers set that order.
 | 11-scrollbars | Overlay scroll bars |
 | 12-viewer | The photo/video viewer: its buttons and zoom |
 | 13-shortcuts | Keyboard shortcuts |
-| 14-notifications | Web notifications to the system's, with sender and chat |
+| 14-notifications | Web notifications to the system's, with sender and chat; `say` for fMess's own words |
 | 15-unread-badge | The unread count for the Dock and taskbar |
 | 16-read-ahead | Reading recent chats ahead so they open at once |
 | 17-theme-hooks | Buttons, search box and quick reactions themes can ask for |
