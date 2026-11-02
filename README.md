@@ -137,7 +137,7 @@ The website in `site/` is deployed to [fmess.app](https://fmess.app) by
 ## How it works
 
 The window loads facebook.com/messages directly. fMess adds one script to the
-page (`src-tauri/src/inject.js`) that restyles it through Facebook's own CSS
+page (`src-tauri/src/inject/`, joined into one script at build time) that restyles it through Facebook's own CSS
 variables, adds the shortcuts and settings, and hands notifications to the
 operating system. Calls in encrypted chats use Facebook's own WebKit path,
 which Facebook keeps behind a flag; fMess turns it on (Settings → Calls).

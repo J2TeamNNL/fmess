@@ -15,7 +15,7 @@ const LINK_SHIM_HOSTS: &[&str] = &["l.messenger.com", "l.facebook.com", "lm.face
 
 /// Pages a popup may show inside fMess: chats, their photo/video viewer and
 /// the call windows they start. The rest of Facebook (reels, posts, profiles)
-/// opens in the browser. Keep in step with IN_APP_PATHS in inject.js.
+/// opens in the browser. Keep in step with IN_APP_PATHS in inject/06-routes.js.
 const IN_APP_PATHS: &[&str] = &["/messages", "/messenger_media", "/groupcall", "/videocall"];
 
 /// Whether a `window.open()` popup stays inside fMess.

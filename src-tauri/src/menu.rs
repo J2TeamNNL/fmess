@@ -5,10 +5,14 @@ use tauri::{
 };
 
 use crate::{
-    about, settings, show_main_window, update,
+    about,
+    i18n::{self, pick, Lang},
+    settings, show_main_window, update,
     webview::{self, messages_url},
     MAIN_WINDOW,
 };
+
+const TRAY: &str = "main";
 
 const SHOW: &str = "show";
 const MESSAGES: &str = "messages";
@@ -29,23 +33,10 @@ const CHECK_FOR_UPDATES: &str = "check-for-updates";
 const QUIT: &str = "quit";
 
 pub fn install<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<()> {
-    let tray_menu = Menu::with_items(
-        app,
-        &[
-            &MenuItem::with_id(app, SHOW, "Show fMess", true, None::<&str>)?,
-            &MenuItem::with_id(app, MESSAGES, "Open Chats", true, None::<&str>)?,
-            &MenuItem::with_id(app, RELOAD, "Reload", true, None::<&str>)?,
-            &MenuItem::with_id(app, SETTINGS, "Settings…", true, None::<&str>)?,
-            &MenuItem::with_id(app, CHECK_FOR_UPDATES, "Check for Updates…", true, None::<&str>)?,
-            &MenuItem::with_id(app, ABOUT, "About fMess", true, None::<&str>)?,
-            &PredefinedMenuItem::separator(app)?,
-            &MenuItem::with_id(app, QUIT, "Quit fMess", true, None::<&str>)?,
-        ],
-    )?;
-
-    let mut tray = TrayIconBuilder::with_id("main")
+    let lang = i18n::current(app);
+    let mut tray = TrayIconBuilder::with_id(TRAY)
         .tooltip("fMess")
-        .menu(&tray_menu)
+        .menu(&tray_menu(app, lang)?)
         // Left click shows the window; the menu stays on right click.
         .show_menu_on_left_click(false)
         .on_tray_icon_event(|tray, event| {
@@ -64,79 +55,144 @@ pub fn install<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<()> {
     tray.build(app)?;
 
     #[cfg(target_os = "macos")]
-    app.set_menu(app_menu(app)?)?;
+    app.set_menu(app_menu(app, lang)?)?;
     Ok(())
 }
 
-/// macOS needs a menu bar for copy/paste shortcuts; add navigation to it.
-#[cfg(target_os = "macos")]
-fn app_menu<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<Menu<R>> {
-    use tauri::menu::Submenu;
-
-    let menu = Menu::default(app)?;
-    // The first submenu is the app menu. Its About fMess becomes fMess's own
-    // (with credits), followed by Check for Updates…, a separator and Settings.
-    if let Some(app_menu) = menu.items()?.first().and_then(|item| item.as_submenu()) {
-        app_menu.remove_at(0)?;
-        app_menu.insert_items(
-            &[
-                &MenuItem::with_id(app, ABOUT, "About fMess", true, None::<&str>)?,
-                &MenuItem::with_id(app, CHECK_FOR_UPDATES, "Check for Updates…", true, None::<&str>)?,
-            ],
-            0,
-        )?;
-        app_menu.insert_items(
-            &[
-                &MenuItem::with_id(app, SETTINGS, "Settings…", true, Some("CmdOrCtrl+,"))?,
-                &PredefinedMenuItem::separator(app)?,
-            ],
-            3,
-        )?;
+/// Builds the menus again in another language (chosen in Settings).
+pub fn apply_language<R: Runtime>(app: &AppHandle<R>, lang: Lang) -> tauri::Result<()> {
+    if let Some(tray) = app.tray_by_id(TRAY) {
+        tray.set_menu(Some(tray_menu(app, lang)?))?;
     }
-    let go = Submenu::with_items(
+    #[cfg(target_os = "macos")]
+    app.set_menu(app_menu(app, lang)?)?;
+    Ok(())
+}
+
+fn tray_menu<R: Runtime>(app: &AppHandle<R>, lang: Lang) -> tauri::Result<Menu<R>> {
+    let t = |en, vi| pick(lang, en, vi);
+    Menu::with_items(
         app,
-        "Go",
+        &[
+            &MenuItem::with_id(app, SHOW, t("Show fMess", "Mở fMess"), true, None::<&str>)?,
+            &MenuItem::with_id(app, MESSAGES, t("Open Chats", "Mở đoạn chat"), true, None::<&str>)?,
+            &MenuItem::with_id(app, RELOAD, t("Reload", "Tải lại"), true, None::<&str>)?,
+            &MenuItem::with_id(app, SETTINGS, t("Settings…", "Cài đặt…"), true, None::<&str>)?,
+            &MenuItem::with_id(app, CHECK_FOR_UPDATES, t("Check for Updates…", "Kiểm tra cập nhật…"), true, None::<&str>)?,
+            &MenuItem::with_id(app, ABOUT, t("About fMess", "Giới thiệu về fMess"), true, None::<&str>)?,
+            &PredefinedMenuItem::separator(app)?,
+            &MenuItem::with_id(app, QUIT, t("Quit fMess", "Thoát fMess"), true, None::<&str>)?,
+        ],
+    )
+}
+
+/// macOS needs a menu bar for copy/paste shortcuts; it has navigation too.
+/// Tauri's default menu (App, File, Edit, View, Window, Help) with Go before
+/// Window, built here so every item can be named in fMess's language; the
+/// Vietnamese names are the ones macOS itself uses.
+#[cfg(target_os = "macos")]
+fn app_menu<R: Runtime>(app: &AppHandle<R>, lang: Lang) -> tauri::Result<Menu<R>> {
+    use tauri::menu::{Submenu, HELP_SUBMENU_ID, WINDOW_SUBMENU_ID};
+
+    let t = |en, vi| pick(lang, en, vi);
+    // Its About fMess is fMess's own (with credits), followed by Check for
+    // Updates…, a separator and Settings.
+    let app_submenu = Submenu::with_items(
+        app,
+        &app.package_info().name,
         true,
         &[
-            &MenuItem::with_id(app, MESSAGES, "Chats", true, Some("CmdOrCtrl+Shift+H"))?,
-            &MenuItem::with_id(app, SEARCH, "Search", true, Some("CmdOrCtrl+K"))?,
-            &MenuItem::with_id(app, NEW_MESSAGE, "New Message", true, Some("CmdOrCtrl+N"))?,
+            &MenuItem::with_id(app, ABOUT, t("About fMess", "Giới thiệu về fMess"), true, None::<&str>)?,
+            &MenuItem::with_id(app, CHECK_FOR_UPDATES, t("Check for Updates…", "Kiểm tra cập nhật…"), true, None::<&str>)?,
             &PredefinedMenuItem::separator(app)?,
-            &MenuItem::with_id(app, NEXT_CHAT, "Next Conversation", true, Some("CmdOrCtrl+Shift+]"))?,
+            &MenuItem::with_id(app, SETTINGS, t("Settings…", "Cài đặt…"), true, Some("CmdOrCtrl+,"))?,
+            &PredefinedMenuItem::separator(app)?,
+            &PredefinedMenuItem::services(app, Some(t("Services", "Dịch vụ")))?,
+            &PredefinedMenuItem::separator(app)?,
+            &PredefinedMenuItem::hide(app, Some(t("Hide fMess", "Ẩn fMess")))?,
+            &PredefinedMenuItem::hide_others(app, Some(t("Hide Others", "Ẩn các ứng dụng khác")))?,
+            &PredefinedMenuItem::separator(app)?,
+            &PredefinedMenuItem::quit(app, Some(t("Quit fMess", "Thoát fMess")))?,
+        ],
+    )?;
+    let file = Submenu::with_items(
+        app,
+        t("File", "Tệp"),
+        true,
+        &[&PredefinedMenuItem::close_window(app, Some(t("Close Window", "Đóng cửa sổ")))?],
+    )?;
+    let edit = Submenu::with_items(
+        app,
+        t("Edit", "Sửa"),
+        true,
+        &[
+            &PredefinedMenuItem::undo(app, Some(t("Undo", "Hoàn tác")))?,
+            &PredefinedMenuItem::redo(app, Some(t("Redo", "Làm lại")))?,
+            &PredefinedMenuItem::separator(app)?,
+            &PredefinedMenuItem::cut(app, Some(t("Cut", "Cắt")))?,
+            &PredefinedMenuItem::copy(app, Some(t("Copy", "Sao chép")))?,
+            &PredefinedMenuItem::paste(app, Some(t("Paste", "Dán")))?,
+            &PredefinedMenuItem::select_all(app, Some(t("Select All", "Chọn tất cả")))?,
+        ],
+    )?;
+    let view = Submenu::with_items(
+        app,
+        t("View", "Xem"),
+        true,
+        &[
+            &MenuItem::with_id(app, ZOOM_RESET, t("Actual Size", "Kích thước thực"), true, Some("CmdOrCtrl+0"))?,
+            &MenuItem::with_id(app, ZOOM_IN, t("Zoom In", "Phóng to"), true, Some("CmdOrCtrl+="))?,
+            &MenuItem::with_id(app, ZOOM_OUT, t("Zoom Out", "Thu nhỏ"), true, Some("CmdOrCtrl+-"))?,
+            &PredefinedMenuItem::separator(app)?,
+            &PredefinedMenuItem::fullscreen(app, Some(t("Toggle Full Screen", "Bật/tắt toàn màn hình")))?,
+        ],
+    )?;
+    let go = Submenu::with_items(
+        app,
+        t("Go", "Đi"),
+        true,
+        &[
+            &MenuItem::with_id(app, MESSAGES, t("Chats", "Đoạn chat"), true, Some("CmdOrCtrl+Shift+H"))?,
+            &MenuItem::with_id(app, SEARCH, t("Search", "Tìm kiếm"), true, Some("CmdOrCtrl+K"))?,
+            &MenuItem::with_id(app, NEW_MESSAGE, t("New Message", "Tin nhắn mới"), true, Some("CmdOrCtrl+N"))?,
+            &PredefinedMenuItem::separator(app)?,
+            &MenuItem::with_id(
+                app,
+                NEXT_CHAT,
+                t("Next Conversation", "Đoạn chat tiếp theo"),
+                true,
+                Some("CmdOrCtrl+Shift+]"),
+            )?,
             &MenuItem::with_id(
                 app,
                 PREVIOUS_CHAT,
-                "Previous Conversation",
+                t("Previous Conversation", "Đoạn chat trước"),
                 true,
                 Some("CmdOrCtrl+Shift+["),
             )?,
             &PredefinedMenuItem::separator(app)?,
-            &MenuItem::with_id(app, BACK, "Back", true, Some("CmdOrCtrl+["))?,
-            &MenuItem::with_id(app, FORWARD, "Forward", true, Some("CmdOrCtrl+]"))?,
+            &MenuItem::with_id(app, BACK, t("Back", "Quay lại"), true, Some("CmdOrCtrl+["))?,
+            &MenuItem::with_id(app, FORWARD, t("Forward", "Tiến tới"), true, Some("CmdOrCtrl+]"))?,
             &PredefinedMenuItem::separator(app)?,
-            &MenuItem::with_id(app, RELOAD, "Reload", true, Some("CmdOrCtrl+R"))?,
+            &MenuItem::with_id(app, RELOAD, t("Reload", "Tải lại"), true, Some("CmdOrCtrl+R"))?,
         ],
     )?;
-    // The default menu is App, File, Edit, View, Window, Help: put Go before Window.
-    menu.insert(&go, 4)?;
-
-    let view = menu.items()?.into_iter().find_map(|item| {
-        item.as_submenu()
-            .filter(|submenu| submenu.text().is_ok_and(|text| text == "View"))
-            .cloned()
-    });
-    if let Some(view) = view {
-        view.insert_items(
-            &[
-                &MenuItem::with_id(app, ZOOM_RESET, "Actual Size", true, Some("CmdOrCtrl+0"))?,
-                &MenuItem::with_id(app, ZOOM_IN, "Zoom In", true, Some("CmdOrCtrl+="))?,
-                &MenuItem::with_id(app, ZOOM_OUT, "Zoom Out", true, Some("CmdOrCtrl+-"))?,
-                &PredefinedMenuItem::separator(app)?,
-            ],
-            0,
-        )?;
-    }
-    Ok(menu)
+    // With these ids macOS fills the Window menu with the open windows and
+    // gives Help its search field.
+    let window = Submenu::with_id_and_items(
+        app,
+        WINDOW_SUBMENU_ID,
+        t("Window", "Cửa sổ"),
+        true,
+        &[
+            &PredefinedMenuItem::minimize(app, Some(t("Minimize", "Thu nhỏ")))?,
+            &PredefinedMenuItem::maximize(app, Some(t("Zoom", "Thu phóng")))?,
+            &PredefinedMenuItem::separator(app)?,
+            &PredefinedMenuItem::close_window(app, Some(t("Close Window", "Đóng cửa sổ")))?,
+        ],
+    )?;
+    let help = Submenu::with_id_and_items(app, HELP_SUBMENU_ID, t("Help", "Trợ giúp"), true, &[])?;
+    Menu::with_items(app, &[&app_submenu, &file, &edit, &view, &go, &window, &help])
 }
 
 /// The old desktop app's account menu: inject.js puts the account's picture
@@ -149,14 +205,16 @@ pub fn show_account_menu<R: Runtime>(
     y: f64,
 ) -> tauri::Result<()> {
     let app = window.app_handle();
+    let lang = i18n::current(app);
+    let t = |en, vi| pick(lang, en, vi);
     let menu = Menu::with_items(
         app,
         &[
             &MenuItem::new(app, name, false, None::<&str>)?,
             &PredefinedMenuItem::separator(app)?,
-            &MenuItem::with_id(app, SETTINGS, "Settings…", true, None::<&str>)?,
+            &MenuItem::with_id(app, SETTINGS, t("Settings…", "Cài đặt…"), true, None::<&str>)?,
             &PredefinedMenuItem::separator(app)?,
-            &MenuItem::with_id(app, LOG_OUT, "Log Out", true, None::<&str>)?,
+            &MenuItem::with_id(app, LOG_OUT, t("Log Out", "Đăng xuất"), true, None::<&str>)?,
         ],
     )?;
     // The page measures in CSS pixels, which fMess's zoom setting scales.

@@ -137,7 +137,7 @@ Website trong `site/` được [GitHub Pages](.github/workflows/pages.yml) tri�
 ## Cách hoạt động
 
 Cửa sổ tải trực tiếp facebook.com/messages. fMess chèn một script vào trang
-(`src-tauri/src/inject.js`) để chỉnh giao diện qua chính các biến CSS của Facebook,
+(`src-tauri/src/inject/`, ghép thành một script lúc build) để chỉnh giao diện qua chính các biến CSS của Facebook,
 thêm phím tắt và cài đặt, rồi chuyển thông báo sang hệ điều hành. Cuộc gọi trong
 chat mã hoá dùng đường WebKit có sẵn của Facebook, vốn đang bị Facebook khoá bằng
 cờ; fMess bật cờ đó lên (Cài đặt → Calls).

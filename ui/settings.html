@@ -171,21 +171,31 @@
 </style>
 </head>
 <body>
-  <h2>General</h2>
+  <h2 data-i18n="general">General</h2>
   <div class="group">
     <label class="row">
-      <span class="label">Open fMess at login</span>
+      <span class="label"><span data-i18n="language">Language</span>
+        <span class="hint" data-i18n="languageHint">fMess's own menus and windows. Messenger follows your Facebook account.</span>
+      </span>
+      <select data-key="language">
+        <option value="" data-i18n="automatic">Automatic</option>
+        <option value="en">English</option>
+        <option value="vi">Tiếng Việt</option>
+      </select>
+    </label>
+    <label class="row">
+      <span class="label" data-i18n="launchAtLogin">Open fMess at login</span>
       <span class="switch"><input type="checkbox" data-key="launchAtLogin"><span></span></span>
     </label>
     <label class="row" data-needs="launchAtLogin">
-      <span class="label">Start in the background
-        <span class="hint">When opened at login, stay in the <span data-tray></span> instead of showing the window.</span>
+      <span class="label"><span data-i18n="startHidden">Start in the background</span>
+        <span class="hint" data-i18n="startHiddenHint">When opened at login, stay in the <span data-tray></span> instead of showing the window.</span>
       </span>
       <span class="switch"><input type="checkbox" data-key="startHidden"><span></span></span>
     </label>
     <label class="row">
-      <span class="label">Keep running when the window is closed
-        <span class="hint">fMess stays in the <span data-tray></span> so messages still arrive.</span>
+      <span class="label"><span data-i18n="closeToTray">Keep running when the window is closed</span>
+        <span class="hint" data-i18n="closeToTrayHint">fMess stays in the <span data-tray></span> so messages still arrive.</span>
       </span>
       <span class="switch"><input type="checkbox" data-key="closeToTray"><span></span></span>
     </label>
@@ -194,78 +204,78 @@
   <h2>Messenger</h2>
   <div class="group" id="messenger">
     <div class="row" data-messenger-row>
-      <span class="label">Active Status
-        <span class="hint">Who sees you're active. <span data-active-status></span></span>
+      <span class="label"><span data-i18n="activeStatus">Active Status</span>
+        <span class="hint"><span data-i18n="activeStatusHint">Who sees you're active.</span> <span data-active-status></span></span>
       </span>
-      <button type="button" data-open="activeStatus">Change…</button>
+      <button type="button" data-open="activeStatus" data-i18n="change">Change…</button>
     </div>
     <label class="row" data-messenger-row>
-      <span class="label">Notification sounds
-        <span class="hint">Sounds for incoming messages, calls, video chats and in-app sounds.</span>
+      <span class="label"><span data-i18n="sounds">Notification sounds</span>
+        <span class="hint" data-i18n="soundsHint">Sounds for incoming messages, calls, video chats and in-app sounds.</span>
       </span>
       <span class="switch"><input type="checkbox" data-pref="soundsOn"><span></span></span>
     </label>
     <label class="row" data-messenger-row>
-      <span class="label">Do Not Disturb
-        <span class="hint">Mutes Messenger on all your devices.</span>
+      <span class="label"><span data-i18n="doNotDisturb">Do Not Disturb</span>
+        <span class="hint" data-i18n="doNotDisturbHint">Mutes Messenger on all your devices.</span>
       </span>
       <select data-pref="muteFor">
-        <option value="0">Off</option>
-        <option value="900000">15 minutes</option>
-        <option value="3600000">1 hour</option>
-        <option value="28800000">8 hours</option>
-        <option value="86400000">24 hours</option>
-        <option value="-1">Until I turn it off</option>
+        <option value="0" data-i18n="off">Off</option>
+        <option value="900000" data-i18n="minutes15">15 minutes</option>
+        <option value="3600000" data-i18n="hour1">1 hour</option>
+        <option value="28800000" data-i18n="hours8">8 hours</option>
+        <option value="86400000" data-i18n="hours24">24 hours</option>
+        <option value="-1" data-i18n="untilOff">Until I turn it off</option>
         <option value="on" hidden></option>
       </select>
     </label>
     <div class="row" data-messenger-row>
-      <span class="label">More Messenger preferences
-        <span class="hint">Payments, message delivery and blocking.</span>
+      <span class="label"><span data-i18n="morePrefs">More Messenger preferences</span>
+        <span class="hint" data-i18n="morePrefsHint">Payments, message delivery and blocking.</span>
       </span>
-      <button type="button" data-open="">Open…</button>
+      <button type="button" data-open="" data-i18n="open">Open…</button>
     </div>
   </div>
-  <p class="note" data-messenger-missing hidden>These belong to your Messenger account. Open fMess's window and sign in to change them here.</p>
+  <p class="note" data-messenger-missing data-i18n="messengerMissing" hidden>These belong to your Messenger account. Open fMess's window and sign in to change them here.</p>
 
-  <h2>Notifications</h2>
+  <h2 data-i18n="notifications">Notifications</h2>
   <div class="group">
     <label class="row">
-      <span class="label">Show notifications</span>
+      <span class="label" data-i18n="showNotifications">Show notifications</span>
       <span class="switch"><input type="checkbox" data-key="notifications"><span></span></span>
     </label>
     <label class="row" data-needs="notifications">
-      <span class="label">Show sender and message
-        <span class="hint">When off, notifications only say “New message”.</span>
+      <span class="label"><span data-i18n="preview">Show sender and message</span>
+        <span class="hint" data-i18n="previewHint">When off, notifications only say “New message”.</span>
       </span>
       <span class="switch"><input type="checkbox" data-key="notificationPreview"><span></span></span>
     </label>
     <label class="row">
-      <span class="label">Unread count on the app icon</span>
+      <span class="label" data-i18n="badge">Unread count on the app icon</span>
       <span class="switch"><input type="checkbox" data-key="badge"><span></span></span>
     </label>
     <div class="row">
-      <span class="label">Test notification
-        <span class="hint" id="test-result">Check that notifications reach your desktop.</span>
+      <span class="label"><span data-i18n="test">Test notification</span>
+        <span class="hint" id="test-result" data-i18n="testHint">Check that notifications reach your desktop.</span>
       </span>
-      <button type="button" id="test-notification">Send</button>
+      <button type="button" id="test-notification" data-i18n="send">Send</button>
     </div>
   </div>
 
-  <h2>Privacy</h2>
+  <h2 data-i18n="privacy">Privacy</h2>
   <div class="group">
     <label class="row">
-      <span class="label">Block Typing in Chat
-        <span class="hint">Hide your typing indicator in Facebook chat.</span>
+      <span class="label"><span data-i18n="blockTyping">Block Typing in Chat</span>
+        <span class="hint" data-i18n="blockTypingHint">Hide your typing indicator in Facebook chat.</span>
       </span>
       <span class="switch"><input type="checkbox" data-key="blockTyping"><span></span></span>
     </label>
   </div>
 
-  <h2>Appearance</h2>
+  <h2 data-i18n="appearance">Appearance</h2>
   <div class="group">
     <label class="row">
-      <span class="label">Text size
+      <span class="label"><span data-i18n="textSize">Text size</span>
         <span class="hint"><kbd data-zoom-shortcuts></kbd></span>
       </span>
       <select data-key="zoom">
@@ -283,39 +293,45 @@
       </select>
     </label>
     <div class="row">
-      <span class="label">Theme
-        <span class="hint">How Messenger looks. Add a theme from a .css file.</span>
+      <span class="label"><span data-i18n="theme">Theme</span>
+        <span class="hint" data-i18n="themeHint">How Messenger looks. Add a theme from a .css file.</span>
       </span>
       <span class="controls">
-        <button type="button" id="add-theme">Add…</button>
-        <button type="button" id="remove-theme" hidden>Remove</button>
+        <button type="button" id="add-theme" data-i18n="add">Add…</button>
+        <button type="button" id="remove-theme" data-i18n="remove" hidden>Remove</button>
       </span>
     </div>
-    <div class="themes" id="themes" role="radiogroup" aria-label="Theme"></div>
+    <div class="themes" id="themes" role="radiogroup" aria-label="Theme" data-i18n-label="theme"></div>
     <label class="row">
-      <span class="label">App icon follows the theme
-        <span class="hint">With Zalo, WhatsApp or Teams, the icon shows that app's logo with an fMess badge.</span>
+      <span class="label"><span data-i18n="themeIcon">App icon follows the theme</span>
+        <span class="hint" data-i18n="themeIconHint">With Zalo, WhatsApp or Teams, the icon shows that app's logo with an fMess badge.</span>
       </span>
       <span class="switch"><input type="checkbox" data-key="themeIcon"><span></span></span>
     </label>
+    <label class="row">
+      <span class="label"><span data-i18n="hideAvatars">Hide profile pictures</span>
+        <span class="hint" data-i18n="hideAvatarsHint">Shows people's initials instead, for screens others can see.</span>
+      </span>
+      <span class="switch"><input type="checkbox" data-key="hideAvatars"><span></span></span>
+    </label>
     <label class="row" data-messenger-row>
-      <span class="label">Dark Mode
-        <span class="hint">Messenger's appearance. Automatic follows your system.</span>
+      <span class="label"><span data-i18n="darkMode">Dark Mode</span>
+        <span class="hint" data-i18n="darkModeHint">Messenger's appearance. Automatic follows your system.</span>
       </span>
       <select data-pref="darkMode">
-        <option value="DISABLED">Off</option>
-        <option value="ENABLED">On</option>
-        <option value="USE_SYSTEM">Automatic</option>
+        <option value="DISABLED" data-i18n="off">Off</option>
+        <option value="ENABLED" data-i18n="on">On</option>
+        <option value="USE_SYSTEM" data-i18n="automatic">Automatic</option>
       </select>
     </label>
   </div>
 
   <section data-only="macos" hidden>
-    <h2>Calls</h2>
+    <h2 data-i18n="calls">Calls</h2>
     <div class="group">
       <label class="row">
-        <span class="label">Allow calls in encrypted chats
-          <span class="hint">Turns on call support Facebook already ships for Safari-like browsers but hasn't enabled for everyone. Turn it off if calls misbehave.</span>
+        <span class="label"><span data-i18n="macCalls">Allow calls in encrypted chats</span>
+          <span class="hint" data-i18n="macCallsHint">Turns on call support Facebook already ships for Safari-like browsers but hasn't enabled for everyone. Turn it off if calls misbehave.</span>
         </span>
         <span class="switch"><input type="checkbox" data-key="macCalls"><span></span></span>
       </label>
@@ -332,13 +348,98 @@
   let current = null;
   let themes = [];
 
+  // English is in the page. Vietnamese replaces the HTML of each element with
+  // a data-i18n key (data-i18n-label: its aria-label); a key missing here
+  // keeps the English. What the script writes itself comes from say().
+  const VI = {
+    general: 'Chung',
+    language: 'Ngôn ngữ',
+    languageHint: 'Menu và cửa sổ của fMess. Messenger theo ngôn ngữ tài khoản Facebook.',
+    automatic: 'Tự động',
+    launchAtLogin: 'Mở fMess khi đăng nhập máy',
+    startHidden: 'Mở ở chế độ chạy nền',
+    startHiddenHint: 'Khi tự mở lúc đăng nhập, fMess nằm ở <span data-tray></span> thay vì hiện cửa sổ.',
+    closeToTray: 'Vẫn chạy khi đóng cửa sổ',
+    closeToTrayHint: 'fMess nằm ở <span data-tray></span> nên vẫn nhận được tin nhắn.',
+    activeStatus: 'Trạng thái hoạt động',
+    activeStatusHint: 'Ai thấy được bạn đang hoạt động.',
+    change: 'Đổi…',
+    sounds: 'Âm thanh thông báo',
+    soundsHint: 'Âm báo khi có tin nhắn, cuộc gọi, chat video và âm thanh trong ứng dụng.',
+    doNotDisturb: 'Không làm phiền',
+    doNotDisturbHint: 'Tắt tiếng Messenger trên mọi thiết bị của bạn.',
+    off: 'Tắt',
+    on: 'Bật',
+    minutes15: '15 phút',
+    hour1: '1 giờ',
+    hours8: '8 giờ',
+    hours24: '24 giờ',
+    untilOff: 'Đến khi tôi tắt',
+    morePrefs: 'Tuỳ chọn khác của Messenger',
+    morePrefsHint: 'Thanh toán, gửi tin nhắn và chặn.',
+    open: 'Mở…',
+    messengerMissing: 'Các mục này thuộc tài khoản Messenger của bạn. Mở cửa sổ fMess và đăng nhập để chỉnh ở đây.',
+    notifications: 'Thông báo',
+    showNotifications: 'Hiện thông báo',
+    preview: 'Hiện người gửi và nội dung',
+    previewHint: 'Khi tắt, thông báo chỉ ghi “Tin nhắn mới”.',
+    badge: 'Số tin chưa đọc trên biểu tượng ứng dụng',
+    test: 'Thử thông báo',
+    testHint: 'Kiểm tra xem thông báo có hiện lên máy không.',
+    send: 'Gửi',
+    privacy: 'Quyền riêng tư',
+    blockTyping: 'Ẩn trạng thái đang nhập',
+    blockTypingHint: 'Người khác sẽ không thấy bạn đang soạn tin.',
+    appearance: 'Giao diện',
+    textSize: 'Cỡ chữ',
+    theme: 'Theme',
+    themeHint: 'Giao diện của Messenger. Thêm theme từ file .css.',
+    add: 'Thêm…',
+    remove: 'Xoá',
+    themeIcon: 'Biểu tượng ứng dụng theo theme',
+    themeIconHint: 'Với Zalo, WhatsApp hoặc Teams, biểu tượng là logo của app đó kèm huy hiệu fMess.',
+    hideAvatars: 'Ẩn ảnh đại diện',
+    hideAvatarsHint: 'Chỉ hiện chữ cái đầu của tên, tiện khi người khác nhìn thấy màn hình.',
+    darkMode: 'Chế độ tối',
+    darkModeHint: 'Giao diện của Messenger. Tự động là theo hệ thống.',
+    calls: 'Cuộc gọi',
+    macCalls: 'Cho phép gọi trong đoạn chat mã hoá',
+    macCallsHint: 'Bật tính năng gọi Facebook đã có sẵn cho trình duyệt kiểu Safari nhưng chưa mở cho mọi người. Tắt đi nếu cuộc gọi bị trục trặc.',
+  };
+  // fMess passes its language before the page loads (webview.rs), so the
+  // window opens in it; the settings say it again (render).
+  let lang = window.__fmessLang ?? 'en';
+  const say = (en, vi) => (lang === 'vi' ? vi : en);
+  const english = new Map();
+  const englishLabels = new Map();
+  function translate() {
+    const words = lang === 'vi' ? VI : {};
+    document.documentElement.lang = lang;
+    document.title = say('fMess Settings', 'Cài đặt fMess');
+    for (const el of document.querySelectorAll('[data-i18n]')) {
+      if (!english.has(el)) english.set(el, el.innerHTML);
+      el.innerHTML = words[el.dataset.i18n] ?? english.get(el);
+    }
+    for (const el of document.querySelectorAll('[data-i18n-label]')) {
+      if (!englishLabels.has(el)) englishLabels.set(el, el.getAttribute('aria-label'));
+      el.setAttribute('aria-label', words[el.dataset.i18nLabel] ?? englishLabels.get(el));
+    }
+  }
+  translate();
+
   function render(view) {
     current = view;
+    if (view.lang !== lang) {
+      lang = view.lang;
+      translate();
+      // Messenger's rows have words of their own (Until 3:00 PM, Now on).
+      shownPrefs = null;
+    }
     renderTheme();
     for (const input of inputs) {
       const value = view[input.dataset.key];
       if (input.type === 'checkbox') input.checked = Boolean(value);
-      else input.value = String(value);
+      else input.value = String(value ?? '');
     }
     for (const row of document.querySelectorAll('[data-needs]')) {
       const enabled = Boolean(view[row.dataset.needs]);
@@ -347,7 +448,9 @@
     }
     const mac = view.platform === 'macos';
     for (const el of document.querySelectorAll('[data-only="macos"]')) el.hidden = !mac;
-    for (const el of document.querySelectorAll('[data-tray]')) el.textContent = mac ? 'menu bar' : 'tray';
+    for (const el of document.querySelectorAll('[data-tray]')) {
+      el.textContent = mac ? say('menu bar', 'thanh menu') : say('tray', 'khay hệ thống');
+    }
     document.querySelector('[data-zoom-shortcuts]').textContent = mac ? '⌘+  ⌘−  ⌘0' : 'Ctrl+  Ctrl−  Ctrl+0';
     renderMessenger(view.messenger);
   }
@@ -370,10 +473,13 @@
     const timed = prefs.muteUntil > 0 && prefs.muteUntil * 1000 > Date.now();
     const until = pref('muteFor').querySelector('[value="on"]');
     until.hidden = !timed;
-    if (timed) until.textContent = `Until ${new Date(prefs.muteUntil * 1000).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`;
+    if (timed) {
+      const time = new Date(prefs.muteUntil * 1000).toLocaleTimeString(lang === 'vi' ? 'vi' : [], { hour: 'numeric', minute: '2-digit' });
+      until.textContent = say(`Until ${time}`, `Đến ${time}`);
+    }
     pref('muteFor').value = prefs.muteUntil < 0 ? '-1' : timed ? 'on' : '0';
     document.querySelector('[data-active-status]').textContent =
-      prefs.activeStatusOn == null ? '' : prefs.activeStatusOn ? 'Now on.' : 'Now off.';
+      prefs.activeStatusOn == null ? '' : prefs.activeStatusOn ? say('Now on.', 'Đang bật.') : say('Now off.', 'Đang tắt.');
   }
   for (const input of prefInputs) {
     input.addEventListener('change', () => {
@@ -452,10 +558,11 @@
   loadThemes();
 
   async function save() {
-    const { launchAtLogin, platform, messenger, ...settings } = current;
+    const { launchAtLogin, platform, messenger, lang: _, ...settings } = current;
     for (const input of inputs) {
       const key = input.dataset.key;
-      const value = input.type === 'checkbox' ? input.checked : Number(input.value);
+      // The language is "en", "vi" or none (Automatic); the other selects are numbers.
+      const value = input.type === 'checkbox' ? input.checked : key === 'language' ? input.value || null : Number(input.value);
       if (key === 'launchAtLogin') continue;
       settings[key] = value;
     }
@@ -473,8 +580,13 @@
   document.getElementById('test-notification').addEventListener('click', () => {
     const result = document.getElementById('test-result');
     invoke('test_notification').then(
-      () => { result.textContent = 'Sent. If nothing appeared, check that notifications are allowed for fMess in your system settings.'; },
-      (err) => { result.textContent = `Couldn't send: ${err}`; },
+      () => {
+        result.textContent = say(
+          'Sent. If nothing appeared, check that notifications are allowed for fMess in your system settings.',
+          'Đã gửi. Nếu không thấy gì, hãy xem fMess đã được phép gửi thông báo trong cài đặt hệ thống chưa.',
+        );
+      },
+      (err) => { result.textContent = say(`Couldn't send: ${err}`, `Không gửi được: ${err}`); },
     );
   });
   invoke('get_settings').then(render, (err) => { errorBox.textContent = String(err); });

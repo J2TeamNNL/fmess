@@ -10,6 +10,7 @@ use tauri::{
 };
 
 use crate::{
+    i18n::{self, pick, Lang},
     icon, links,
     settings::{self, Settings},
     AUTOSTART_ARG, MAIN_WINDOW,
@@ -20,7 +21,8 @@ pub const SETTINGS_WINDOW: &str = "settings";
 /// Meta shut messenger.com down in April 2026; chats on the web live here now.
 const MESSAGES_URL: &str = "https://www.facebook.com/messages/";
 
-const INJECTED_SCRIPT: &str = include_str!("inject.js");
+/// The page script, joined from src/inject/ by build.rs.
+const INJECTED_SCRIPT: &str = include_str!(concat!(env!("OUT_DIR"), "/inject.js"));
 
 /// The app icon, shown on fMess's loading screen in place of Facebook's.
 const SPLASH_LOGO: &[u8] = include_bytes!("../icons/128x128@2x.png");
@@ -89,8 +91,12 @@ pub fn open_settings_window<R: Runtime>(app: &AppHandle<R>) {
     // white window that can't be closed.
     let app = app.clone();
     tauri::async_runtime::spawn(async move {
+        let lang = i18n::current(&app);
         let result = WebviewWindowBuilder::new(&app, SETTINGS_WINDOW, WebviewUrl::App("settings.html".into()))
-            .title("fMess Settings")
+            .title(settings_title(lang))
+            // So the page is in its language from the first frame, before it
+            // has asked for the settings.
+            .initialization_script(format!("window.__fmessLang = {};", serde_json::json!(lang)))
             .inner_size(640.0, 780.0)
             .min_inner_size(560.0, 560.0)
             .resizable(true)
@@ -102,6 +108,11 @@ pub fn open_settings_window<R: Runtime>(app: &AppHandle<R>) {
             Err(err) => eprintln!("could not open settings: {err}"),
         }
     });
+}
+
+/// The Settings window's title.
+pub fn settings_title(lang: Lang) -> &'static str {
+    pick(lang, "fMess Settings", "Cài đặt fMess")
 }
 
 /// Called by inject.js when the photo/video viewer opens or closes. The viewer
@@ -181,6 +192,10 @@ fn configure<'a, R: Runtime, M: Manager<R>>(
         .on_new_window(move |url, features| open_popup(&popup_app, url, features))
         // Without a download handler, macOS cancels every download.
         .on_download(|_, _| true)
+        // Tauri takes files dropped on the window for itself (as its own
+        // events) and keeps them from the page, so a file or screenshot
+        // dragged into a chat did nothing; Messenger takes them as in a browser.
+        .disable_drag_drop_handler()
         // Hidden windows must keep receiving messages (macOS 14+ only).
         .background_throttling(BackgroundThrottlingPolicy::Disabled);
     match user_agent() {

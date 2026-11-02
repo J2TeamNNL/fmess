@@ -33,6 +33,10 @@ pub fn run<R: Runtime>(app: AppHandle<R>) {
             let _ = window.set_size(LogicalSize::new(width, height));
             thread::sleep(Duration::from_secs(2));
         }
+        // Focused, as when someone uses it: WebKit matches :focus and fires
+        // focus events only in the key window.
+        let _ = window.set_focus();
+        thread::sleep(Duration::from_millis(500));
         let _ = window.eval(format!(
             "window.__fmessProbe = undefined; (async () => {{ {script}\n}})().then(\
              (result) => {{ window.__fmessProbe = JSON.stringify(result ?? null); }},\

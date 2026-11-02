@@ -3,6 +3,7 @@
 
 mod about;
 mod badge;
+mod i18n;
 mod icon;
 mod links;
 mod menu;

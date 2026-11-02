@@ -8,7 +8,13 @@ use serde::{Deserialize, Serialize};
 use tauri::{AppHandle, Manager, Runtime, Theme};
 use tauri_plugin_autostart::ManagerExt;
 
-use crate::{badge, icon, themes, MAIN_WINDOW};
+use crate::{
+    badge,
+    i18n::{self, pick, Lang},
+    icon, menu, notify, themes,
+    webview::{self, SETTINGS_WINDOW},
+    MAIN_WINDOW,
+};
 
 /// fMess's own preferences. Account settings (active status, sounds, dark
 /// mode) stay in Facebook's Preferences, which sync with the phone app.
@@ -28,6 +34,8 @@ pub struct Settings {
     pub mac_calls: bool,
     /// Don't let people see that you're typing.
     pub block_typing: bool,
+    /// Show initials in place of people's pictures.
+    pub hide_avatars: bool,
     /// Messenger's dark mode as last reported (ENABLED, DISABLED, USE_SYSTEM),
     /// so fMess starts in the right colours before the page has loaded.
     pub messenger_dark_mode: Option<String>,
@@ -37,6 +45,8 @@ pub struct Settings {
     pub theme_icon: bool,
     /// Widths the panes were dragged to; none keeps Facebook's.
     pub pane_widths: PaneWidths,
+    /// fMess's own language, "en" or "vi"; none follows the system (i18n.rs).
+    pub language: Option<String>,
 }
 
 /// In CSS pixels. Set by the page (set_pane_widths), not the Settings window.
@@ -60,10 +70,12 @@ impl Default for Settings {
             zoom: 1.0,
             mac_calls: true,
             block_typing: false,
+            hide_avatars: false,
             messenger_dark_mode: None,
             theme: None,
             theme_icon: true,
             pane_widths: PaneWidths::default(),
+            language: None,
         }
     }
 }
@@ -94,6 +106,8 @@ pub struct SettingsView {
     settings: Settings,
     launch_at_login: bool,
     platform: &'static str,
+    /// The language the window speaks: the chosen one, or the system's.
+    lang: Lang,
     /// None until the page has read them, or when logged out.
     messenger: Option<MessengerPrefs>,
 }
@@ -127,7 +141,10 @@ pub fn update_settings<R: Runtime>(
     let autostart = app.autolaunch();
     if autostart.is_enabled().unwrap_or(false) != launch_at_login {
         let result = if launch_at_login { autostart.enable() } else { autostart.disable() };
-        result.map_err(|err| format!("could not change Open at Login: {err}"))?;
+        result.map_err(|err| match Lang::from_setting(settings.language.as_deref()) {
+            Lang::En => format!("could not change Open at Login: {err}"),
+            Lang::Vi => format!("Không đổi được mục Mở khi đăng nhập: {err}"),
+        })?;
     }
 
     let settings = change(&app, |current| {
@@ -140,6 +157,17 @@ pub fn update_settings<R: Runtime>(
     if settings.theme != previous.theme || settings.theme_icon != previous.theme_icon {
         icon::apply(&app);
     }
+    let lang = Lang::from_setting(settings.language.as_deref());
+    let language_changed = lang != Lang::from_setting(previous.language.as_deref());
+    if language_changed {
+        if let Err(err) = menu::apply_language(&app, lang) {
+            eprintln!("could not change the menus' language: {err}");
+        }
+        notify::apply_language(lang);
+        if let Some(window) = app.get_webview_window(SETTINGS_WINDOW) {
+            let _ = window.set_title(webview::settings_title(lang));
+        }
+    }
     if let Some(window) = app.get_webview_window(MAIN_WINDOW) {
         if settings.zoom != previous.zoom {
             let _ = window.set_zoom(settings.zoom);
@@ -147,7 +175,11 @@ pub fn update_settings<R: Runtime>(
         if settings.badge != previous.badge {
             badge::refresh(&window);
         }
-        if settings.block_typing != previous.block_typing || settings.theme != previous.theme {
+        if settings.block_typing != previous.block_typing
+            || settings.hide_avatars != previous.hide_avatars
+            || settings.theme != previous.theme
+            || language_changed
+        {
             let _ = window.eval(page_settings_script(&app, &settings));
         }
         if settings.mac_calls != previous.mac_calls {
@@ -200,7 +232,9 @@ pub fn messenger_theme(dark_mode: Option<&str>) -> Option<Theme> {
 /// darkMode or muteFor (milliseconds, -1 until turned off, 0 to turn it off).
 #[tauri::command]
 pub fn set_messenger_pref<R: Runtime>(app: AppHandle<R>, name: String, value: serde_json::Value) -> Result<(), String> {
-    let window = app.get_webview_window(MAIN_WINDOW).ok_or("fMess's window is closed")?;
+    let window = app
+        .get_webview_window(MAIN_WINDOW)
+        .ok_or_else(|| pick(i18n::current(&app), "fMess's window is closed", "Cửa sổ fMess đang đóng"))?;
     if let ("darkMode", Some(mode)) = (name.as_str(), value.as_str()) {
         // Recolour fMess's windows together with the page, not after it reports.
         app.set_theme(messenger_theme(Some(mode)));
@@ -253,8 +287,11 @@ pub fn page_settings<R: Runtime>(app: &AppHandle<R>, settings: &Settings) -> Str
     serde_json::json!({
         "macCalls": settings.mac_calls,
         "blockTyping": settings.block_typing,
+        "hideAvatars": settings.hide_avatars,
         "theme": themes::for_page(app, settings.theme.as_deref()),
         "paneWidths": settings.pane_widths,
+        // For the notifications the page writes itself.
+        "lang": Lang::from_setting(settings.language.as_deref()),
     })
     .to_string()
 }
@@ -291,6 +328,7 @@ fn change<R: Runtime>(app: &AppHandle<R>, edit: impl FnOnce(&mut Settings)) -> R
 
 fn view<R: Runtime>(app: &AppHandle<R>, settings: Settings) -> SettingsView {
     SettingsView {
+        lang: Lang::from_setting(settings.language.as_deref()),
         settings,
         launch_at_login: app.autolaunch().is_enabled().unwrap_or(false),
         platform: std::env::consts::OS,
@@ -298,10 +336,16 @@ fn view<R: Runtime>(app: &AppHandle<R>, settings: Settings) -> SettingsView {
     }
 }
 
+/// Errors are in the language of the settings being saved: `change` holds
+/// the settings' lock, so `i18n::current` can't be asked here.
 fn save<R: Runtime>(app: &AppHandle<R>, settings: &Settings) -> Result<(), String> {
-    let path = settings_path(app).ok_or("no config directory")?;
+    let lang = Lang::from_setting(settings.language.as_deref());
+    let path = settings_path(app).ok_or(pick(lang, "no config directory", "Không tìm thấy thư mục cài đặt"))?;
     let json = serde_json::to_vec_pretty(settings).expect("settings serialize to JSON");
-    write_whole(&path, &json).map_err(|err| format!("could not save settings to {}: {err}", path.display()))
+    write_whole(&path, &json).map_err(|err| match lang {
+        Lang::En => format!("could not save settings to {}: {err}", path.display()),
+        Lang::Vi => format!("Không lưu được cài đặt vào {}: {err}", path.display()),
+    })
 }
 
 /// Writes the file beside itself, then moves it over the old one: if fMess

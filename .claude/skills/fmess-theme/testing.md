@@ -71,7 +71,23 @@ open(f'{out}/apply.js', 'w').write(
 EOF
 ```
 
-A probe-applied theme lacks `UNDER_EVERY_THEME` (hooks.md). That matters only for the
+A probe-applied theme lacks `UNDER_EVERY_THEME` (hooks.md).
+
+**Snapshots are not the screen.** A `position: fixed` search field moved out of the list
+showed in every WebKit snapshot and passed `elementFromPoint`, yet on the user's screen
+WebKit clipped it away (a transformed ancestor). For anything moved across containing
+blocks, ask the user to look, or avoid the move (hooks.md, `--fmess-search-box`).
+
+**No focus in probes.** probe.rs calls `set_focus`, but macOS won't make a background-launched
+app key: `:focus-within`, focus rings and focus events can't be checked by probes.
+
+**Size limit:** a probe of about 800 KB (two copies of a 390 KB theme) never runs: no
+result, not even from a `setTimeout` watchdog. Keep one copy of the theme per probe; to
+change a few rules mid-probe, append a small `<style>` of just those rules.
+
+**Demo text vs. moved elements:** demo-shot.js sorts a row's text by its position, so
+anything the theme moves (Teams puts the row's time on the name's line) is emptied. Apply
+a copy of the theme without those rules, run the demo, then add them back. That matters only for the
 reply/link bar. For the final pass, test it as a built-in theme (Ship step), or prepend
 that block.
 

@@ -24,7 +24,10 @@ use serde::Serialize;
 use tauri::{AppHandle, Manager, Runtime};
 use tauri_plugin_dialog::DialogExt;
 
-use crate::settings;
+use crate::{
+    i18n::{self, pick, Lang},
+    settings,
+};
 
 const BUILT_IN: &[(&str, &str)] = &[
     ("zalo", include_str!("../themes/zalo.css")),
@@ -82,9 +85,15 @@ pub fn list_themes<R: Runtime>(app: AppHandle<R>) -> Vec<ThemeInfo> {
 /// id, or None when the user cancelled.
 #[tauri::command]
 pub async fn add_theme<R: Runtime>(app: AppHandle<R>) -> Result<Option<String>, String> {
+    let lang = i18n::current(&app);
     let picker = app.clone();
     let picked = tauri::async_runtime::spawn_blocking(move || {
-        picker.dialog().file().set_title("Add a theme").add_filter("Theme", &["css"]).blocking_pick_file()
+        picker
+            .dialog()
+            .file()
+            .set_title(pick(lang, "Add a theme", "Thêm theme"))
+            .add_filter("Theme", &["css"])
+            .blocking_pick_file()
     })
     .await
     .map_err(|err| err.to_string())?;
@@ -92,28 +101,38 @@ pub async fn add_theme<R: Runtime>(app: AppHandle<R>) -> Result<Option<String>, 
         return Ok(None);
     };
     let path = picked.into_path().map_err(|err| err.to_string())?;
-    let css = fs::read_to_string(&path).map_err(|err| format!("could not read {}: {err}", path.display()))?;
-    check(&css)?;
+    let css = fs::read_to_string(&path).map_err(|err| match lang {
+        Lang::En => format!("could not read {}: {err}", path.display()),
+        Lang::Vi => format!("Không đọc được {}: {err}", path.display()),
+    })?;
+    check(&css).map_err(|problem| problem.text(lang))?;
 
     let mut id = slug(path.file_stem().and_then(|stem| stem.to_str()).unwrap_or_default());
     if BUILT_IN.iter().any(|(built_in, _)| *built_in == id) {
         id.push_str("-custom");
     }
-    let dir = folder(&app).ok_or("no data folder")?;
+    let dir = folder(&app).ok_or(no_folder(lang))?;
     let target = dir.join(format!("{id}.css"));
     fs::create_dir_all(&dir)
         .and_then(|()| fs::write(&target, css))
-        .map_err(|err| format!("could not save the theme to {}: {err}", target.display()))?;
+        .map_err(|err| match lang {
+            Lang::En => format!("could not save the theme to {}: {err}", target.display()),
+            Lang::Vi => format!("Không lưu được theme vào {}: {err}", target.display()),
+        })?;
     Ok(Some(id))
 }
 
 #[tauri::command]
 pub fn remove_theme<R: Runtime>(app: AppHandle<R>, id: String) -> Result<(), String> {
+    let lang = i18n::current(&app);
     if BUILT_IN.iter().any(|(built_in, _)| *built_in == id) || !is_id(&id) {
-        return Err("This theme comes with fMess.".into());
+        return Err(pick(lang, "This theme comes with fMess.", "Theme này có sẵn trong fMess.").into());
     }
-    let path = folder(&app).ok_or("no data folder")?.join(format!("{id}.css"));
-    fs::remove_file(&path).map_err(|err| format!("could not remove {}: {err}", path.display()))?;
+    let path = folder(&app).ok_or(no_folder(lang))?.join(format!("{id}.css"));
+    fs::remove_file(&path).map_err(|err| match lang {
+        Lang::En => format!("could not remove {}: {err}", path.display()),
+        Lang::Vi => format!("Không xoá được {}: {err}", path.display()),
+    })?;
     if settings::current(&app).theme.as_deref() == Some(id.as_str()) {
         settings::clear_theme(&app)?;
     }
@@ -142,33 +161,58 @@ fn css<R: Runtime>(app: &AppHandle<R>, id: &str) -> Option<String> {
     Some(css)
 }
 
+fn no_folder(lang: Lang) -> &'static str {
+    pick(lang, "no data folder", "Không tìm thấy thư mục dữ liệu")
+}
+
+/// Why a file can't be a theme.
+#[derive(Clone, Copy, Debug)]
+enum Problem {
+    TooBig,
+    Link,
+    Import,
+    NotATheme,
+}
+
+impl Problem {
+    fn text(self, lang: Lang) -> &'static str {
+        match self {
+            Problem::TooBig => pick(lang, "A theme can be at most 2 MB.", "Theme chỉ được nặng tối đa 2 MB."),
+            Problem::Link => pick(
+                lang,
+                "A theme can only use pictures inside the file (data: URLs), not links.",
+                "Theme chỉ được dùng hình nằm sẵn trong file (data: URL), không dùng link.",
+            ),
+            Problem::Import => pick(lang, "A theme can't load other files (@import).", "Theme không được tải file khác (@import)."),
+            Problem::NotATheme => pick(lang, "This file isn't a theme fMess can use.", "fMess không dùng được file này làm theme."),
+        }
+    }
+}
+
 /// A theme may only style the page: nothing it could load or run.
-fn check(css: &str) -> Result<(), String> {
+fn check(css: &str) -> Result<(), Problem> {
     if css.len() > MAX_SIZE {
-        return Err("A theme can be at most 2 MB.".into());
+        return Err(Problem::TooBig);
     }
     // The CSS is read the way the browser reads it, escapes, comments and
     // line breaks included: looking for "url(" in the text missed `\\75rl(`.
     let mut input = ParserInput::new(css);
     walk(&mut Parser::new(&mut input)).map_err(|err| match err.kind {
-        ParseErrorKind::Custom(message) => message.to_string(),
-        ParseErrorKind::Basic(_) => "This file isn't a theme fMess can use.".to_string(),
+        ParseErrorKind::Custom(problem) => problem,
+        ParseErrorKind::Basic(_) => Problem::NotATheme,
     })
 }
 
-const LINK: &str = "A theme can only use pictures inside the file (data: URLs), not links.";
-const IMPORT: &str = "A theme can't load other files (@import).";
-const NOT_A_THEME: &str = "This file isn't a theme fMess can use.";
 /// Functions that load something or run script, besides url() and src().
 const LOADING: [&str; 6] = ["image-set", "-webkit-image-set", "image", "cross-fade", "element", "expression"];
 
 /// Every token of the CSS, inside blocks and functions too.
-fn walk<'i>(parser: &mut Parser<'i, '_>) -> Result<(), ParseError<'i, &'static str>> {
+fn walk<'i>(parser: &mut Parser<'i, '_>) -> Result<(), ParseError<'i, Problem>> {
     while let Ok(token) = parser.next_including_whitespace_and_comments() {
         match token.clone() {
-            Token::UnquotedUrl(url) if !is_data(&url) => return Err(parser.new_custom_error(LINK)),
-            Token::BadUrl(_) => return Err(parser.new_custom_error(LINK)),
-            Token::AtKeyword(name) if name.eq_ignore_ascii_case("import") => return Err(parser.new_custom_error(IMPORT)),
+            Token::UnquotedUrl(url) if !is_data(&url) => return Err(parser.new_custom_error(Problem::Link)),
+            Token::BadUrl(_) => return Err(parser.new_custom_error(Problem::Link)),
+            Token::AtKeyword(name) if name.eq_ignore_ascii_case("import") => return Err(parser.new_custom_error(Problem::Import)),
             Token::Function(name) if name.eq_ignore_ascii_case("url") || name.eq_ignore_ascii_case("src") => {
                 // url("data:...") is a function with a string in it.
                 parser.parse_nested_block(|args| match args.expect_string().cloned() {
@@ -176,11 +220,11 @@ fn walk<'i>(parser: &mut Parser<'i, '_>) -> Result<(), ParseError<'i, &'static s
                         while args.next().is_ok() {}
                         Ok(())
                     }
-                    _ => Err(args.new_custom_error(LINK)),
+                    _ => Err(args.new_custom_error(Problem::Link)),
                 })?;
             }
             Token::Function(name) if LOADING.iter().any(|loading| name.eq_ignore_ascii_case(loading)) => {
-                return Err(parser.new_custom_error(NOT_A_THEME));
+                return Err(parser.new_custom_error(Problem::NotATheme));
             }
             Token::Function(_) | Token::ParenthesisBlock | Token::SquareBracketBlock | Token::CurlyBracketBlock => {
                 parser.parse_nested_block(walk)?;
