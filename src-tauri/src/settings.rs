@@ -36,6 +36,9 @@ pub struct Settings {
     pub block_typing: bool,
     /// Show initials in place of people's pictures.
     pub hide_avatars: bool,
+    /// Fields check spelling. It knows only the system's languages: on a
+    /// Windows set up in English nearly every Vietnamese word is underlined.
+    pub spell_check: bool,
     /// Messenger's dark mode as last reported (ENABLED, DISABLED, USE_SYSTEM),
     /// so fMess starts in the right colours before the page has loaded.
     pub messenger_dark_mode: Option<String>,
@@ -71,6 +74,7 @@ impl Default for Settings {
             mac_calls: true,
             block_typing: false,
             hide_avatars: false,
+            spell_check: true,
             messenger_dark_mode: None,
             theme: None,
             theme_icon: true,
@@ -177,6 +181,7 @@ pub fn update_settings<R: Runtime>(
         }
         if settings.block_typing != previous.block_typing
             || settings.hide_avatars != previous.hide_avatars
+            || settings.spell_check != previous.spell_check
             || settings.theme != previous.theme
             || language_changed
         {
@@ -288,6 +293,7 @@ pub fn page_settings<R: Runtime>(app: &AppHandle<R>, settings: &Settings) -> Str
         "macCalls": settings.mac_calls,
         "blockTyping": settings.block_typing,
         "hideAvatars": settings.hide_avatars,
+        "spellCheck": settings.spell_check,
         "theme": themes::for_page(app, settings.theme.as_deref()),
         "paneWidths": settings.pane_widths,
         // For the notifications the page writes itself.
