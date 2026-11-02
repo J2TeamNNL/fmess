@@ -235,6 +235,17 @@ html[data-fmess-service="rail"] [data-fmess-badge] {
   font: 600 11px/18px "fMess Roboto", system-ui, sans-serif;
 }
 
+/* The icons the rules below mask with. */
+:root {
+  --wa-mask-wordmark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 104 28'%3E%3Cpath d='m69.56 15.13 2.05-6.26 2.07 6.26zm28.8 3.94c-1.49 0-2.33-1.04-2.33-3.16v-.54c0-1.92.89-3.09 2.42-3.09 1.25 0 2.27.89 2.27 3.35s-.93 3.44-2.36 3.44m-5.55 6.43h3.2v-5.36a3.8 3.8 0 0 0 3.15 1.52c2.98 0 4.84-2.34 4.84-6.12 0-3.77-1.6-5.85-4.62-5.85-1.5 0-2.61.54-3.46 1.67v-1.32h-3.1zm-7.04-6.43c-1.49 0-2.33-1.04-2.33-3.16v-.54c0-1.92.89-3.09 2.42-3.09 1.25 0 2.27.89 2.27 3.35s-.93 3.44-2.36 3.44m-5.55 6.43h3.2v-5.36a3.8 3.8 0 0 0 3.15 1.52c2.98 0 4.84-2.34 4.84-6.12 0-3.77-1.6-5.85-4.62-5.85-1.5 0-2.61.54-3.46 1.67v-1.32h-3.1zm-16.06-4.19h3.41l1.14-3.41h5.81l1.15 3.41h3.52L73.69 5.9h-4zm-5.42.35c3.26 0 4.92-1.34 4.92-3.54S62.62 15 59.64 14.5l-1.4-.24c-1.2-.2-1.58-.58-1.58-1.2 0-.63.48-1.13 1.84-1.13 1.27 0 1.8.47 2 1.68h2.99c-.17-2.57-1.82-3.93-4.99-3.93-2.96 0-4.86 1.28-4.86 3.46s1.27 3.02 4.13 3.5l1.3.21c1.18.2 1.46.63 1.46 1.28 0 .75-.5 1.23-1.86 1.23s-2.14-.52-2.26-1.7h-3.05c.1 2.8 2.16 3.99 5.38 3.99m-8.86-.09c1 0 2.01-.28 2.62-.7v-2.41q-.92.52-1.73.52c-.93 0-1.43-.39-1.43-1.58v-4.86h3.16v-2.5h-3.16v-3.1H46.5v1.73c0 .97-.23 1.38-1.2 1.38h-.85v2.5h1.7v4.97c0 2.61 1 4.06 3.74 4.06m-11.96-2.16c-1.04 0-1.62-.45-1.62-1.25 0-.9.67-1.34 2.22-1.6a5 5 0 0 0 2.06-.7v1.11c0 1.49-1.06 2.44-2.66 2.44m-.82 2.25c1.66 0 2.83-.7 3.74-1.7q.16.8.56 1.35h3.02q-.8-1.27-.78-3.76v-3.6c0-2.68-1.42-4.26-4.8-4.26-2.97 0-4.72 1.23-5.07 3.93h2.92c.17-1.03.8-1.64 2.05-1.64 1.17 0 1.84.48 1.84 1.3s-.5 1.1-2.7 1.42c-2.4.35-4.6 1.21-4.6 3.63 0 2.16 1.53 3.33 3.82 3.33m-15.61-.35h3.2v-6.6c0-.79.19-1.15.66-1.63a2.5 2.5 0 0 1 1.77-.73c1.06 0 1.62.58 1.62 2v6.96h3.2v-7.56c0-2.61-1.3-4.06-3.74-4.06-1.25 0-2.42.4-3.52 1.69V5.89h-3.2zm-17.34 0h3.52l2.55-11.12 2.59 11.12h3.56L20.45 5.9h-3.54l-2.42 11.38-2.59-11.3H8.7L6.07 17.33 3.65 5.89H0z'/%3E%3C/svg%3E");
+  --wa-mask-plus: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M11 13H6a.97.97 0 0 1-.71-.29A.97.97 0 0 1 5 12c0-.28.1-.52.29-.71.19-.2.43-.29.71-.29h5V6c0-.28.1-.52.29-.71.19-.2.43-.29.71-.29.28 0 .52.1.71.29.2.19.29.43.29.71v5h5c.28 0 .52.1.71.29.2.19.29.43.29.71 0 .28-.1.52-.29.71A.94.94 0 0 1 18 13h-5v5c0 .28-.1.52-.29.71A.94.94 0 0 1 12 19a.97.97 0 0 1-.71-.29A.97.97 0 0 1 11 18v-5Z'/%3E%3C/svg%3E");
+  --wa-mask-search: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M9.5 16a6.27 6.27 0 0 1-4.61-1.89A6.27 6.27 0 0 1 3 9.5c0-1.82.63-3.35 1.89-4.61A6.27 6.27 0 0 1 9.5 3c1.82 0 3.35.63 4.61 1.89A6.27 6.27 0 0 1 16 9.5a6.1 6.1 0 0 1-1.3 3.8l5.6 5.6c.18.18.27.42.27.7 0 .28-.09.52-.27.7a.95.95 0 0 1-.7.27.95.95 0 0 1-.7-.27l-5.6-5.6A5.96 5.96 0 0 1 9.5 16Zm0-2c1.25 0 2.31-.44 3.19-1.31A4.34 4.34 0 0 0 14 9.5c0-1.25-.44-2.31-1.31-3.19A4.34 4.34 0 0 0 9.5 5c-1.25 0-2.31.44-3.19 1.31A4.34 4.34 0 0 0 5 9.5c0 1.25.44 2.31 1.31 3.19A4.34 4.34 0 0 0 9.5 14Z'/%3E%3C/svg%3E");
+  --wa-mask-dots: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 20c-.55 0-1.02-.2-1.41-.59-.4-.39-.59-.86-.59-1.41 0-.55.2-1.02.59-1.41.39-.4.86-.59 1.41-.59.55 0 1.02.2 1.41.59.4.39.59.86.59 1.41 0 .55-.2 1.02-.59 1.41-.39.4-.86.59-1.41.59Zm0-6c-.55 0-1.02-.2-1.41-.59-.4-.39-.59-.86-.59-1.41 0-.55.2-1.02.59-1.41.39-.4.86-.59 1.41-.59.55 0 1.02.2 1.41.59.4.39.59.86.59 1.41 0 .55-.2 1.02-.59 1.41-.39.4-.86.59-1.41.59Zm0-6c-.55 0-1.02-.2-1.41-.59-.4-.39-.59-.86-.59-1.41 0-.55.2-1.02.59-1.41.39-.4.86-.59 1.41-.59.55 0 1.02.2 1.41.59.4.39.59.86.59 1.41 0 .55-.2 1.02-.59 1.41-.39.4-.86.59-1.41.59Z'/%3E%3C/svg%3E");
+  --wa-mask-smile: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M8.5 10.25a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Zm8.5-1.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Z'/%3E%3Cpath fill-rule='evenodd' d='M16.82 19.98A6.97 6.97 0 0 1 12 22H9.27A7.27 7.27 0 0 1 2 14.73V9.27A7.27 7.27 0 0 1 9.27 2h5.46A7.27 7.27 0 0 1 22 9.27v2.54c0 1.94-.77 3.8-2.15 5.17l-3.03 3ZM14.72 4H9.28A5.27 5.27 0 0 0 4 9.27v5.46A5.27 5.27 0 0 0 9.27 20h2.06a.9.9 0 0 0 .68-.88l-.02-2.26v-.11a5.5 5.5 0 0 1-4.65-2.6.6.6 0 0 1 .03-.6c.12-.2.3-.3.53-.3h5.7a4.8 4.8 0 0 1 3.22-1.23l2.26.01c.5 0 .9-.4.9-.9V9.07H20A5.27 5.27 0 0 0 14.73 4Zm-.71 15.11c0 .15-.01.3-.04.44a4.96 4.96 0 0 0 1.44-.99l3.03-3c.46-.46.83-.99 1.09-1.56-.15.02-.3.03-.46.03h-2.26A2.8 2.8 0 0 0 14 16.84l.02 2.26Z'/%3E%3C/svg%3E");
+  --wa-mask-mic: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 14a3 3 0 0 1-2.13-.87A3 3 0 0 1 9 11V5q0-1.25.87-2.12A3 3 0 0 1 12 2q1.25 0 2.12.88Q15 3.75 15 5v6q0 1.25-.88 2.13A3 3 0 0 1 12 14m-1 6v-2.07a6.8 6.8 0 0 1-3.94-1.95 7 7 0 0 1-1.99-3.95A.9.9 0 0 1 6 11q.42 0 .71.29.3.29.39.71a4.8 4.8 0 0 0 1.74 2.88A5 5 0 0 0 12 16q1.8 0 3.17-1.14A5 5 0 0 0 16.9 12q.1-.42.39-.71.29-.3.7-.29a.9.9 0 0 1 .93 1.03 7 7 0 0 1-5.92 5.9V20q0 .42-.29.71-.29.3-.71.29a1 1 0 0 1-.71-.29 1 1 0 0 1-.3-.71m1-8q.42 0 .71-.29.3-.29.29-.71V5q0-.42-.29-.71A1 1 0 0 0 12 4q-.42 0-.71.29-.3.29-.3.71v6q0 .42.3.71.29.3.7.29'/%3E%3C/svg%3E");
+  --wa-mask-send: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M4.4 19.43a.99.99 0 0 1-.95-.1.93.93 0 0 1-.45-.83V14l8-2-8-2V5.5c0-.37.15-.65.45-.84a1 1 0 0 1 .95-.09l15.4 6.5c.42.19.63.5.63.93 0 .43-.21.74-.63.93l-15.4 6.5Z'/%3E%3C/svg%3E");
+}
+
 /* Chat list: "WhatsApp" in green over a round search box and pill filters. */
 #fmess-account {
   display: none !important;
@@ -248,7 +259,7 @@ html[data-fmess-service="rail"] [data-fmess-badge] {
   height: 28px !important;
   color: transparent !important;
   background: var(--wa-wordmark) !important;
-  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 104 28'%3E%3Cpath d='m69.56 15.13 2.05-6.26 2.07 6.26zm28.8 3.94c-1.49 0-2.33-1.04-2.33-3.16v-.54c0-1.92.89-3.09 2.42-3.09 1.25 0 2.27.89 2.27 3.35s-.93 3.44-2.36 3.44m-5.55 6.43h3.2v-5.36a3.8 3.8 0 0 0 3.15 1.52c2.98 0 4.84-2.34 4.84-6.12 0-3.77-1.6-5.85-4.62-5.85-1.5 0-2.61.54-3.46 1.67v-1.32h-3.1zm-7.04-6.43c-1.49 0-2.33-1.04-2.33-3.16v-.54c0-1.92.89-3.09 2.42-3.09 1.25 0 2.27.89 2.27 3.35s-.93 3.44-2.36 3.44m-5.55 6.43h3.2v-5.36a3.8 3.8 0 0 0 3.15 1.52c2.98 0 4.84-2.34 4.84-6.12 0-3.77-1.6-5.85-4.62-5.85-1.5 0-2.61.54-3.46 1.67v-1.32h-3.1zm-16.06-4.19h3.41l1.14-3.41h5.81l1.15 3.41h3.52L73.69 5.9h-4zm-5.42.35c3.26 0 4.92-1.34 4.92-3.54S62.62 15 59.64 14.5l-1.4-.24c-1.2-.2-1.58-.58-1.58-1.2 0-.63.48-1.13 1.84-1.13 1.27 0 1.8.47 2 1.68h2.99c-.17-2.57-1.82-3.93-4.99-3.93-2.96 0-4.86 1.28-4.86 3.46s1.27 3.02 4.13 3.5l1.3.21c1.18.2 1.46.63 1.46 1.28 0 .75-.5 1.23-1.86 1.23s-2.14-.52-2.26-1.7h-3.05c.1 2.8 2.16 3.99 5.38 3.99m-8.86-.09c1 0 2.01-.28 2.62-.7v-2.41q-.92.52-1.73.52c-.93 0-1.43-.39-1.43-1.58v-4.86h3.16v-2.5h-3.16v-3.1H46.5v1.73c0 .97-.23 1.38-1.2 1.38h-.85v2.5h1.7v4.97c0 2.61 1 4.06 3.74 4.06m-11.96-2.16c-1.04 0-1.62-.45-1.62-1.25 0-.9.67-1.34 2.22-1.6a5 5 0 0 0 2.06-.7v1.11c0 1.49-1.06 2.44-2.66 2.44m-.82 2.25c1.66 0 2.83-.7 3.74-1.7q.16.8.56 1.35h3.02q-.8-1.27-.78-3.76v-3.6c0-2.68-1.42-4.26-4.8-4.26-2.97 0-4.72 1.23-5.07 3.93h2.92c.17-1.03.8-1.64 2.05-1.64 1.17 0 1.84.48 1.84 1.3s-.5 1.1-2.7 1.42c-2.4.35-4.6 1.21-4.6 3.63 0 2.16 1.53 3.33 3.82 3.33m-15.61-.35h3.2v-6.6c0-.79.19-1.15.66-1.63a2.5 2.5 0 0 1 1.77-.73c1.06 0 1.62.58 1.62 2v6.96h3.2v-7.56c0-2.61-1.3-4.06-3.74-4.06-1.25 0-2.42.4-3.52 1.69V5.89h-3.2zm-17.34 0h3.52l2.55-11.12 2.59 11.12h3.56L20.45 5.9h-3.54l-2.42 11.38-2.59-11.3H8.7L6.07 17.33 3.65 5.89H0z'/%3E%3C/svg%3E") left center / 104px 28px no-repeat;
+  -webkit-mask: var(--wa-mask-wordmark) left center / 104px 28px no-repeat;
 }
 [role="navigation"] h1 a * {
   visibility: hidden !important;
@@ -259,7 +270,7 @@ html[data-fmess-service="rail"] [data-fmess-badge] {
 }
 [role="navigation"] a[href="/messages/new/"] svg {
   background: var(--wa-new-chat-icon);
-  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M11 13H6a.97.97 0 0 1-.71-.29A.97.97 0 0 1 5 12c0-.28.1-.52.29-.71.19-.2.43-.29.71-.29h5V6c0-.28.1-.52.29-.71.19-.2.43-.29.71-.29.28 0 .52.1.71.29.2.19.29.43.29.71v5h5c.28 0 .52.1.71.29.2.19.29.43.29.71 0 .28-.1.52-.29.71A.94.94 0 0 1 18 13h-5v5c0 .28-.1.52-.29.71A.94.94 0 0 1 12 19a.97.97 0 0 1-.71-.29A.97.97 0 0 1 11 18v-5Z'/%3E%3C/svg%3E") center / 24px 24px no-repeat;
+  -webkit-mask: var(--wa-mask-plus) center / 24px 24px no-repeat;
 }
 [role="navigation"] a[href="/messages/new/"] svg * {
   visibility: hidden;
@@ -271,7 +282,7 @@ html[data-fmess-service="rail"] [data-fmess-badge] {
 }
 [role="navigation"] label:has(input[type="search"]) svg {
   background: var(--wa-text-2);
-  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M9.5 16a6.27 6.27 0 0 1-4.61-1.89A6.27 6.27 0 0 1 3 9.5c0-1.82.63-3.35 1.89-4.61A6.27 6.27 0 0 1 9.5 3c1.82 0 3.35.63 4.61 1.89A6.27 6.27 0 0 1 16 9.5a6.1 6.1 0 0 1-1.3 3.8l5.6 5.6c.18.18.27.42.27.7 0 .28-.09.52-.27.7a.95.95 0 0 1-.7.27.95.95 0 0 1-.7-.27l-5.6-5.6A5.96 5.96 0 0 1 9.5 16Zm0-2c1.25 0 2.31-.44 3.19-1.31A4.34 4.34 0 0 0 14 9.5c0-1.25-.44-2.31-1.31-3.19A4.34 4.34 0 0 0 9.5 5c-1.25 0-2.31.44-3.19 1.31A4.34 4.34 0 0 0 5 9.5c0 1.25.44 2.31 1.31 3.19A4.34 4.34 0 0 0 9.5 14Z'/%3E%3C/svg%3E") center / 20px 20px no-repeat;
+  -webkit-mask: var(--wa-mask-search) center / 20px 20px no-repeat;
 }
 [role="navigation"] label:has(input[type="search"]) svg * {
   visibility: hidden;
@@ -301,7 +312,7 @@ html[data-fmess-service="rail"] [data-fmess-badge] {
   width: 24px !important;
   height: 24px !important;
   background: var(--wa-icon);
-  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 20c-.55 0-1.02-.2-1.41-.59-.4-.39-.59-.86-.59-1.41 0-.55.2-1.02.59-1.41.39-.4.86-.59 1.41-.59.55 0 1.02.2 1.41.59.4.39.59.86.59 1.41 0 .55-.2 1.02-.59 1.41-.39.4-.86.59-1.41.59Zm0-6c-.55 0-1.02-.2-1.41-.59-.4-.39-.59-.86-.59-1.41 0-.55.2-1.02.59-1.41.39-.4.86-.59 1.41-.59.55 0 1.02.2 1.41.59.4.39.59.86.59 1.41 0 .55-.2 1.02-.59 1.41-.39.4-.86.59-1.41.59Zm0-6c-.55 0-1.02-.2-1.41-.59-.4-.39-.59-.86-.59-1.41 0-.55.2-1.02.59-1.41.39-.4.86-.59 1.41-.59.55 0 1.02.2 1.41.59.4.39.59.86.59 1.41 0 .55-.2 1.02-.59 1.41-.39.4-.86.59-1.41.59Z'/%3E%3C/svg%3E") center / 24px 24px no-repeat;
+  -webkit-mask: var(--wa-mask-dots) center / 24px 24px no-repeat;
 }
 [role="navigation"] :is([aria-label="Settings, help and more"], [data-fmess-ui="list-menu"]) svg * {
   visibility: hidden;
@@ -433,7 +444,7 @@ html[data-fmess-dark] {
 
 /* Composer: a white pill floating over the chat, with + and the smiley
    before the box and the microphone after it. */
-[role="main"] [role="region"]:is([aria-label="Thread composer"], [data-fmess-ui="composer"]) {
+html:not([data-fmess-service="instagram"]) [role="main"] [role="region"]:is([aria-label="Thread composer"], [data-fmess-ui="composer"]) {
   margin: 0 12px 12px !important;
   min-height: 52px !important;
   padding: 0 8px !important;
@@ -443,62 +454,62 @@ html[data-fmess-dark] {
   background: var(--wa-composer) !important;
   box-shadow: 0 1px 6px var(--wa-shadow) !important;
 }
-[role="main"] div:has(> [role="region"]:is([aria-label="Thread composer"], [data-fmess-ui="composer"])) {
+html:not([data-fmess-service="instagram"]) [role="main"] div:has(> [role="region"]:is([aria-label="Thread composer"], [data-fmess-ui="composer"])) {
   background: transparent !important;
 }
-:is([aria-label="Thread composer"], [data-fmess-ui="composer"]) > div:has(+ div [role="textbox"]) {
+html:not([data-fmess-service="instagram"]) :is([aria-label="Thread composer"], [data-fmess-ui="composer"]) > div:has(+ div [role="textbox"]) {
   display: contents !important;
 }
-:is([aria-label="Thread composer"], [data-fmess-ui="composer"]) div:has(> span :is([aria-label="Attach a file up to 100 MB"], [data-fmess-ui="attach"])),
-:is([aria-label="Thread composer"], [data-fmess-ui="composer"]) div:has(> span :is([aria-label="Open more actions"], [data-fmess-ui="more-actions"])) { order: 1; }
-:is([aria-label="Thread composer"], [data-fmess-ui="composer"]) div:has(> span :is([aria-label="Choose a sticker"], [data-fmess-ui="sticker"])) { order: 2; }
-:is([aria-label="Thread composer"], [data-fmess-ui="composer"]) div:has(> span :is([aria-label="Choose a GIF"], [data-fmess-ui="gif"])) { display: none !important; }
-:is([aria-label="Thread composer"], [data-fmess-ui="composer"]) > div:has([role="textbox"]) { order: 3; flex: 1 1 0 !important; }
-:is([aria-label="Thread composer"], [data-fmess-ui="composer"]) div:has(> span :is([aria-label="Send a voice clip"], [data-fmess-ui="voice-clip"])) { order: 4; }
-:is([aria-label="Thread composer"], [data-fmess-ui="composer"]) > span { order: 5; }
-:is([aria-label="Thread composer"], [data-fmess-ui="composer"]) > span:has([role="button"]:is([aria-label^="Send a"], [data-fmess-ui="like"])) { display: none !important; }
-:is([aria-label="Thread composer"], [data-fmess-ui="composer"]) :is(:is([aria-label="Attach a file up to 100 MB"], [data-fmess-ui="attach"]), :is([aria-label="Open more actions"], [data-fmess-ui="more-actions"]), :is([aria-label="Choose a sticker"], [data-fmess-ui="sticker"]), :is([aria-label="Send a voice clip"], [data-fmess-ui="voice-clip"])) svg {
+html:not([data-fmess-service="instagram"]) :is([aria-label="Thread composer"], [data-fmess-ui="composer"]) div:has(> span :is([aria-label="Attach a file up to 100 MB"], [data-fmess-ui="attach"])),
+html:not([data-fmess-service="instagram"]) :is([aria-label="Thread composer"], [data-fmess-ui="composer"]) div:has(> span :is([aria-label="Open more actions"], [data-fmess-ui="more-actions"])) { order: 1; }
+html:not([data-fmess-service="instagram"]) :is([aria-label="Thread composer"], [data-fmess-ui="composer"]) div:has(> span :is([aria-label="Choose a sticker"], [data-fmess-ui="sticker"])) { order: 2; }
+html:not([data-fmess-service="instagram"]) :is([aria-label="Thread composer"], [data-fmess-ui="composer"]) div:has(> span :is([aria-label="Choose a GIF"], [data-fmess-ui="gif"])) { display: none !important; }
+html:not([data-fmess-service="instagram"]) :is([aria-label="Thread composer"], [data-fmess-ui="composer"]) > div:has([role="textbox"]) { order: 3; flex: 1 1 0 !important; }
+html:not([data-fmess-service="instagram"]) :is([aria-label="Thread composer"], [data-fmess-ui="composer"]) div:has(> span :is([aria-label="Send a voice clip"], [data-fmess-ui="voice-clip"])) { order: 4; }
+html:not([data-fmess-service="instagram"]) :is([aria-label="Thread composer"], [data-fmess-ui="composer"]) > span { order: 5; }
+html:not([data-fmess-service="instagram"]) :is([aria-label="Thread composer"], [data-fmess-ui="composer"]) > span:has([role="button"]:is([aria-label^="Send a"], [data-fmess-ui="like"])) { display: none !important; }
+html:not([data-fmess-service="instagram"]) :is([aria-label="Thread composer"], [data-fmess-ui="composer"]) :is(:is([aria-label="Attach a file up to 100 MB"], [data-fmess-ui="attach"]), :is([aria-label="Open more actions"], [data-fmess-ui="more-actions"]), :is([aria-label="Choose a sticker"], [data-fmess-ui="sticker"]), :is([aria-label="Send a voice clip"], [data-fmess-ui="voice-clip"])) svg {
   width: 24px !important;
   height: 24px !important;
   background: var(--wa-icon);
 }
-:is([aria-label="Thread composer"], [data-fmess-ui="composer"]) :is(:is([aria-label="Attach a file up to 100 MB"], [data-fmess-ui="attach"]), :is([aria-label="Open more actions"], [data-fmess-ui="more-actions"]), :is([aria-label="Choose a sticker"], [data-fmess-ui="sticker"]), :is([aria-label="Send a voice clip"], [data-fmess-ui="voice-clip"])) svg * {
+html:not([data-fmess-service="instagram"]) :is([aria-label="Thread composer"], [data-fmess-ui="composer"]) :is(:is([aria-label="Attach a file up to 100 MB"], [data-fmess-ui="attach"]), :is([aria-label="Open more actions"], [data-fmess-ui="more-actions"]), :is([aria-label="Choose a sticker"], [data-fmess-ui="sticker"]), :is([aria-label="Send a voice clip"], [data-fmess-ui="voice-clip"])) svg * {
   visibility: hidden;
 }
-:is([aria-label="Thread composer"], [data-fmess-ui="composer"]) :is(:is([aria-label="Attach a file up to 100 MB"], [data-fmess-ui="attach"]), :is([aria-label="Open more actions"], [data-fmess-ui="more-actions"])) svg {
-  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M11 13H6a.97.97 0 0 1-.71-.29A.97.97 0 0 1 5 12c0-.28.1-.52.29-.71.19-.2.43-.29.71-.29h5V6c0-.28.1-.52.29-.71.19-.2.43-.29.71-.29.28 0 .52.1.71.29.2.19.29.43.29.71v5h5c.28 0 .52.1.71.29.2.19.29.43.29.71 0 .28-.1.52-.29.71A.94.94 0 0 1 18 13h-5v5c0 .28-.1.52-.29.71A.94.94 0 0 1 12 19a.97.97 0 0 1-.71-.29A.97.97 0 0 1 11 18v-5Z'/%3E%3C/svg%3E") center / 24px 24px no-repeat;
+html:not([data-fmess-service="instagram"]) :is([aria-label="Thread composer"], [data-fmess-ui="composer"]) :is(:is([aria-label="Attach a file up to 100 MB"], [data-fmess-ui="attach"]), :is([aria-label="Open more actions"], [data-fmess-ui="more-actions"])) svg {
+  -webkit-mask: var(--wa-mask-plus) center / 24px 24px no-repeat;
 }
-:is([aria-label="Thread composer"], [data-fmess-ui="composer"]) :is([aria-label="Choose a sticker"], [data-fmess-ui="sticker"]) svg {
-  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M8.5 10.25a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Zm8.5-1.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Z'/%3E%3Cpath fill-rule='evenodd' d='M16.82 19.98A6.97 6.97 0 0 1 12 22H9.27A7.27 7.27 0 0 1 2 14.73V9.27A7.27 7.27 0 0 1 9.27 2h5.46A7.27 7.27 0 0 1 22 9.27v2.54c0 1.94-.77 3.8-2.15 5.17l-3.03 3ZM14.72 4H9.28A5.27 5.27 0 0 0 4 9.27v5.46A5.27 5.27 0 0 0 9.27 20h2.06a.9.9 0 0 0 .68-.88l-.02-2.26v-.11a5.5 5.5 0 0 1-4.65-2.6.6.6 0 0 1 .03-.6c.12-.2.3-.3.53-.3h5.7a4.8 4.8 0 0 1 3.22-1.23l2.26.01c.5 0 .9-.4.9-.9V9.07H20A5.27 5.27 0 0 0 14.73 4Zm-.71 15.11c0 .15-.01.3-.04.44a4.96 4.96 0 0 0 1.44-.99l3.03-3c.46-.46.83-.99 1.09-1.56-.15.02-.3.03-.46.03h-2.26A2.8 2.8 0 0 0 14 16.84l.02 2.26Z'/%3E%3C/svg%3E") center / 24px 24px no-repeat;
+html:not([data-fmess-service="instagram"]) :is([aria-label="Thread composer"], [data-fmess-ui="composer"]) :is([aria-label="Choose a sticker"], [data-fmess-ui="sticker"]) svg {
+  -webkit-mask: var(--wa-mask-smile) center / 24px 24px no-repeat;
 }
-:is([aria-label="Thread composer"], [data-fmess-ui="composer"]) :is([aria-label="Send a voice clip"], [data-fmess-ui="voice-clip"]) svg {
-  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 14a3 3 0 0 1-2.13-.87A3 3 0 0 1 9 11V5q0-1.25.87-2.12A3 3 0 0 1 12 2q1.25 0 2.12.88Q15 3.75 15 5v6q0 1.25-.88 2.13A3 3 0 0 1 12 14m-1 6v-2.07a6.8 6.8 0 0 1-3.94-1.95 7 7 0 0 1-1.99-3.95A.9.9 0 0 1 6 11q.42 0 .71.29.3.29.39.71a4.8 4.8 0 0 0 1.74 2.88A5 5 0 0 0 12 16q1.8 0 3.17-1.14A5 5 0 0 0 16.9 12q.1-.42.39-.71.29-.3.7-.29a.9.9 0 0 1 .93 1.03 7 7 0 0 1-5.92 5.9V20q0 .42-.29.71-.29.3-.71.29a1 1 0 0 1-.71-.29 1 1 0 0 1-.3-.71m1-8q.42 0 .71-.29.3-.29.29-.71V5q0-.42-.29-.71A1 1 0 0 0 12 4q-.42 0-.71.29-.3.29-.3.71v6q0 .42.3.71.29.3.7.29'/%3E%3C/svg%3E") center / 24px 24px no-repeat;
+html:not([data-fmess-service="instagram"]) :is([aria-label="Thread composer"], [data-fmess-ui="composer"]) :is([aria-label="Send a voice clip"], [data-fmess-ui="voice-clip"]) svg {
+  -webkit-mask: var(--wa-mask-mic) center / 24px 24px no-repeat;
 }
-:is([aria-label="Thread composer"], [data-fmess-ui="composer"]) :is([aria-label="Press enter to send"], [data-fmess-ui="send"]) {
+html:not([data-fmess-service="instagram"]) :is([aria-label="Thread composer"], [data-fmess-ui="composer"]) :is([aria-label="Press enter to send"], [data-fmess-ui="send"]) {
   width: 40px !important;
   height: 40px !important;
   border-radius: 20px !important;
   background: var(--wa-green) !important;
 }
-:is([aria-label="Thread composer"], [data-fmess-ui="composer"]) :is([aria-label="Press enter to send"], [data-fmess-ui="send"]) svg {
+html:not([data-fmess-service="instagram"]) :is([aria-label="Thread composer"], [data-fmess-ui="composer"]) :is([aria-label="Press enter to send"], [data-fmess-ui="send"]) svg {
   width: 24px !important;
   height: 24px !important;
   background: var(--wa-on-green);
-  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M4.4 19.43a.99.99 0 0 1-.95-.1.93.93 0 0 1-.45-.83V14l8-2-8-2V5.5c0-.37.15-.65.45-.84a1 1 0 0 1 .95-.09l15.4 6.5c.42.19.63.5.63.93 0 .43-.21.74-.63.93l-15.4 6.5Z'/%3E%3C/svg%3E") center / 24px 24px no-repeat;
+  -webkit-mask: var(--wa-mask-send) center / 24px 24px no-repeat;
 }
-:is([aria-label="Thread composer"], [data-fmess-ui="composer"]) :is([aria-label="Press enter to send"], [data-fmess-ui="send"]) svg * {
+html:not([data-fmess-service="instagram"]) :is([aria-label="Thread composer"], [data-fmess-ui="composer"]) :is([aria-label="Press enter to send"], [data-fmess-ui="send"]) svg * {
   visibility: hidden;
 }
-:is([aria-label="Thread composer"], [data-fmess-ui="composer"]) [role="textbox"] {
+html:not([data-fmess-service="instagram"]) :is([aria-label="Thread composer"], [data-fmess-ui="composer"]) [role="textbox"] {
   font-size: 15px !important;
 }
 
 /* Details: WhatsApp's "Contact info". */
-[role="main"] [data-fmess-ui="details"] {
+html:not([data-fmess-service="instagram"]) [role="main"] [data-fmess-ui="details"] {
   background: var(--wa-panel) !important;
   box-shadow: none !important;
 }
-[role="main"] [data-fmess-ui="details"]::before {
+html:not([data-fmess-service="instagram"]) [role="main"] [data-fmess-ui="details"]::before {
   content: "Contact info";
   display: block;
   flex: none;
@@ -532,4 +543,334 @@ html:not([data-fmess-dark]) .__fb-dark-mode {
   --secondary-text: #b0b3b8 !important;
   --primary-icon: #e4e6eb !important;
   --secondary-icon: #b0b3b8 !important;
+}
+
+/* ==== Instagram (html[data-fmess-service="instagram"]): its DM page in WhatsApp's look. ==== */
+html[data-fmess-service="instagram"] {
+  --wa-ig-panel: 255, 255, 255;
+  --wa-ig-input: 246, 245, 244;
+  --wa-ig-hover: 194, 189, 184, 0.15;
+  --wa-ig-text: 10, 10, 10;
+  --wa-ig-text-2: 102, 102, 102;
+  --wa-ig-line: 233, 237, 239;
+  --wa-ig-green: 29, 170, 97;
+  --wa-ig-green-hover: 27, 155, 88;
+}
+html[data-fmess-service="instagram"][data-fmess-dark] {
+  --wa-ig-panel: 22, 23, 23;
+  --wa-ig-input: 42, 43, 43;
+  --wa-ig-hover: 255, 255, 255, 0.1;
+  --wa-ig-text: 250, 250, 250;
+  --wa-ig-text-2: 162, 162, 162;
+  --wa-ig-line: 41, 42, 42;
+  --wa-ig-green: 33, 192, 99;
+  --wa-ig-green-hover: 29, 170, 88;
+}
+html[data-fmess-service="instagram"],
+html[data-fmess-service="instagram"] :is(.__fb-dark-mode, .__fb-light-mode) {
+  --ig-primary-background: var(--wa-ig-panel) !important;
+  --ig-secondary-background: var(--wa-ig-input) !important;
+  --ig-elevated-background: var(--wa-ig-panel) !important;
+  --ig-elevated-highlight-background: var(--wa-ig-input) !important;
+  --ig-highlight-background: var(--wa-ig-input) !important;
+  --ig-banner-background: var(--wa-ig-panel) !important;
+  --ig-hover-overlay: var(--wa-ig-hover) !important;
+  --ig-primary-text: var(--wa-ig-text) !important;
+  --ig-secondary-text: var(--wa-ig-text-2) !important;
+  --ig-tertiary-text: var(--wa-ig-text-2) !important;
+  --ig-primary-icon: var(--wa-ig-text) !important;
+  --ig-secondary-icon: var(--wa-ig-text-2) !important;
+  --ig-separator: var(--wa-ig-line) !important;
+  --ig-elevated-separator: var(--wa-ig-line) !important;
+  --ig-stroke: var(--wa-ig-line) !important;
+  --ig-primary-button: var(--wa-ig-green) !important;
+  --ig-primary-button-hover: var(--wa-ig-green-hover) !important;
+  --ig-link: var(--wa-ig-green) !important;
+  --chat-bubble-border-radius: 18px !important;
+  --chat-bubble-padding-vertical: 8px !important;
+  --chat-bubble-padding-horizontal: 12px !important;
+}
+
+/* The strip under the window buttons: the headers start below it. */
+html[data-fmess-service="instagram"]::before {
+  height: var(--fmess-title-bar, 0px);
+}
+/* The rail is fMess's own: no Instagram navigation, no notes, and the list starts at the left edge. */
+html[data-fmess-service="instagram"] :is([data-fmess-ui="ig-nav"], [data-fmess-ui="notes"]) {
+  display: none !important;
+}
+
+html[data-fmess-service="instagram"] [role="main"] div:has(> div > div > [data-fmess-ui="list"]) {
+  padding-left: 0 !important;
+}
+
+/* The list: WhatsApp's panel, its wordmark over a round search box. */
+html[data-fmess-service="instagram"] [data-fmess-ui="list"] {
+  background: var(--wa-panel) !important;
+}
+html[data-fmess-service="instagram"] [data-fmess-ui="list-header"] {
+  box-sizing: border-box;
+  height: calc(64px + var(--fmess-title-bar, 0px)) !important;
+  padding: var(--fmess-title-bar, 0px) 16px 0 20px !important;
+  align-items: center !important;
+}
+html[data-fmess-service="instagram"] [data-fmess-ui="list-account"] {
+  position: relative;
+  width: 104px;
+  height: 28px !important;
+  padding: 0 !important;
+}
+html[data-fmess-service="instagram"] [data-fmess-ui="list-account"] > * {
+  visibility: hidden;
+}
+html[data-fmess-service="instagram"] [data-fmess-ui="list-account"]::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--wa-wordmark);
+  -webkit-mask: var(--wa-mask-wordmark) left center / 104px 28px no-repeat;
+}
+html[data-fmess-service="instagram"] [data-fmess-ui="new-message"] {
+  width: 40px !important;
+  height: 40px !important;
+  border-radius: 50% !important;
+  background: var(--wa-new-chat) !important;
+}
+html[data-fmess-service="instagram"] [data-fmess-ui="new-message"] svg {
+  background: var(--wa-new-chat-icon);
+  -webkit-mask: var(--wa-mask-plus) center / 24px 24px no-repeat;
+}
+html[data-fmess-service="instagram"] [data-fmess-ui="new-message"] svg * {
+  visibility: hidden;
+}
+html[data-fmess-service="instagram"] [data-fmess-ui="search"] {
+  position: relative;
+  box-sizing: border-box;
+  height: 40px !important;
+  margin: 0 12px 8px !important;
+  border-radius: 20px !important;
+  background: var(--wa-input) !important;
+}
+html[data-fmess-service="instagram"] [data-fmess-ui="search"] svg {
+  background: var(--wa-text-2);
+  -webkit-mask: var(--wa-mask-search) center / 20px 20px no-repeat;
+}
+html[data-fmess-service="instagram"] [data-fmess-ui="search"] svg * {
+  visibility: hidden;
+}
+html[data-fmess-service="instagram"] [data-fmess-ui="search"] input {
+  font-size: 15px !important;
+}
+html[data-fmess-service="instagram"] [data-fmess-ui="search"] input::placeholder {
+  color: transparent !important;
+}
+html[data-fmess-service="instagram"] [data-fmess-ui="search"]:has(input:placeholder-shown)::after {
+  content: "Search or start a new chat";
+  position: absolute;
+  left: 46px;
+  top: 0;
+  font: 400 15px/40px "fMess Roboto", system-ui, sans-serif;
+  color: var(--wa-text-2);
+  pointer-events: none;
+}
+/* "Messages" and "Requests" as WhatsApp's pill filters. */
+html[data-fmess-service="instagram"] [data-fmess-ui="list-title"] {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  height: 44px !important;
+  padding: 0 12px !important;
+  box-sizing: border-box;
+  justify-content: flex-start !important;
+}
+html[data-fmess-service="instagram"] [data-fmess-ui="list-title"] h1,
+html[data-fmess-service="instagram"] [data-fmess-ui="requests"] {
+  box-sizing: border-box;
+  display: inline-flex !important;
+  align-items: center;
+  height: 32px;
+  padding: 0 12px !important;
+  border: 1px solid var(--wa-chip-line);
+  border-radius: 16px;
+  background: transparent;
+  color: var(--wa-text-2) !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  line-height: 1 !important;
+}
+html[data-fmess-service="instagram"] [data-fmess-ui="list-title"] h1 {
+  order: 1;
+  border-color: transparent;
+  background: var(--wa-chip-on);
+  color: var(--wa-chip-on-text) !important;
+}
+html[data-fmess-service="instagram"] [data-fmess-ui="list-title"] > :has([data-fmess-ui="requests"]) {
+  order: 2;
+  margin: 0 !important;
+}
+html[data-fmess-service="instagram"] [data-fmess-ui="list-title"] > h1 {
+  margin: 0 !important;
+}
+html[data-fmess-service="instagram"] [data-fmess-ui="row"] {
+  border-radius: 12px !important;
+}
+html[data-fmess-service="instagram"] [data-fmess-ui="row"] :has(> img) {
+  transform: scale(0.875);
+}
+html[data-fmess-service="instagram"] [data-fmess-ui="row"] div:has(> div > span > img) + div {
+  zoom: 1.15;
+}
+html[data-fmess-service="instagram"] [data-fmess-ui="row"]:hover {
+  background: var(--wa-hover) !important;
+}
+html[data-fmess-service="instagram"] [data-fmess-ui="row"][data-fmess-selected] {
+  background: var(--wa-selected) !important;
+}
+html[data-fmess-service="instagram"] [data-fmess-ui="row"][data-fmess-unread] {
+  position: relative;
+  font-weight: 600;
+}
+html[data-fmess-service="instagram"] [data-fmess-ui="row"][data-fmess-unread]::after {
+  content: "";
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  width: 10px;
+  height: 10px;
+  margin-top: -5px;
+  border-radius: 50%;
+  background: var(--wa-green);
+  pointer-events: none;
+}
+
+/* The thread: WhatsApp's beige with its doodles under a flat white header. */
+html[data-fmess-service="instagram"] [data-fmess-ui="chat"] {
+  position: relative;
+  isolation: isolate;
+  background: var(--wa-chat) !important;
+}
+html[data-fmess-service="instagram"] [data-fmess-ui="chat"]::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  background: var(--wa-doodle) 0 0 / 412.5px 749.25px repeat;
+  pointer-events: none;
+}
+html[data-fmess-service="instagram"] [data-fmess-ui="chat"] *:has([data-fmess-ui="messages"]),
+html[data-fmess-service="instagram"] [data-fmess-ui="chat"] *:has([data-fmess-ui="composer"]),
+html[data-fmess-service="instagram"] [data-fmess-ui="messages"] {
+  background: transparent !important;
+}
+html[data-fmess-service="instagram"] [data-fmess-ui="chat-header"] {
+  box-sizing: content-box !important;
+  padding-top: var(--fmess-title-bar, 0px) !important;
+}
+html[data-fmess-service="instagram"] [data-fmess-ui="chat-header"] h2,
+html[data-fmess-service="instagram"] [data-fmess-ui="chat-header"] h2 * {
+  font-size: 16px !important;
+  font-weight: 400 !important;
+}
+html[data-fmess-service="instagram"] [data-fmess-ui="empty"] {
+  background: var(--wa-rail) !important;
+}
+html[data-fmess-service="instagram"] [data-fmess-ui="empty"] [role="button"] {
+  border-radius: 20px !important;
+  background: var(--wa-green) !important;
+  color: var(--wa-on-green) !important;
+}
+html[data-fmess-service="instagram"] [data-fmess-ui="date-break"] {
+  width: fit-content !important;
+  margin: 8px auto !important;
+  padding: 5px 12px 6px !important;
+  border-radius: 7.5px;
+  background: var(--wa-date);
+  box-shadow: 0 1px 0.5px rgba(11, 20, 26, 0.13);
+  color: var(--wa-text-2) !important;
+  font-size: 12.5px !important;
+  font-weight: 400 !important;
+  line-height: 15px !important;
+}
+html[data-fmess-service="instagram"] [data-fmess-ui="bubble"] {
+  border-radius: 7.5px !important;
+  padding: 6px 9px !important;
+  box-shadow: 0 1px 0.5px rgba(11, 20, 26, 0.13);
+  color: var(--wa-text) !important;
+}
+html[data-fmess-service="instagram"] [data-fmess-ui="bubble"][data-fmess-dir="out"] {
+  background: var(--wa-bubble-out) !important;
+}
+html[data-fmess-service="instagram"] [data-fmess-ui="bubble"][data-fmess-dir="in"] {
+  background: var(--wa-bubble-in) !important;
+}
+html[data-fmess-service="instagram"] [data-fmess-ui="bubble"] :is(span, div) {
+  color: inherit !important;
+  font-size: 14.2px !important;
+}
+
+/* The composer: a white pill with + and the smiley before the box, the microphone after it. */
+html[data-fmess-service="instagram"] [data-fmess-ui="chat"] *:has(> [data-fmess-ui="composer"]) {
+  padding: 0 12px 12px !important;
+  box-sizing: border-box;
+}
+html[data-fmess-service="instagram"] [data-fmess-ui="composer"] {
+  box-sizing: border-box;
+  min-height: 52px !important;
+  padding: 0 8px !important;
+  align-items: stretch !important;
+  justify-content: center !important;
+  border-color: transparent !important;
+  border-radius: 26px !important;
+  background: var(--wa-composer) !important;
+  box-shadow: 0 1px 6px var(--wa-shadow);
+}
+html[data-fmess-service="instagram"] [data-fmess-ui="composer"] > div,
+html[data-fmess-service="instagram"] [data-fmess-ui="composer"] > div > div,
+html[data-fmess-service="instagram"] [data-fmess-ui="composer"] > div > div > div {
+  flex: 1 1 auto !important;
+  padding: 0 !important;
+  background: transparent !important;
+}
+html[data-fmess-service="instagram"] [data-fmess-ui="composer"] div:has(> [data-fmess-ui="voice-clip"]) {
+  display: contents !important;
+}
+html[data-fmess-service="instagram"] [data-fmess-ui="composer"] [data-fmess-ui="attach"] { order: 0; }
+html[data-fmess-service="instagram"] [data-fmess-ui="composer"] div:has(> div > [data-fmess-ui="emoji"]) { order: 1; }
+html[data-fmess-service="instagram"] [data-fmess-ui="composer"] div:has(> [role="textbox"]) { order: 2; }
+html[data-fmess-service="instagram"] [data-fmess-ui="composer"] [data-fmess-ui="voice-clip"] { order: 3; }
+html[data-fmess-service="instagram"] [data-fmess-ui="composer"] div:has(> [data-fmess-ui="sticker"]),
+html[data-fmess-service="instagram"] [data-fmess-ui="composer"] [data-fmess-ui="sticker"] {
+  display: none !important;
+}
+html[data-fmess-service="instagram"] [data-fmess-ui="composer"] :is([data-fmess-ui="attach"], [data-fmess-ui="emoji"], [data-fmess-ui="voice-clip"]) svg {
+  width: 24px !important;
+  height: 24px !important;
+  background: var(--wa-icon);
+}
+html[data-fmess-service="instagram"] [data-fmess-ui="composer"] :is([data-fmess-ui="attach"], [data-fmess-ui="emoji"], [data-fmess-ui="voice-clip"]) svg * {
+  visibility: hidden;
+}
+html[data-fmess-service="instagram"] [data-fmess-ui="composer"] [data-fmess-ui="attach"] svg {
+  -webkit-mask: var(--wa-mask-plus) center / 24px 24px no-repeat;
+}
+html[data-fmess-service="instagram"] [data-fmess-ui="composer"] [data-fmess-ui="emoji"] svg {
+  -webkit-mask: var(--wa-mask-smile) center / 24px 24px no-repeat;
+}
+html[data-fmess-service="instagram"] [data-fmess-ui="composer"] [data-fmess-ui="voice-clip"] svg {
+  -webkit-mask: var(--wa-mask-mic) center / 24px 24px no-repeat;
+}
+html[data-fmess-service="instagram"] [data-fmess-ui="composer"] [data-fmess-ui="send"] {
+  color: var(--wa-green) !important;
+  font-weight: 600 !important;
+}
+html[data-fmess-service="instagram"] [data-fmess-ui="composer"] [role="textbox"] {
+  font-size: 15px !important;
+}
+
+/* Details: the panel's white, no hairline. */
+html[data-fmess-service="instagram"] [data-fmess-ui="details"] {
+  box-sizing: border-box !important;
+  padding-top: var(--fmess-title-bar, 0px) !important;
+  background: var(--wa-panel) !important;
+  border: 0 !important;
 }

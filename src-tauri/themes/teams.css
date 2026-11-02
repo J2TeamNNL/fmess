@@ -707,30 +707,30 @@ html[data-fmess-chats] [role="main"] [data-fmess-ui="composer"] {
 html[data-fmess-chats] [role="main"] [data-fmess-ui="composer"]:focus-within {
   box-shadow: inset 0 -4px 0 -2px var(--tm-focus-line) !important;
 }
-[data-fmess-ui="composer"] > div:has(+ div [role="textbox"]) {
+:where(html:not([data-fmess-service="instagram"])) [data-fmess-ui="composer"] > div:has(+ div [role="textbox"]) {
   display: contents !important;
 }
-[data-fmess-ui="composer"] div:has(> span [data-fmess-ui="voice-clip"]),
-[data-fmess-ui="composer"] div:has(> span [data-fmess-ui="sticker"]),
-[data-fmess-ui="composer"] div:has(> span [data-fmess-ui="gif"]) {
+:where(html:not([data-fmess-service="instagram"])) [data-fmess-ui="composer"] div:has(> span [data-fmess-ui="voice-clip"]),
+:where(html:not([data-fmess-service="instagram"])) [data-fmess-ui="composer"] div:has(> span [data-fmess-ui="sticker"]),
+:where(html:not([data-fmess-service="instagram"])) [data-fmess-ui="composer"] div:has(> span [data-fmess-ui="gif"]) {
   display: none !important;
 }
-[data-fmess-ui="composer"] > div:has([role="textbox"]) {
+:where(html:not([data-fmess-service="instagram"])) [data-fmess-ui="composer"] > div:has([role="textbox"]) {
   order: 1;
   flex: 1 1 0 !important;
 }
-[data-fmess-ui="composer"] div:has(> span [data-fmess-ui="attach"]) {
+:where(html:not([data-fmess-service="instagram"])) [data-fmess-ui="composer"] div:has(> span [data-fmess-ui="attach"]) {
   order: 2;
 }
-[data-fmess-ui="composer"] div:has(> span [data-fmess-ui="more-actions"]) {
+:where(html:not([data-fmess-service="instagram"])) [data-fmess-ui="composer"] div:has(> span [data-fmess-ui="more-actions"]) {
   order: 3;
 }
-[data-fmess-ui="composer"] > span {
+:where(html:not([data-fmess-service="instagram"])) [data-fmess-ui="composer"] > span {
   order: 4;
   position: relative !important;
   margin-left: 9px !important;
 }
-[data-fmess-ui="composer"] > span::before {
+:where(html:not([data-fmess-service="instagram"])) [data-fmess-ui="composer"] > span::before {
   content: "";
   position: absolute;
   left: -5px;
@@ -740,35 +740,35 @@ html[data-fmess-chats] [role="main"] [data-fmess-ui="composer"]:focus-within {
   background: var(--tm-composer-sep);
   pointer-events: none;
 }
-[data-fmess-ui="composer"] :is([data-fmess-ui="attach"], [data-fmess-ui="more-actions"], [data-fmess-ui="emoji"], [data-fmess-ui="send"]) {
+:where(html:not([data-fmess-service="instagram"])) [data-fmess-ui="composer"] :is([data-fmess-ui="attach"], [data-fmess-ui="more-actions"], [data-fmess-ui="emoji"], [data-fmess-ui="send"]) {
   width: 32px !important;
   height: 32px !important;
   border-radius: 4px !important;
   background: transparent !important;
   --hover-overlay: transparent !important;
 }
-[data-fmess-ui="composer"] :is([data-fmess-ui="attach"], [data-fmess-ui="more-actions"], [data-fmess-ui="emoji"], [data-fmess-ui="send"]) svg {
+:where(html:not([data-fmess-service="instagram"])) [data-fmess-ui="composer"] :is([data-fmess-ui="attach"], [data-fmess-ui="more-actions"], [data-fmess-ui="emoji"], [data-fmess-ui="send"]) svg {
   width: 16px !important;
   height: 16px !important;
   background: var(--tm-fg2);
 }
-[data-fmess-ui="composer"] :is([data-fmess-ui="attach"], [data-fmess-ui="more-actions"], [data-fmess-ui="emoji"], [data-fmess-ui="send"]) svg * {
+:where(html:not([data-fmess-service="instagram"])) [data-fmess-ui="composer"] :is([data-fmess-ui="attach"], [data-fmess-ui="more-actions"], [data-fmess-ui="emoji"], [data-fmess-ui="send"]) svg * {
   visibility: hidden;
 }
-[data-fmess-ui="composer"] :is([data-fmess-ui="attach"], [data-fmess-ui="more-actions"], [data-fmess-ui="emoji"], [data-fmess-ui="send"]):hover svg {
+:where(html:not([data-fmess-service="instagram"])) [data-fmess-ui="composer"] :is([data-fmess-ui="attach"], [data-fmess-ui="more-actions"], [data-fmess-ui="emoji"], [data-fmess-ui="send"]):hover svg {
   background: var(--tm-brand-icon);
 }
-[data-fmess-ui="composer"] [data-fmess-ui="emoji"] svg { -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='2 2 16 16'%3E%3Cpath d='M10 2C14.4183 2 18 5.58172 18 10C18 14.4183 14.4183 18 10 18C5.58172 18 2 14.4183 2 10C2 5.58172 5.58172 2 10 2ZM10 3C6.13401 3 3 6.13401 3 10C3 13.866 6.13401 17 10 17C13.866 17 17 13.866 17 10C17 6.13401 13.866 3 10 3ZM7.15467 12.4273C8.66416 13.9463 11.0877 14.0045 12.6671 12.5961L12.8453 12.4273C13.04 12.2314 13.3566 12.2304 13.5524 12.4251C13.7265 12.5981 13.7467 12.8674 13.6123 13.0627L13.5547 13.1322L13.5323 13.1545C11.5691 15.1054 8.39616 15.0953 6.44533 13.1322C6.25069 12.9363 6.25169 12.6197 6.44757 12.4251C6.64344 12.2304 6.96002 12.2314 7.15467 12.4273ZM12.5 7.5C13.0523 7.5 13.5 7.94772 13.5 8.5C13.5 9.05228 13.0523 9.5 12.5 9.5C11.9477 9.5 11.5 9.05228 11.5 8.5C11.5 7.94772 11.9477 7.5 12.5 7.5ZM7.5 7.5C8.05228 7.5 8.5 7.94772 8.5 8.5C8.5 9.05228 8.05228 9.5 7.5 9.5C6.94772 9.5 6.5 9.05228 6.5 8.5C6.5 7.94772 6.94772 7.5 7.5 7.5Z'/%3E%3C/svg%3E") center / 16px 16px no-repeat; }
-[data-fmess-ui="composer"] [data-fmess-ui="emoji"]:hover svg { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='2 2 16 16'%3E%3Cpath d='M2 10C2 5.58172 5.58172 2 10 2C14.4183 2 18 5.58172 18 10C18 14.4183 14.4183 18 10 18C5.58172 18 2 14.4183 2 10ZM7.5 9.5C8.05228 9.5 8.5 9.05228 8.5 8.5C8.5 7.94772 8.05228 7.5 7.5 7.5C6.94772 7.5 6.5 7.94772 6.5 8.5C6.5 9.05228 6.94772 9.5 7.5 9.5ZM11.75 12.5C11.75 11.5335 10.9665 10.75 10 10.75C9.0335 10.75 8.25 11.5335 8.25 12.5C8.25 13.4665 9.0335 14.25 10 14.25C10.9665 14.25 11.75 13.4665 11.75 12.5ZM12.5 9.5C13.0523 9.5 13.5 9.05228 13.5 8.5C13.5 7.94772 13.0523 7.5 12.5 7.5C11.9477 7.5 11.5 7.94772 11.5 8.5C11.5 9.05228 11.9477 9.5 12.5 9.5Z'/%3E%3C/svg%3E"); }
-[data-fmess-ui="composer"] [data-fmess-ui="attach"] svg { -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='2 2 16 16'%3E%3Cpath d='M4.82865 10.4853L10.4855 4.82843C11.6571 3.65685 13.5566 3.65685 14.7281 4.82843C15.8997 6 15.8997 7.89949 14.7281 9.07107L8.01063 15.7886C7.42485 16.3744 6.4751 16.3744 5.88931 15.7886C5.30352 15.2028 5.30352 14.253 5.88931 13.6673L11.8997 7.65685C12.095 7.46159 12.095 7.14501 11.8997 6.94975C11.7045 6.75448 11.3879 6.75448 11.1926 6.94975L5.1822 12.9602C4.20589 13.9365 4.20589 15.5194 5.1822 16.4957C6.15852 17.472 7.74143 17.472 8.71774 16.4957L15.4353 9.77817C16.9974 8.21607 16.9974 5.68342 15.4353 4.12132C13.8732 2.55922 11.3405 2.55922 9.7784 4.12132L4.12154 9.77817C3.92628 9.97343 3.92628 10.29 4.12154 10.4853C4.31681 10.6805 4.63339 10.6805 4.82865 10.4853Z'/%3E%3C/svg%3E") center / 16px 16px no-repeat; }
-[data-fmess-ui="composer"] [data-fmess-ui="attach"]:hover svg { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='2 2 16 16'%3E%3Cpath d='M5.28033 10.6088L10.5836 5.30546C11.6576 4.23151 13.3988 4.23151 14.4727 5.30546C15.5467 6.3794 15.5467 8.1206 14.4727 9.19454L8.10876 15.5585C7.6206 16.0467 6.82915 16.0467 6.34099 15.5585C5.85283 15.0703 5.85283 14.2789 6.34099 13.7907L11.9978 8.13388C12.2907 7.84099 12.2907 7.36612 11.9978 7.07322C11.705 6.78033 11.2301 6.78033 10.9372 7.07322L5.28033 12.7301C4.20639 13.804 4.20639 15.5452 5.28033 16.6192C6.35427 17.6931 8.09548 17.6931 9.16942 16.6192L15.5334 10.2552C17.1931 8.59548 17.1931 5.90452 15.5334 4.2448C13.8737 2.58507 11.1827 2.58507 9.52297 4.2448L4.21967 9.5481C3.92678 9.84099 3.92678 10.3159 4.21967 10.6088C4.51256 10.9017 4.98744 10.9017 5.28033 10.6088Z'/%3E%3C/svg%3E"); }
-[data-fmess-ui="composer"] [data-fmess-ui="more-actions"] svg { -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='2 2 16 16'%3E%3Cpath d='M10 2.5C10 2.22386 9.77614 2 9.5 2C9.22386 2 9 2.22386 9 2.5V9H2.5C2.22386 9 2 9.22386 2 9.5C2 9.77614 2.22386 10 2.5 10H9V16.5C9 16.7761 9.22386 17 9.5 17C9.77614 17 10 16.7761 10 16.5V10H16.5C16.7761 10 17 9.77614 17 9.5C17 9.22386 16.7761 9 16.5 9H10V2.5Z'/%3E%3C/svg%3E") center / 16px 16px no-repeat; }
-[data-fmess-ui="composer"] [data-fmess-ui="more-actions"]:hover svg { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='2 2 16 16'%3E%3Cpath d='M10.5 2.75C10.5 2.33579 10.1642 2 9.75 2C9.33579 2 9 2.33579 9 2.75V9H2.75C2.33579 9 2 9.33579 2 9.75C2 10.1642 2.33579 10.5 2.75 10.5H9V16.75C9 17.1642 9.33579 17.5 9.75 17.5C10.1642 17.5 10.5 17.1642 10.5 16.75V10.5H16.75C17.1642 10.5 17.5 10.1642 17.5 9.75C17.5 9.33579 17.1642 9 16.75 9H10.5V2.75Z'/%3E%3C/svg%3E"); }
-[data-fmess-ui="composer"] [data-fmess-ui="send"] svg { background: var(--tm-brand-icon); -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='2 2 16 16'%3E%3Cpath d='M2.72113 2.05149L18.0756 9.61746C18.3233 9.73952 18.4252 10.0393 18.3031 10.287C18.2544 10.3858 18.1744 10.4658 18.0756 10.5145L2.72144 18.0803C2.47374 18.2023 2.17399 18.1005 2.05193 17.8528C1.99856 17.7445 1.98619 17.6205 2.0171 17.5038L3.9858 10.0701L2.01676 2.62789C1.94612 2.36093 2.10528 2.08726 2.37224 2.01663C2.48893 1.98576 2.61285 1.99814 2.72113 2.05149ZM3.26445 3.43403L4.87357 9.51612L4.93555 9.50412L5 9.5H12C12.2761 9.5 12.5 9.72386 12.5 10C12.5 10.2455 12.3231 10.4496 12.0899 10.4919L12 10.5H5C4.9686 10.5 4.93787 10.4971 4.90807 10.4916L3.26508 16.6976L16.7234 10.066L3.26445 3.43403Z'/%3E%3C/svg%3E") center / 16px 16px no-repeat; }
-[data-fmess-ui="composer"] [data-fmess-ui="send"]:hover svg { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='2 2 16 16'%3E%3Cpath d='M2.72113 2.05149L18.0756 9.61746C18.3233 9.73952 18.4252 10.0393 18.3031 10.287C18.2544 10.3858 18.1744 10.4658 18.0756 10.5145L2.72144 18.0803C2.47374 18.2023 2.17399 18.1005 2.05193 17.8528C1.99856 17.7445 1.98619 17.6205 2.0171 17.5038L3.53835 11.7591C3.58866 11.5691 3.7456 11.4262 3.93946 11.3939L10.8204 10.2466C10.9047 10.2325 10.9744 10.1769 11.0079 10.1012L11.0259 10.0411C11.0454 9.92436 10.9805 9.81305 10.8759 9.76934L10.8204 9.7534L3.90061 8.6001C3.70668 8.56778 3.54969 8.4248 3.49942 8.23473L2.01676 2.62789C1.94612 2.36093 2.10528 2.08726 2.37224 2.01663C2.48893 1.98576 2.61285 1.99814 2.72113 2.05149Z'/%3E%3C/svg%3E"); }
+:where(html:not([data-fmess-service="instagram"])) [data-fmess-ui="composer"] [data-fmess-ui="emoji"] svg { -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='2 2 16 16'%3E%3Cpath d='M10 2C14.4183 2 18 5.58172 18 10C18 14.4183 14.4183 18 10 18C5.58172 18 2 14.4183 2 10C2 5.58172 5.58172 2 10 2ZM10 3C6.13401 3 3 6.13401 3 10C3 13.866 6.13401 17 10 17C13.866 17 17 13.866 17 10C17 6.13401 13.866 3 10 3ZM7.15467 12.4273C8.66416 13.9463 11.0877 14.0045 12.6671 12.5961L12.8453 12.4273C13.04 12.2314 13.3566 12.2304 13.5524 12.4251C13.7265 12.5981 13.7467 12.8674 13.6123 13.0627L13.5547 13.1322L13.5323 13.1545C11.5691 15.1054 8.39616 15.0953 6.44533 13.1322C6.25069 12.9363 6.25169 12.6197 6.44757 12.4251C6.64344 12.2304 6.96002 12.2314 7.15467 12.4273ZM12.5 7.5C13.0523 7.5 13.5 7.94772 13.5 8.5C13.5 9.05228 13.0523 9.5 12.5 9.5C11.9477 9.5 11.5 9.05228 11.5 8.5C11.5 7.94772 11.9477 7.5 12.5 7.5ZM7.5 7.5C8.05228 7.5 8.5 7.94772 8.5 8.5C8.5 9.05228 8.05228 9.5 7.5 9.5C6.94772 9.5 6.5 9.05228 6.5 8.5C6.5 7.94772 6.94772 7.5 7.5 7.5Z'/%3E%3C/svg%3E") center / 16px 16px no-repeat; }
+:where(html:not([data-fmess-service="instagram"])) [data-fmess-ui="composer"] [data-fmess-ui="emoji"]:hover svg { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='2 2 16 16'%3E%3Cpath d='M2 10C2 5.58172 5.58172 2 10 2C14.4183 2 18 5.58172 18 10C18 14.4183 14.4183 18 10 18C5.58172 18 2 14.4183 2 10ZM7.5 9.5C8.05228 9.5 8.5 9.05228 8.5 8.5C8.5 7.94772 8.05228 7.5 7.5 7.5C6.94772 7.5 6.5 7.94772 6.5 8.5C6.5 9.05228 6.94772 9.5 7.5 9.5ZM11.75 12.5C11.75 11.5335 10.9665 10.75 10 10.75C9.0335 10.75 8.25 11.5335 8.25 12.5C8.25 13.4665 9.0335 14.25 10 14.25C10.9665 14.25 11.75 13.4665 11.75 12.5ZM12.5 9.5C13.0523 9.5 13.5 9.05228 13.5 8.5C13.5 7.94772 13.0523 7.5 12.5 7.5C11.9477 7.5 11.5 7.94772 11.5 8.5C11.5 9.05228 11.9477 9.5 12.5 9.5Z'/%3E%3C/svg%3E"); }
+:where(html:not([data-fmess-service="instagram"])) [data-fmess-ui="composer"] [data-fmess-ui="attach"] svg { -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='2 2 16 16'%3E%3Cpath d='M4.82865 10.4853L10.4855 4.82843C11.6571 3.65685 13.5566 3.65685 14.7281 4.82843C15.8997 6 15.8997 7.89949 14.7281 9.07107L8.01063 15.7886C7.42485 16.3744 6.4751 16.3744 5.88931 15.7886C5.30352 15.2028 5.30352 14.253 5.88931 13.6673L11.8997 7.65685C12.095 7.46159 12.095 7.14501 11.8997 6.94975C11.7045 6.75448 11.3879 6.75448 11.1926 6.94975L5.1822 12.9602C4.20589 13.9365 4.20589 15.5194 5.1822 16.4957C6.15852 17.472 7.74143 17.472 8.71774 16.4957L15.4353 9.77817C16.9974 8.21607 16.9974 5.68342 15.4353 4.12132C13.8732 2.55922 11.3405 2.55922 9.7784 4.12132L4.12154 9.77817C3.92628 9.97343 3.92628 10.29 4.12154 10.4853C4.31681 10.6805 4.63339 10.6805 4.82865 10.4853Z'/%3E%3C/svg%3E") center / 16px 16px no-repeat; }
+:where(html:not([data-fmess-service="instagram"])) [data-fmess-ui="composer"] [data-fmess-ui="attach"]:hover svg { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='2 2 16 16'%3E%3Cpath d='M5.28033 10.6088L10.5836 5.30546C11.6576 4.23151 13.3988 4.23151 14.4727 5.30546C15.5467 6.3794 15.5467 8.1206 14.4727 9.19454L8.10876 15.5585C7.6206 16.0467 6.82915 16.0467 6.34099 15.5585C5.85283 15.0703 5.85283 14.2789 6.34099 13.7907L11.9978 8.13388C12.2907 7.84099 12.2907 7.36612 11.9978 7.07322C11.705 6.78033 11.2301 6.78033 10.9372 7.07322L5.28033 12.7301C4.20639 13.804 4.20639 15.5452 5.28033 16.6192C6.35427 17.6931 8.09548 17.6931 9.16942 16.6192L15.5334 10.2552C17.1931 8.59548 17.1931 5.90452 15.5334 4.2448C13.8737 2.58507 11.1827 2.58507 9.52297 4.2448L4.21967 9.5481C3.92678 9.84099 3.92678 10.3159 4.21967 10.6088C4.51256 10.9017 4.98744 10.9017 5.28033 10.6088Z'/%3E%3C/svg%3E"); }
+:where(html:not([data-fmess-service="instagram"])) [data-fmess-ui="composer"] [data-fmess-ui="more-actions"] svg { -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='2 2 16 16'%3E%3Cpath d='M10 2.5C10 2.22386 9.77614 2 9.5 2C9.22386 2 9 2.22386 9 2.5V9H2.5C2.22386 9 2 9.22386 2 9.5C2 9.77614 2.22386 10 2.5 10H9V16.5C9 16.7761 9.22386 17 9.5 17C9.77614 17 10 16.7761 10 16.5V10H16.5C16.7761 10 17 9.77614 17 9.5C17 9.22386 16.7761 9 16.5 9H10V2.5Z'/%3E%3C/svg%3E") center / 16px 16px no-repeat; }
+:where(html:not([data-fmess-service="instagram"])) [data-fmess-ui="composer"] [data-fmess-ui="more-actions"]:hover svg { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='2 2 16 16'%3E%3Cpath d='M10.5 2.75C10.5 2.33579 10.1642 2 9.75 2C9.33579 2 9 2.33579 9 2.75V9H2.75C2.33579 9 2 9.33579 2 9.75C2 10.1642 2.33579 10.5 2.75 10.5H9V16.75C9 17.1642 9.33579 17.5 9.75 17.5C10.1642 17.5 10.5 17.1642 10.5 16.75V10.5H16.75C17.1642 10.5 17.5 10.1642 17.5 9.75C17.5 9.33579 17.1642 9 16.75 9H10.5V2.75Z'/%3E%3C/svg%3E"); }
+:where(html:not([data-fmess-service="instagram"])) [data-fmess-ui="composer"] [data-fmess-ui="send"] svg { background: var(--tm-brand-icon); -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='2 2 16 16'%3E%3Cpath d='M2.72113 2.05149L18.0756 9.61746C18.3233 9.73952 18.4252 10.0393 18.3031 10.287C18.2544 10.3858 18.1744 10.4658 18.0756 10.5145L2.72144 18.0803C2.47374 18.2023 2.17399 18.1005 2.05193 17.8528C1.99856 17.7445 1.98619 17.6205 2.0171 17.5038L3.9858 10.0701L2.01676 2.62789C1.94612 2.36093 2.10528 2.08726 2.37224 2.01663C2.48893 1.98576 2.61285 1.99814 2.72113 2.05149ZM3.26445 3.43403L4.87357 9.51612L4.93555 9.50412L5 9.5H12C12.2761 9.5 12.5 9.72386 12.5 10C12.5 10.2455 12.3231 10.4496 12.0899 10.4919L12 10.5H5C4.9686 10.5 4.93787 10.4971 4.90807 10.4916L3.26508 16.6976L16.7234 10.066L3.26445 3.43403Z'/%3E%3C/svg%3E") center / 16px 16px no-repeat; }
+:where(html:not([data-fmess-service="instagram"])) [data-fmess-ui="composer"] [data-fmess-ui="send"]:hover svg { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='2 2 16 16'%3E%3Cpath d='M2.72113 2.05149L18.0756 9.61746C18.3233 9.73952 18.4252 10.0393 18.3031 10.287C18.2544 10.3858 18.1744 10.4658 18.0756 10.5145L2.72144 18.0803C2.47374 18.2023 2.17399 18.1005 2.05193 17.8528C1.99856 17.7445 1.98619 17.6205 2.0171 17.5038L3.53835 11.7591C3.58866 11.5691 3.7456 11.4262 3.93946 11.3939L10.8204 10.2466C10.9047 10.2325 10.9744 10.1769 11.0079 10.1012L11.0259 10.0411C11.0454 9.92436 10.9805 9.81305 10.8759 9.76934L10.8204 9.7534L3.90061 8.6001C3.70668 8.56778 3.54969 8.4248 3.49942 8.23473L2.01676 2.62789C1.94612 2.36093 2.10528 2.08726 2.37224 2.01663C2.48893 1.98576 2.61285 1.99814 2.72113 2.05149Z'/%3E%3C/svg%3E"); }
 /* The like button sends a 👍 (or the chat's emoji) when the box is empty;
    Teams has none, and shows its send button greyed instead. */
-[data-fmess-ui="composer"] > span:has(> [data-fmess-ui="like"]) {
+:where(html:not([data-fmess-service="instagram"])) [data-fmess-ui="composer"] > span:has(> [data-fmess-ui="like"]) {
   --tm-like: 1;
   width: 32px !important;
   height: 32px !important;
@@ -779,14 +779,14 @@ html[data-fmess-chats] [role="main"] [data-fmess-ui="composer"]:focus-within {
     display: none !important;
   }
 }
-[data-fmess-ui="composer"] > span:has(> [data-fmess-ui="like"])::after {
+:where(html:not([data-fmess-service="instagram"])) [data-fmess-ui="composer"] > span:has(> [data-fmess-ui="like"])::after {
   content: "";
   position: absolute;
   inset: 8px;
   background: var(--tm-fg2);
   -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='2 2 16 16'%3E%3Cpath d='M2.72113 2.05149L18.0756 9.61746C18.3233 9.73952 18.4252 10.0393 18.3031 10.287C18.2544 10.3858 18.1744 10.4658 18.0756 10.5145L2.72144 18.0803C2.47374 18.2023 2.17399 18.1005 2.05193 17.8528C1.99856 17.7445 1.98619 17.6205 2.0171 17.5038L3.9858 10.0701L2.01676 2.62789C1.94612 2.36093 2.10528 2.08726 2.37224 2.01663C2.48893 1.98576 2.61285 1.99814 2.72113 2.05149ZM3.26445 3.43403L4.87357 9.51612L4.93555 9.50412L5 9.5H12C12.2761 9.5 12.5 9.72386 12.5 10C12.5 10.2455 12.3231 10.4496 12.0899 10.4919L12 10.5H5C4.9686 10.5 4.93787 10.4971 4.90807 10.4916L3.26508 16.6976L16.7234 10.066L3.26445 3.43403Z'/%3E%3C/svg%3E") center / 16px 16px no-repeat;
 }
-[data-fmess-ui="composer"] > div:has([role="textbox"]) {
+:where(html:not([data-fmess-service="instagram"])) [data-fmess-ui="composer"] > div:has([role="textbox"]) {
   --tm-field: 1;
 }
 @container style(--tm-field: 1) {
@@ -794,7 +794,7 @@ html[data-fmess-chats] [role="main"] [data-fmess-ui="composer"]:focus-within {
     margin-left: 0 !important;
   }
 }
-[data-fmess-ui="composer"] [role="textbox"] {
+:where(html:not([data-fmess-service="instagram"])) [data-fmess-ui="composer"] [role="textbox"] {
   font-size: 14px !important;
   line-height: 20px !important;
 }
@@ -834,6 +834,387 @@ html[data-fmess-chats] [role="main"] [data-scope="messages_table"] > div:not([ro
 
 /* Details: on the card, a hairline before them. */
 html[data-fmess-chats] [role="main"] [data-fmess-ui="details"] {
+  background: var(--tm-card) !important;
+  box-shadow: -1px 0 0 var(--tm-stroke-alpha) !important;
+}
+
+html[data-fmess-service="instagram"] {
+  --tm-ig-call: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M6.99 2.07A2 2 0 0 1 9.3 3l.08.15.66 1.47a2.5 2.5 0 0 1-.44 2.72l-.13.13-1.05.98c-.19.17-.04.86.64 2.04.6 1.06 1.1 1.56 1.35 1.58h.1l2.05-.64a1.5 1.5 0 0 1 1.56.45l.1.11 1.35 1.88a2 2 0 0 1-.13 2.5l-.12.12-.54.52a3.5 3.5 0 0 1-3.72.7c-1.93-.78-3.69-2.56-5.29-5.33S3.52 7.2 3.82 5.14a3.5 3.5 0 0 1 2.26-2.8l.19-.06.72-.21Z'/%3E%3C/svg%3E");
+  --tm-ig-video: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M2 7a3 3 0 0 1 3-3h5a3 3 0 0 1 3 3v6a3 3 0 0 1-3 3H5a3 3 0 0 1-3-3V7Zm14.04 7.78L14 13.37V6.63l2.04-1.4c.83-.58 1.96.01 1.96 1.02v7.5c0 1-1.13 1.6-1.96 1.03Z'/%3E%3C/svg%3E");
+  --tm-ig-dots: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M6.25 10a1.25 1.25 0 1 1-2.5 0 1.25 1.25 0 0 1 2.5 0Zm5 0a1.25 1.25 0 1 1-2.5 0 1.25 1.25 0 0 1 2.5 0ZM15 11.25a1.25 1.25 0 1 0 0-2.5 1.25 1.25 0 0 0 0 2.5Z'/%3E%3C/svg%3E");
+  --tm-ig-compose: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M17.85 2.85a.5.5 0 0 0-.7-.7l-8 8L9 11l.85-.15 8-8ZM5.5 3A2.5 2.5 0 0 0 3 5.5v9A2.5 2.5 0 0 0 5.5 17h9a2.5 2.5 0 0 0 2.5-2.5v-6a.5.5 0 0 0-1 0v6c0 .83-.67 1.5-1.5 1.5h-9A1.5 1.5 0 0 1 4 14.5v-9C4 4.67 4.67 4 5.5 4h6a.5.5 0 0 0 0-1h-6Z'/%3E%3C/svg%3E");
+  --tm-ig-search: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M8.5 3a5.5 5.5 0 0 1 4.23 9.02l4.12 4.13a.5.5 0 0 1-.63.76l-.07-.06-4.13-4.12A5.5 5.5 0 1 1 8.5 3Zm0 1a4.5 4.5 0 1 0 0 9 4.5 4.5 0 0 0 0-9Z'/%3E%3C/svg%3E");
+  --tm-ig-emoji: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='2 2 16 16'%3E%3Cpath d='M10 2C14.4183 2 18 5.58172 18 10C18 14.4183 14.4183 18 10 18C5.58172 18 2 14.4183 2 10C2 5.58172 5.58172 2 10 2ZM10 3C6.13401 3 3 6.13401 3 10C3 13.866 6.13401 17 10 17C13.866 17 17 13.866 17 10C17 6.13401 13.866 3 10 3ZM7.15467 12.4273C8.66416 13.9463 11.0877 14.0045 12.6671 12.5961L12.8453 12.4273C13.04 12.2314 13.3566 12.2304 13.5524 12.4251C13.7265 12.5981 13.7467 12.8674 13.6123 13.0627L13.5547 13.1322L13.5323 13.1545C11.5691 15.1054 8.39616 15.0953 6.44533 13.1322C6.25069 12.9363 6.25169 12.6197 6.44757 12.4251C6.64344 12.2304 6.96002 12.2314 7.15467 12.4273ZM12.5 7.5C13.0523 7.5 13.5 7.94772 13.5 8.5C13.5 9.05228 13.0523 9.5 12.5 9.5C11.9477 9.5 11.5 9.05228 11.5 8.5C11.5 7.94772 11.9477 7.5 12.5 7.5ZM7.5 7.5C8.05228 7.5 8.5 7.94772 8.5 8.5C8.5 9.05228 8.05228 9.5 7.5 9.5C6.94772 9.5 6.5 9.05228 6.5 8.5C6.5 7.94772 6.94772 7.5 7.5 7.5Z'/%3E%3C/svg%3E");
+  --tm-ig-attach: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='2 2 16 16'%3E%3Cpath d='M4.82865 10.4853L10.4855 4.82843C11.6571 3.65685 13.5566 3.65685 14.7281 4.82843C15.8997 6 15.8997 7.89949 14.7281 9.07107L8.01063 15.7886C7.42485 16.3744 6.4751 16.3744 5.88931 15.7886C5.30352 15.2028 5.30352 14.253 5.88931 13.6673L11.8997 7.65685C12.095 7.46159 12.095 7.14501 11.8997 6.94975C11.7045 6.75448 11.3879 6.75448 11.1926 6.94975L5.1822 12.9602C4.20589 13.9365 4.20589 15.5194 5.1822 16.4957C6.15852 17.472 7.74143 17.472 8.71774 16.4957L15.4353 9.77817C16.9974 8.21607 16.9974 5.68342 15.4353 4.12132C13.8732 2.55922 11.3405 2.55922 9.7784 4.12132L4.12154 9.77817C3.92628 9.97343 3.92628 10.29 4.12154 10.4853C4.31681 10.6805 4.63339 10.6805 4.82865 10.4853Z'/%3E%3C/svg%3E");
+  --tm-ig-plus: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='2 2 16 16'%3E%3Cpath d='M10 2.5C10 2.22386 9.77614 2 9.5 2C9.22386 2 9 2.22386 9 2.5V9H2.5C2.22386 9 2 9.22386 2 9.5C2 9.77614 2.22386 10 2.5 10H9V16.5C9 16.7761 9.22386 17 9.5 17C9.77614 17 10 16.7761 10 16.5V10H16.5C16.7761 10 17 9.77614 17 9.5C17 9.22386 16.7761 9 16.5 9H10V2.5Z'/%3E%3C/svg%3E");
+  --tm-ig-send: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='2 2 16 16'%3E%3Cpath d='M2.72113 2.05149L18.0756 9.61746C18.3233 9.73952 18.4252 10.0393 18.3031 10.287C18.2544 10.3858 18.1744 10.4658 18.0756 10.5145L2.72144 18.0803C2.47374 18.2023 2.17399 18.1005 2.05193 17.8528C1.99856 17.7445 1.98619 17.6205 2.0171 17.5038L3.9858 10.0701L2.01676 2.62789C1.94612 2.36093 2.10528 2.08726 2.37224 2.01663C2.48893 1.98576 2.61285 1.99814 2.72113 2.05149ZM3.26445 3.43403L4.87357 9.51612L4.93555 9.50412L5 9.5H12C12.2761 9.5 12.5 9.72386 12.5 10C12.5 10.2455 12.3231 10.4496 12.0899 10.4919L12 10.5H5C4.9686 10.5 4.93787 10.4971 4.90807 10.4916L3.26508 16.6976L16.7234 10.066L3.26445 3.43403Z'/%3E%3C/svg%3E");
+}
+
+/* Instagram: the same Teams, on Instagram's own variables (--ig-*, "r, g, b").
+   The page and the list are Teams' grey; the chat, its empty state and the
+   details are the white card. */
+html[data-fmess-service="instagram"],
+html[data-fmess-service="instagram"] .__fb-dark-mode,
+html[data-fmess-service="instagram"] .__fb-light-mode {
+  --tm-ig-win: 235, 235, 235;
+  --tm-ig-card: 255, 255, 255;
+  --tm-ig-sel: 255, 255, 255;
+  --tm-ig-bg3: 245, 245, 245;
+  --tm-ig-fg1: 36, 36, 36;
+  --tm-ig-fg2: 66, 66, 66;
+  --tm-ig-fg3: 97, 97, 97;
+  --tm-ig-brand: 91, 95, 199;
+  --tm-ig-link: 79, 82, 178;
+  --tm-ig-line: 224, 224, 224;
+  --tm-ig-badge: 209, 52, 56;
+}
+html[data-fmess-service="instagram"][data-fmess-dark],
+html[data-fmess-service="instagram"][data-fmess-dark] .__fb-dark-mode,
+html[data-fmess-service="instagram"][data-fmess-dark] .__fb-light-mode {
+  --tm-ig-win: 10, 10, 10;
+  --tm-ig-card: 41, 41, 41;
+  --tm-ig-sel: 36, 36, 36;
+  --tm-ig-bg3: 31, 31, 31;
+  --tm-ig-fg1: 255, 255, 255;
+  --tm-ig-fg2: 214, 214, 214;
+  --tm-ig-fg3: 173, 173, 173;
+  --tm-ig-brand: 79, 82, 178;
+  --tm-ig-link: 127, 133, 245;
+  --tm-ig-line: 61, 61, 61;
+}
+html[data-fmess-service="instagram"],
+html[data-fmess-service="instagram"] .__fb-dark-mode,
+html[data-fmess-service="instagram"] .__fb-light-mode {
+  --ig-primary-background: var(--tm-ig-win) !important;
+  --ig-secondary-background: var(--tm-ig-sel) !important;
+  --ig-elevated-background: var(--tm-ig-card) !important;
+  --ig-highlight-background: var(--tm-ig-bg3) !important;
+  --ig-primary-text: var(--tm-ig-fg1) !important;
+  --ig-secondary-text: var(--tm-ig-fg3) !important;
+  --ig-tertiary-text: var(--tm-ig-fg3) !important;
+  --ig-primary-icon: var(--tm-ig-fg2) !important;
+  --ig-secondary-icon: var(--tm-ig-fg3) !important;
+  --ig-separator: var(--tm-ig-line) !important;
+  --ig-elevated-separator: var(--tm-ig-line) !important;
+  --ig-stroke: var(--tm-ig-line) !important;
+  --ig-link: var(--tm-ig-link) !important;
+  --ig-primary-button: var(--tm-ig-brand) !important;
+  --ig-primary-button-hover: var(--tm-ig-brand) !important;
+  --ig-badge: var(--tm-ig-badge) !important;
+  --ig-banner-background: var(--tm-ig-card) !important;
+}
+html[data-fmess-service="instagram"] :is([data-fmess-ui="chat"], [data-fmess-ui="empty"], [data-fmess-ui="details"]),
+html[data-fmess-service="instagram"] :is([data-fmess-ui="chat"], [data-fmess-ui="empty"], [data-fmess-ui="details"]) :is(.__fb-dark-mode, .__fb-light-mode) {
+  --ig-primary-background: var(--tm-ig-card) !important;
+  --ig-secondary-background: var(--tm-ig-bg3) !important;
+}
+
+/* The window: Teams' grey, the rail is fMess's own, so Instagram's goes. */
+html[data-fmess-service="instagram"],
+html[data-fmess-service="instagram"] body,
+html[data-fmess-service="instagram"] main[role="main"] {
+  background: var(--tm-window) !important;
+}
+html[data-fmess-service="instagram"] div:has(> div > div > [data-fmess-ui="list"]) {
+  padding-left: 0 !important;
+}
+html[data-fmess-service="instagram"] [data-fmess-ui="list"] {
+  padding-top: var(--fmess-title-bar, 0px) !important;
+  box-sizing: border-box !important;
+}
+html[data-fmess-service="instagram"] [data-fmess-ui="ig-nav"] {
+  display: none !important;
+}
+
+/* The list: a title row like Teams' "Chat", the search box, 52px rows with
+   36px pictures. The notes strip has no Teams twin. */
+html[data-fmess-service="instagram"] [data-fmess-ui="list"] {
+  background: transparent !important;
+  border: 0 !important;
+}
+html[data-fmess-service="instagram"] [data-fmess-ui="list-header"] {
+  min-height: 52px !important;
+  height: 52px !important;
+  padding: 0 8px 0 16px !important;
+  box-sizing: border-box !important;
+  align-items: center !important;
+}
+html[data-fmess-service="instagram"] [data-fmess-ui="list-account"] :is(h2, h2 span) {
+  font-size: 18px !important;
+  font-weight: 700 !important;
+  line-height: 22px !important;
+  color: var(--tm-fg1) !important;
+}
+html[data-fmess-service="instagram"] [data-fmess-ui="list-account"] svg {
+  display: none !important;
+}
+html[data-fmess-service="instagram"] [data-fmess-ui="new-message"] {
+  width: 32px !important;
+  height: 32px !important;
+  border-radius: 4px !important;
+  background: transparent !important;
+  --ig-hover-overlay: transparent !important;
+}
+html[data-fmess-service="instagram"] [data-fmess-ui="new-message"]:hover {
+  background: var(--tm-bg1-hover) !important;
+}
+html[data-fmess-service="instagram"] [data-fmess-ui="new-message"] svg {
+  width: 20px !important;
+  height: 20px !important;
+  background: var(--tm-fg2);
+  -webkit-mask: var(--tm-ig-compose) center / 20px 20px no-repeat;
+}
+html[data-fmess-service="instagram"] [data-fmess-ui="new-message"]:hover svg {
+  background: var(--tm-fg1);
+}
+html[data-fmess-service="instagram"] :is([data-fmess-ui="new-message"], [data-fmess-ui="search"], [data-fmess-ui="chat-header"] [role="button"], [data-fmess-ui="composer"] [role="button"]) svg * {
+  visibility: hidden;
+}
+html[data-fmess-service="instagram"] [data-fmess-ui="search"] {
+  box-sizing: border-box !important;
+  width: auto !important;
+  height: 32px !important;
+  margin: 0 16px 8px !important;
+  border-radius: 8px !important;
+  background: var(--tm-search) !important;
+  outline: 1px solid var(--tm-stroke-alpha) !important;
+  outline-offset: -1px;
+}
+html[data-fmess-service="instagram"] [data-fmess-ui="search"]:is(:hover, :focus-within) {
+  background: var(--tm-card) !important;
+}
+html[data-fmess-service="instagram"] [data-fmess-ui="search"] :is(div, span, input) {
+  background: transparent !important;
+}
+html[data-fmess-service="instagram"] [data-fmess-ui="search"] svg {
+  width: 18px !important;
+  height: 20px !important;
+  background: var(--tm-fg2);
+  -webkit-mask: var(--tm-ig-search) center / 20px 20px no-repeat;
+}
+html[data-fmess-service="instagram"] [data-fmess-ui="search"] input {
+  font-size: 14px !important;
+  color: var(--tm-fg1) !important;
+}
+html[data-fmess-service="instagram"] [data-fmess-ui="search"] input::placeholder {
+  color: var(--tm-fg2) !important;
+}
+html[data-fmess-service="instagram"] [data-fmess-ui="notes"] {
+  display: none !important;
+}
+html[data-fmess-service="instagram"] [data-fmess-ui="list-title"] {
+  height: auto !important;
+  padding: 4px 16px 8px !important;
+}
+html[data-fmess-service="instagram"] [data-fmess-ui="list-title"] h1 {
+  display: none !important;
+}
+html[data-fmess-service="instagram"] [data-fmess-ui="requests"] {
+  margin: 0 !important;
+  padding: 0 8px !important;
+  height: 24px !important;
+  box-sizing: border-box !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  border: 1px solid var(--tm-stroke1) !important;
+  border-radius: 10000px !important;
+  font-size: 12px !important;
+  font-weight: 400 !important;
+  color: var(--tm-fg2) !important;
+}
+html[data-fmess-service="instagram"] [data-fmess-ui="requests"]:hover {
+  border-color: var(--tm-stroke1-hover) !important;
+  background: var(--tm-bg3-hover) !important;
+}
+
+/* Rows. Read ones grey, unread dark; the open one white. */
+html[data-fmess-service="instagram"] [data-fmess-ui="row"] {
+  margin: 0 8px !important;
+  width: auto !important;
+  border-radius: 4px !important;
+  --ig-primary-text: var(--tm-ig-fg3);
+  --ig-hover-overlay: transparent !important;
+}
+html[data-fmess-service="instagram"] [data-fmess-ui="row"] > div {
+  min-height: 52px !important;
+  height: 52px !important;
+  padding: 0 !important;
+  align-items: center !important;
+}
+html[data-fmess-service="instagram"] [data-fmess-ui="row"] > div > div {
+  height: 36px !important;
+  padding: 0 12px 0 8px !important;
+  box-sizing: border-box !important;
+  width: 100% !important;
+}
+html[data-fmess-service="instagram"] [data-fmess-ui="row"] > div > div > div:first-child {
+  flex: none !important;
+  width: 36px !important;
+  height: 36px !important;
+  margin-right: 12px !important;
+}
+html[data-fmess-service="instagram"] [data-fmess-ui="row"] > div > div > div:first-child > div {
+  zoom: 0.642857;
+}
+html[data-fmess-service="instagram"] [data-fmess-ui="row"]:hover {
+  background: var(--tm-row-hover) !important;
+  box-shadow: 0 0 0 1px var(--tm-stroke-alpha) !important;
+  --ig-primary-text: var(--tm-ig-fg2);
+  --ig-secondary-text: var(--tm-ig-fg2);
+}
+html[data-fmess-service="instagram"] [data-fmess-ui="row"][data-fmess-unread] {
+  --ig-primary-text: var(--tm-ig-fg1);
+}
+html[data-fmess-service="instagram"] [data-fmess-ui="row"][data-fmess-selected],
+html[data-fmess-service="instagram"] [data-fmess-ui="row"][data-fmess-selected]:hover {
+  background: var(--tm-selected) !important;
+  box-shadow: none !important;
+  --ig-primary-text: var(--tm-ig-fg1);
+  --ig-secondary-text: var(--tm-ig-fg1);
+}
+
+/* The chat: a card with Teams' corners and shadow; the details join it. */
+html[data-fmess-service="instagram"] :is([data-fmess-ui="empty"], div:has(> [data-fmess-ui="chat"])) {
+  margin: max(8px, var(--fmess-title-bar, 0px)) 8px 8px 0 !important;
+  border-radius: 10px !important;
+  overflow: hidden !important;
+  box-shadow: var(--tm-shadow8) !important;
+  background: var(--tm-card) !important;
+  --ig-primary-background: var(--tm-ig-card) !important;
+}
+html[data-fmess-service="instagram"] [data-fmess-ui="empty"] [role="button"] {
+  border-radius: 4px !important;
+  font-weight: 600 !important;
+  background: var(--tm-brand) !important;
+  color: var(--tm-on-brand) !important;
+}
+html[data-fmess-service="instagram"] [data-fmess-ui="empty"] [role="button"]:hover {
+  background: var(--tm-brand-pressed) !important;
+}
+
+/* Header: bold name, a hairline, the calls in Teams' purple. */
+html[data-fmess-service="instagram"] [data-fmess-ui="chat-header"] {
+  min-height: 56px !important;
+  height: 56px !important;
+  background: var(--tm-card) !important;
+  border-bottom: 1px solid var(--tm-stroke-alpha) !important;
+  box-sizing: border-box !important;
+}
+html[data-fmess-service="instagram"] [data-fmess-ui="chat-header"] h2 span {
+  font-size: 16px !important;
+  font-weight: 700 !important;
+  line-height: 22px !important;
+  color: var(--tm-fg1) !important;
+}
+html[data-fmess-service="instagram"] [data-fmess-ui="chat-header"] a[role="link"] > div > div:first-child {
+  zoom: 0.727;
+}
+html[data-fmess-service="instagram"] :is([data-fmess-ui="audio-call"], [data-fmess-ui="video-call"], [data-fmess-ui="info"]) {
+  width: 32px !important;
+  height: 32px !important;
+  border-radius: 4px !important;
+  background: transparent !important;
+}
+html[data-fmess-service="instagram"] :is([data-fmess-ui="audio-call"], [data-fmess-ui="video-call"], [data-fmess-ui="info"]):hover {
+  background: var(--tm-bg1-hover) !important;
+}
+html[data-fmess-service="instagram"] :is([data-fmess-ui="audio-call"], [data-fmess-ui="video-call"], [data-fmess-ui="info"]) svg {
+  width: 20px !important;
+  height: 20px !important;
+  background: var(--tm-brand-icon);
+}
+html[data-fmess-service="instagram"] [data-fmess-ui="audio-call"] svg {
+  -webkit-mask: var(--tm-ig-call) center / 20px 20px no-repeat;
+}
+html[data-fmess-service="instagram"] [data-fmess-ui="video-call"] svg {
+  -webkit-mask: var(--tm-ig-video) center / 20px 20px no-repeat;
+}
+html[data-fmess-service="instagram"] [data-fmess-ui="info"] svg {
+  background: var(--tm-fg2);
+  -webkit-mask: var(--tm-ig-dots) center / 20px 20px no-repeat;
+}
+html[data-fmess-service="instagram"] [data-fmess-ui="info"]:hover svg {
+  background: var(--tm-brand-icon);
+}
+
+/* Messages: Teams' cards. */
+html[data-fmess-service="instagram"] [data-fmess-ui="bubble"] {
+  border-radius: 12px !important;
+  outline-color: var(--tm-card) !important;
+}
+html[data-fmess-service="instagram"] [data-fmess-ui="bubble"][data-fmess-dir="out"] {
+  background: var(--tm-bubble-out) !important;
+}
+html[data-fmess-service="instagram"] [data-fmess-ui="bubble"][data-fmess-dir="out"] :is(div, span) {
+  color: var(--tm-bubble-out-text) !important;
+}
+html[data-fmess-service="instagram"] [data-fmess-ui="bubble"] :is(div, span) {
+  font-size: 14px;
+  line-height: 20px;
+}
+html[data-fmess-service="instagram"] [data-fmess-ui="date-break"] {
+  color: var(--tm-fg3) !important;
+  font-size: 12px !important;
+  font-weight: 400 !important;
+}
+
+/* Composer: Teams' box. */
+html[data-fmess-service="instagram"] [data-fmess-ui="composer"] {
+  margin: 0 32px 24px !important;
+  min-height: 46px !important;
+  border: 1px solid var(--tm-composer-line) !important;
+  border-radius: 6px !important;
+  background: var(--tm-card) !important;
+  box-sizing: border-box !important;
+}
+html[data-fmess-service="instagram"] [data-fmess-ui="composer"]:focus-within {
+  box-shadow: inset 0 -4px 0 -2px var(--tm-focus-line) !important;
+}
+html[data-fmess-service="instagram"] [data-fmess-ui="composer"] [role="textbox"] {
+  font-size: 14px !important;
+  line-height: 20px !important;
+}
+html[data-fmess-service="instagram"] [data-fmess-ui="composer"] :is([data-fmess-ui="voice-clip"], [data-fmess-ui="sticker"]) {
+  display: none !important;
+}
+html[data-fmess-service="instagram"] [data-fmess-ui="composer"] :is([data-fmess-ui="emoji"], [data-fmess-ui="attach"], [data-fmess-ui="more-actions"]) {
+  width: 32px !important;
+  height: 32px !important;
+  border-radius: 4px !important;
+  background: transparent !important;
+}
+html[data-fmess-service="instagram"] [data-fmess-ui="composer"] :is([data-fmess-ui="emoji"], [data-fmess-ui="attach"], [data-fmess-ui="more-actions"]) svg {
+  width: 16px !important;
+  height: 16px !important;
+  background: var(--tm-fg2);
+}
+html[data-fmess-service="instagram"] [data-fmess-ui="composer"] :is([data-fmess-ui="emoji"], [data-fmess-ui="attach"], [data-fmess-ui="more-actions"]):hover svg {
+  background: var(--tm-brand-icon);
+}
+html[data-fmess-service="instagram"] [data-fmess-ui="composer"] [data-fmess-ui="emoji"] svg {
+  -webkit-mask: var(--tm-ig-emoji) center / 16px 16px no-repeat;
+}
+html[data-fmess-service="instagram"] [data-fmess-ui="composer"] [data-fmess-ui="attach"] svg {
+  -webkit-mask: var(--tm-ig-attach) center / 16px 16px no-repeat;
+}
+html[data-fmess-service="instagram"] [data-fmess-ui="composer"] [data-fmess-ui="more-actions"] svg {
+  -webkit-mask: var(--tm-ig-plus) center / 16px 16px no-repeat;
+}
+html[data-fmess-service="instagram"] [data-fmess-ui="composer"] div:has([role="textbox"]) {
+  order: 1;
+}
+html[data-fmess-service="instagram"] [data-fmess-ui="composer"] div:has([data-fmess-ui="emoji"]):not(:has([role="textbox"])) {
+  order: 2;
+}
+html[data-fmess-service="instagram"] [data-fmess-ui="composer"] div:has([data-fmess-ui="attach"]):not(:has([role="textbox"])) {
+  order: 3;
+}
+html[data-fmess-service="instagram"] [data-fmess-ui="composer"] [data-fmess-ui="send"] {
+  color: var(--tm-brand-icon) !important;
+}
+
+/* Details on the card, a hairline before them. */
+html[data-fmess-service="instagram"] [data-fmess-ui="details"] {
   background: var(--tm-card) !important;
   box-shadow: -1px 0 0 var(--tm-stroke-alpha) !important;
 }
