@@ -1,13 +1,14 @@
 use tauri::{
     menu::{Menu, MenuEvent, MenuItem, PredefinedMenuItem},
     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
-    AppHandle, LogicalPosition, Manager, Runtime, WebviewWindow,
+    AppHandle, LogicalPosition, Manager, Runtime, Webview,
 };
 
 use crate::{
-    about, settings, show_main_window, update,
+    about,
+    services::{self, Service},
+    settings, show_main_window, update,
     webview::{self, messages_url},
-    MAIN_WINDOW,
 };
 
 const SHOW: &str = "show";
@@ -143,12 +144,12 @@ fn app_menu<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<Menu<R>> {
 /// above the chats, and clicking it opens this under the picture.
 #[tauri::command]
 pub fn show_account_menu<R: Runtime>(
-    window: WebviewWindow<R>,
+    webview: Webview<R>,
     name: String,
     x: f64,
     y: f64,
 ) -> tauri::Result<()> {
-    let app = window.app_handle();
+    let app = webview.app_handle();
     let menu = Menu::with_items(
         app,
         &[
@@ -161,7 +162,9 @@ pub fn show_account_menu<R: Runtime>(
     )?;
     // The page measures in CSS pixels, which fMess's zoom setting scales.
     let zoom = settings::current(app).zoom;
-    window.popup_menu_at(&menu, LogicalPosition::new(x * zoom, y * zoom))
+    let window = webview.window();
+    let origin = webview.position()?.to_logical::<f64>(window.scale_factor()?);
+    window.popup_menu_at(&menu, LogicalPosition::new(origin.x + x * zoom, origin.y + y * zoom))
 }
 
 /// Handles clicks from the tray menu, the macOS menu bar and the account menu.
@@ -179,28 +182,28 @@ pub fn menu_shortcut<R: Runtime>(app: AppHandle<R>, id: String) {
 }
 
 fn run<R: Runtime>(app: &AppHandle<R>, id: &str) {
-    let window = app.get_webview_window(MAIN_WINDOW);
+    let webview = services::webview(app, Service::Messenger);
     match id {
         SHOW => show_main_window(app),
         MESSAGES => {
             show_main_window(app);
-            if let Some(window) = window {
-                let _ = window.navigate(messages_url());
+            if let Some(webview) = webview {
+                let _ = webview.navigate(messages_url());
             }
         }
         RELOAD => {
-            if let Some(window) = window {
-                let _ = window.reload();
+            if let Some(webview) = webview {
+                let _ = webview.reload();
             }
         }
         BACK => {
-            if let Some(window) = window {
-                let _ = window.eval("history.back()");
+            if let Some(webview) = webview {
+                let _ = webview.eval("history.back()");
             }
         }
         FORWARD => {
-            if let Some(window) = window {
-                let _ = window.eval("history.forward()");
+            if let Some(webview) = webview {
+                let _ = webview.eval("history.forward()");
             }
         }
         SETTINGS => webview::open_settings_window(app),
@@ -210,8 +213,8 @@ fn run<R: Runtime>(app: &AppHandle<R>, id: &str) {
         ZOOM_OUT => settings::zoom_by(app, -1),
         ZOOM_RESET => settings::zoom_by(app, 0),
         LOG_OUT => {
-            if let Some(window) = window {
-                let _ = window.eval("window.__fmessLogOut?.()");
+            if let Some(webview) = webview {
+                let _ = webview.eval("window.__fmessLogOut?.()");
             }
         }
         // The shortcuts live in inject.js; the menu shows them and forwards to them.
@@ -222,8 +225,8 @@ fn run<R: Runtime>(app: &AppHandle<R>, id: &str) {
                 NEXT_CHAT => "'moveChat', 1",
                 _ => "'moveChat', -1",
             };
-            if let Some(window) = window {
-                let _ = window.eval(format!("window.__fmessShortcut?.({call})"));
+            if let Some(webview) = webview {
+                let _ = webview.eval(format!("window.__fmessShortcut?.({call})"));
             }
         }
         QUIT => app.exit(0),

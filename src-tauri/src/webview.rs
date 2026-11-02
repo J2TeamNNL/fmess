@@ -5,15 +5,48 @@ use std::{
 
 use tauri::{
     utils::config::BackgroundThrottlingPolicy,
-    webview::{NewWindowFeatures, NewWindowResponse, PageLoadEvent},
-    AppHandle, Manager, Runtime, Url, WebviewUrl, WebviewWindowBuilder,
+    webview::{NewWindowFeatures, NewWindowResponse, PageLoadEvent, WebviewBuilder},
+    window::WindowBuilder,
+    AppHandle, Manager, PhysicalPosition, Runtime, Url, WebviewUrl, WebviewWindowBuilder,
 };
 
 use crate::{
     icon, links,
+    services::{self, Service},
     settings::{self, Settings},
     AUTOSTART_ARG, MAIN_WINDOW,
 };
+
+/// Settings shared by Messenger's web view and the popups it opens (calls,
+/// media), which are built by different builders with the same methods.
+macro_rules! configure {
+    ($builder:expr, $app:expr, $label:expr) => {{
+        let app: &AppHandle<_> = $app;
+        let navigation_app = app.clone();
+        let popup_app = app.clone();
+        let label: String = $label.to_owned();
+        let builder = $builder
+            // Call popups need the script too: Facebook checks call support again
+            // there. (On macOS a popup shares its opener's scripts and skips these.)
+            .initialization_script(initialization_script(app))
+            .on_navigation(move |url| {
+                if is_close_window_url(url) {
+                    close_popup(&navigation_app, &label);
+                    return false;
+                }
+                links::allow_navigation(&navigation_app, url)
+            })
+            .on_new_window(move |url, features| open_popup(&popup_app, url, features))
+            // Without a download handler, macOS cancels every download.
+            .on_download(|_, _| true)
+            // Hidden windows must keep receiving messages (macOS 14+ only).
+            .background_throttling(BackgroundThrottlingPolicy::Disabled);
+        match user_agent() {
+            Some(user_agent) => builder.user_agent(&user_agent),
+            None => builder,
+        }
+    }};
+}
 
 pub const SETTINGS_WINDOW: &str = "settings";
 
@@ -36,37 +69,41 @@ pub fn messages_url() -> Url {
 
 pub fn create_main_window<R: Runtime>(app: &AppHandle<R>, settings: &Settings) -> tauri::Result<()> {
     let launched_at_login = std::env::args().any(|arg| arg == AUTOSTART_ARG);
-    let builder = WebviewWindowBuilder::new(app, MAIN_WINDOW, WebviewUrl::External(messages_url()))
+    let builder = WindowBuilder::new(app, MAIN_WINDOW)
         .title("fMess")
         .inner_size(1100.0, 760.0)
         .min_inner_size(420.0, 520.0)
-        .visible(!(launched_at_login && settings.start_hidden))
-        .on_page_load(|window, payload| match payload.event() {
+        .visible(!(launched_at_login && settings.start_hidden));
+    let messenger = WebviewBuilder::new(Service::Messenger.label(), WebviewUrl::External(messages_url()))
+        .on_page_load(|webview, payload| match payload.event() {
             PageLoadEvent::Started => {
                 if should_leave_feed(payload.url()) {
-                    let _ = window.navigate(messages_url());
+                    let _ = webview.navigate(messages_url());
                 }
             }
             PageLoadEvent::Finished => {
                 // The settings may have changed since the window opened.
-                let settings = settings::current(window.app_handle());
-                let _ = window.eval(settings::page_settings_script(window.app_handle(), &settings));
+                let settings = settings::current(webview.app_handle());
+                let _ = webview.eval(settings::page_settings_script(webview.app_handle(), &settings));
             }
         });
     // Messenger's colours from the first frame, before the page paints.
-    let builder = match settings::messenger_theme(settings.messenger_dark_mode.as_deref()) {
-        Some(tauri::Theme::Dark) => builder.background_color(SPLASH_DARK),
-        Some(_) => builder.background_color(SPLASH_LIGHT),
-        None => builder,
+    let (builder, messenger) = match settings::messenger_theme(settings.messenger_dark_mode.as_deref()) {
+        Some(tauri::Theme::Dark) => (builder.background_color(SPLASH_DARK), messenger.background_color(SPLASH_DARK)),
+        Some(_) => (builder.background_color(SPLASH_LIGHT), messenger.background_color(SPLASH_LIGHT)),
+        None => (builder, messenger),
     };
     // Like the old desktop app: no separate title bar, window buttons over the page.
     #[cfg(target_os = "macos")]
     let builder = builder
         .title_bar_style(tauri::TitleBarStyle::Overlay)
         .hidden_title(true);
-    let window = configure(builder, app, MAIN_WINDOW).build()?;
+    let window = builder.build()?;
+    let size = window.inner_size()?;
+    let messenger = configure!(messenger, app, Service::Messenger.label());
+    let webview = window.add_child(messenger, PhysicalPosition::new(0, 0), size)?;
     if settings.zoom != 1.0 {
-        let _ = window.set_zoom(settings.zoom);
+        let _ = webview.set_zoom(settings.zoom);
     }
     Ok(())
 }
@@ -110,7 +147,7 @@ pub fn open_settings_window<R: Runtime>(app: &AppHandle<R>) {
 #[tauri::command]
 pub fn set_viewer_open<R: Runtime>(app: AppHandle<R>, open: bool) {
     #[cfg(target_os = "macos")]
-    if let Some(window) = app.get_webview_window(MAIN_WINDOW) {
+    if let Some(window) = services::main_window(&app) {
         let style = if open {
             tauri::TitleBarStyle::Visible
         } else {
@@ -125,7 +162,7 @@ pub fn set_viewer_open<R: Runtime>(app: AppHandle<R>, open: bool) {
 
 /// Shows or hides "fMess" in the title bar; Tauri only sets this at creation.
 #[cfg(target_os = "macos")]
-fn set_title_visible<R: Runtime>(window: &tauri::WebviewWindow<R>, visible: bool) {
+fn set_title_visible<R: Runtime>(window: &tauri::Window<R>, visible: bool) {
     use objc2_app_kit::{NSWindow, NSWindowTitleVisibility};
 
     let Ok(ns_window) = window.ns_window() else {
@@ -156,37 +193,6 @@ fn should_leave_feed(url: &Url) -> bool {
         .map_or(0, |elapsed| elapsed.as_secs());
     let last = LAST_REDIRECT.swap(now, Ordering::Relaxed);
     now.saturating_sub(last) >= 5
-}
-
-/// Settings shared by the main window and the popups it opens (calls, media).
-fn configure<'a, R: Runtime, M: Manager<R>>(
-    builder: WebviewWindowBuilder<'a, R, M>,
-    app: &AppHandle<R>,
-    label: &str,
-) -> WebviewWindowBuilder<'a, R, M> {
-    let navigation_app = app.clone();
-    let popup_app = app.clone();
-    let label = label.to_owned();
-    let builder = builder
-        // Call popups need the script too: Facebook checks call support again
-        // there. (On macOS a popup shares its opener's scripts and skips these.)
-        .initialization_script(initialization_script(app))
-        .on_navigation(move |url| {
-            if is_close_window_url(url) {
-                close_popup(&navigation_app, &label);
-                return false;
-            }
-            links::allow_navigation(&navigation_app, url)
-        })
-        .on_new_window(move |url, features| open_popup(&popup_app, url, features))
-        // Without a download handler, macOS cancels every download.
-        .on_download(|_, _| true)
-        // Hidden windows must keep receiving messages (macOS 14+ only).
-        .background_throttling(BackgroundThrottlingPolicy::Disabled);
-    match user_agent() {
-        Some(user_agent) => builder.user_agent(&user_agent),
-        None => builder,
-    }
 }
 
 /// WebKit draws overlay scroll bars (thin, shown only while scrolling, moved
@@ -250,7 +256,7 @@ fn open_popup<R: Runtime>(
     if let Some((x, y)) = centred_on_main_window(app, size) {
         builder = builder.position(x, y);
     }
-    match configure(builder, app, &label).build() {
+    match configure!(builder, app, &label).build() {
         Ok(window) => {
             icon::apply_to(&window);
             NewWindowResponse::Create { window }
@@ -267,7 +273,7 @@ fn open_popup<R: Runtime>(
 /// the bottom of the screen, so Facebook's call window opened off the bottom
 /// of a screen fMess might not even be on.
 fn centred_on_main_window<R: Runtime>(app: &AppHandle<R>, size: Option<(f64, f64)>) -> Option<(f64, f64)> {
-    let main = app.get_webview_window(MAIN_WINDOW)?;
+    let main = services::main_window(app)?;
     let scale = main.scale_factor().ok()?;
     let position = main.outer_position().ok()?.to_logical::<f64>(scale);
     let main_size = main.outer_size().ok()?.to_logical::<f64>(scale);
@@ -285,7 +291,7 @@ fn is_close_window_url(url: &Url) -> bool {
 }
 
 fn close_popup<R: Runtime>(app: &AppHandle<R>, label: &str) {
-    if label == MAIN_WINDOW {
+    if Service::from_label(label).is_some() {
         return;
     }
     let handle = app.clone();

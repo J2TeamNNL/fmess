@@ -9,6 +9,7 @@ mod menu;
 mod notify;
 #[cfg(debug_assertions)]
 mod probe;
+mod services;
 mod settings;
 mod themes;
 mod update;
@@ -84,17 +85,21 @@ fn main() {
             Ok(())
         })
         .on_window_event(|window, event| {
-            if let WindowEvent::CloseRequested { api, .. } = event {
-                if window.label() != MAIN_WINDOW {
-                    return;
+            if window.label() != MAIN_WINDOW {
+                return;
+            }
+            match event {
+                WindowEvent::CloseRequested { api, .. } => {
+                    if settings::current(window.app_handle()).close_to_tray {
+                        // Keep running in the tray and Dock so messages keep arriving.
+                        api.prevent_close();
+                        let _ = window.hide();
+                    } else {
+                        window.app_handle().exit(0);
+                    }
                 }
-                if settings::current(window.app_handle()).close_to_tray {
-                    // Keep running in the tray and Dock so messages keep arriving.
-                    api.prevent_close();
-                    let _ = window.hide();
-                } else {
-                    window.app_handle().exit(0);
-                }
+                WindowEvent::Resized(_) | WindowEvent::ScaleFactorChanged { .. } => services::layout(window),
+                _ => {}
             }
         })
         .build(tauri::generate_context!())
@@ -108,7 +113,7 @@ fn main() {
 }
 
 pub fn show_main_window<R: Runtime>(app: &AppHandle<R>) {
-    if let Some(window) = app.get_webview_window(MAIN_WINDOW) {
+    if let Some(window) = services::main_window(app) {
         let _ = window.unminimize();
         let _ = window.show();
         let _ = window.set_focus();

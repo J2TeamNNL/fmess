@@ -2,7 +2,10 @@ use serde::Deserialize;
 use tauri::{AppHandle, Manager, Runtime};
 use tauri_plugin_notification::NotificationExt;
 
-use crate::{settings, show_main_window, MAIN_WINDOW};
+use crate::{
+    services::{self, Service},
+    settings, show_main_window,
+};
 
 /// Who wrote a message and in which chat, as inject.js reads them from
 /// Messenger. Pictures are base64. The sender and the group only go into
@@ -201,9 +204,9 @@ fn send_reply<R: Runtime>(app: &AppHandle<R>, id: i32, thread: String, text: Str
     communication::clear(thread.clone());
     let app_for_main = app.clone();
     let _ = app.run_on_main_thread(move || {
-        if let Some(window) = app_for_main.get_webview_window(MAIN_WINDOW) {
+        if let Some(webview) = services::webview(&app_for_main, Service::Messenger) {
             let args = serde_json::to_string(&(id, thread, text)).expect("JSON serializes");
-            let _ = window.eval(format!("window.__fmessReply?.(...{args})"));
+            let _ = webview.eval(format!("window.__fmessReply?.(...{args})"));
         }
     });
 }
@@ -213,9 +216,9 @@ fn open_clicked<R: Runtime>(app: &AppHandle<R>, id: i32, thread: Option<String>)
     // Clicks arrive on a background thread.
     let _ = app.run_on_main_thread(move || {
         show_main_window(&app_for_main);
-        if let Some(window) = app_for_main.get_webview_window(MAIN_WINDOW) {
+        if let Some(webview) = services::webview(&app_for_main, Service::Messenger) {
             let thread = serde_json::to_string(&thread).expect("JSON serializes");
-            let _ = window.eval(format!("window.__fmessNotificationClicked?.({id}, {thread})"));
+            let _ = webview.eval(format!("window.__fmessNotificationClicked?.({id}, {thread})"));
         }
     });
 }

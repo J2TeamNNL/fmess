@@ -7,7 +7,7 @@
 // probe left it, through WebKit, which needs no screen-recording permission.
 use std::{thread, time::Duration};
 
-use tauri::{AppHandle, LogicalSize, Manager, Runtime};
+use tauri::{AppHandle, LogicalSize, Runtime};
 
 pub fn run<R: Runtime>(app: AppHandle<R>) {
     let Some(path) = std::env::var_os("FMESS_PROBE") else {
@@ -23,7 +23,10 @@ pub fn run<R: Runtime>(app: AppHandle<R>) {
             Ok(script) => script,
             Err(err) => return eprintln!("[probe] cannot read {path:?}: {err}"),
         };
-        let Some(window) = app.get_webview_window(crate::MAIN_WINDOW) else {
+        let (Some(window), Some(webview)) = (
+            crate::services::main_window(&app),
+            crate::services::webview(&app, crate::services::Service::Messenger),
+        ) else {
             return;
         };
         if let Some((width, height)) = std::env::var("FMESS_WINDOW_SIZE").ok().and_then(|size| {
@@ -33,7 +36,7 @@ pub fn run<R: Runtime>(app: AppHandle<R>) {
             let _ = window.set_size(LogicalSize::new(width, height));
             thread::sleep(Duration::from_secs(2));
         }
-        let _ = window.eval(format!(
+        let _ = webview.eval(format!(
             "window.__fmessProbe = undefined; (async () => {{ {script}\n}})().then(\
              (result) => {{ window.__fmessProbe = JSON.stringify(result ?? null); }},\
              (error) => {{ window.__fmessProbe = JSON.stringify('error: ' + error); }});"
@@ -41,7 +44,7 @@ pub fn run<R: Runtime>(app: AppHandle<R>) {
         for _ in 0..120 {
             thread::sleep(Duration::from_millis(500));
             let (tx, rx) = std::sync::mpsc::channel();
-            let _ = window.eval_with_callback("window.__fmessProbe ?? null", move |result| {
+            let _ = webview.eval_with_callback("window.__fmessProbe ?? null", move |result| {
                 let _ = tx.send(result);
             });
             match rx.recv_timeout(Duration::from_secs(5)) {
@@ -49,7 +52,7 @@ pub fn run<R: Runtime>(app: AppHandle<R>) {
                     eprintln!("[probe] {result}");
                     #[cfg(target_os = "macos")]
                     if let Ok(path) = std::env::var("FMESS_SNAPSHOT") {
-                        snapshot(&window, path);
+                        snapshot(&webview, path);
                     }
                     return;
                 }
@@ -62,12 +65,12 @@ pub fn run<R: Runtime>(app: AppHandle<R>) {
 
 /// Saves a picture of the page as a PNG, at the screen's scale.
 #[cfg(target_os = "macos")]
-fn snapshot<R: Runtime>(window: &tauri::WebviewWindow<R>, path: String) {
+fn snapshot<R: Runtime>(webview: &tauri::Webview<R>, path: String) {
     use block2::RcBlock;
     use objc2::{class, msg_send, rc::Retained, runtime::AnyObject};
     use objc2_foundation::NSString;
 
-    let _ = window.with_webview(move |webview| {
+    let _ = webview.with_webview(move |webview| {
         let view = webview.inner().cast::<AnyObject>();
         let done = RcBlock::new(move |image: *mut AnyObject, _error: *mut AnyObject| {
             if image.is_null() {

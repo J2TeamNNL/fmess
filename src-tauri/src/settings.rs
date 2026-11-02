@@ -8,7 +8,11 @@ use serde::{Deserialize, Serialize};
 use tauri::{AppHandle, Manager, Runtime, Theme};
 use tauri_plugin_autostart::ManagerExt;
 
-use crate::{badge, icon, themes, MAIN_WINDOW};
+use crate::{
+    badge, icon,
+    services::{self, Service},
+    themes,
+};
 
 /// fMess's own preferences. Account settings (active status, sounds, dark
 /// mode) stay in Facebook's Preferences, which sync with the phone app.
@@ -140,21 +144,23 @@ pub fn update_settings<R: Runtime>(
     if settings.theme != previous.theme || settings.theme_icon != previous.theme_icon {
         icon::apply(&app);
     }
-    if let Some(window) = app.get_webview_window(MAIN_WINDOW) {
-        if settings.zoom != previous.zoom {
-            let _ = window.set_zoom(settings.zoom);
-        }
-        if settings.badge != previous.badge {
+    if settings.badge != previous.badge {
+        if let Some(window) = services::main_window(&app) {
             badge::refresh(&window);
         }
+    }
+    if let Some(webview) = services::webview(&app, Service::Messenger) {
+        if settings.zoom != previous.zoom {
+            let _ = webview.set_zoom(settings.zoom);
+        }
         if settings.block_typing != previous.block_typing || settings.theme != previous.theme {
-            let _ = window.eval(page_settings_script(&app, &settings));
+            let _ = webview.eval(page_settings_script(&app, &settings));
         }
         if settings.mac_calls != previous.mac_calls {
             // The call gate is patched as Facebook loads, so reload to apply
             // it; the page's settings from when the window opened are older,
             // so this one value goes to the reload through localStorage.
-            let _ = window.eval(format!(
+            let _ = webview.eval(format!(
                 "try {{ localStorage.setItem('fmess.macCalls', '{}'); }} catch {{}} location.reload();",
                 if settings.mac_calls { "1" } else { "0" }
             ));
@@ -200,13 +206,13 @@ pub fn messenger_theme(dark_mode: Option<&str>) -> Option<Theme> {
 /// darkMode or muteFor (milliseconds, -1 until turned off, 0 to turn it off).
 #[tauri::command]
 pub fn set_messenger_pref<R: Runtime>(app: AppHandle<R>, name: String, value: serde_json::Value) -> Result<(), String> {
-    let window = app.get_webview_window(MAIN_WINDOW).ok_or("fMess's window is closed")?;
+    let webview = services::webview(&app, Service::Messenger).ok_or("fMess's window is closed")?;
     if let ("darkMode", Some(mode)) = (name.as_str(), value.as_str()) {
         // Recolour fMess's windows together with the page, not after it reports.
         app.set_theme(messenger_theme(Some(mode)));
     }
     let call = serde_json::to_string(&(name, value)).expect("JSON serializes");
-    window
+    webview
         .eval(format!("window.__fmessSetMessengerPref?.(...{call});"))
         .map_err(|err| err.to_string())
 }
@@ -216,9 +222,9 @@ pub fn set_messenger_pref<R: Runtime>(app: AppHandle<R>, name: String, value: se
 #[tauri::command]
 pub fn open_messenger_preferences<R: Runtime>(app: AppHandle<R>, section: Option<String>) {
     crate::show_main_window(&app);
-    if let Some(window) = app.get_webview_window(MAIN_WINDOW) {
+    if let Some(webview) = services::webview(&app, Service::Messenger) {
         let section = serde_json::to_string(&section).expect("JSON serializes");
-        let _ = window.eval(format!("window.__fmessOpenMessengerPreferences?.({section});"));
+        let _ = webview.eval(format!("window.__fmessOpenMessengerPreferences?.({section});"));
     }
 }
 
@@ -241,8 +247,8 @@ pub fn zoom_by<R: Runtime>(app: &AppHandle<R>, step: i32) {
     if let Err(err) = change(app, |settings| settings.zoom = zoom) {
         eprintln!("could not save the text size: {err}");
     }
-    if let Some(window) = app.get_webview_window(MAIN_WINDOW) {
-        let _ = window.set_zoom(zoom);
+    if let Some(webview) = services::webview(app, Service::Messenger) {
+        let _ = webview.set_zoom(zoom);
     }
 }
 
@@ -268,8 +274,8 @@ pub fn page_settings_script<R: Runtime>(app: &AppHandle<R>, settings: &Settings)
 pub fn clear_theme<R: Runtime>(app: &AppHandle<R>) -> Result<(), String> {
     change(app, |settings| settings.theme = None)?;
     icon::apply(app);
-    if let Some(window) = app.get_webview_window(MAIN_WINDOW) {
-        let _ = window.eval(page_settings_script(app, &current(app)));
+    if let Some(webview) = services::webview(app, Service::Messenger) {
+        let _ = webview.eval(page_settings_script(app, &current(app)));
     }
     Ok(())
 }
