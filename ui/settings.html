@@ -228,6 +228,22 @@
   </div>
   <p class="note" data-messenger-missing hidden>These belong to your Messenger account. Open fMess's window and sign in to change them here.</p>
 
+  <h2>Instagram</h2>
+  <div class="group">
+    <label class="row">
+      <span class="label">Instagram
+        <span class="hint">Your Instagram chats beside Messenger's, with their notifications and unread count. Uses more memory while on.</span>
+      </span>
+      <span class="switch"><input type="checkbox" data-key="instagram"><span></span></span>
+    </label>
+    <label class="row" data-needs="instagram">
+      <span class="label">Show Instagram on the rail
+        <span class="hint">When hidden, switch with <kbd data-service-shortcuts></kbd>.</span>
+      </span>
+      <span class="switch"><input type="checkbox" data-key="instagramIcon"><span></span></span>
+    </label>
+  </div>
+
   <h2>Notifications</h2>
   <div class="group">
     <label class="row">
@@ -349,6 +365,7 @@
     for (const el of document.querySelectorAll('[data-only="macos"]')) el.hidden = !mac;
     for (const el of document.querySelectorAll('[data-tray]')) el.textContent = mac ? 'menu bar' : 'tray';
     document.querySelector('[data-zoom-shortcuts]').textContent = mac ? '⌘+  ⌘−  ⌘0' : 'Ctrl+  Ctrl−  Ctrl+0';
+    document.querySelector('[data-service-shortcuts]').textContent = mac ? '⌃⌘1 and ⌃⌘2' : 'Ctrl+Win+1 and Ctrl+Win+2';
     renderMessenger(view.messenger);
   }
 

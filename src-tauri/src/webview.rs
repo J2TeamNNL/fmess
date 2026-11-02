@@ -7,7 +7,7 @@ use tauri::{
     utils::config::BackgroundThrottlingPolicy,
     webview::{NewWindowFeatures, NewWindowResponse, PageLoadEvent, WebviewBuilder},
     window::WindowBuilder,
-    AppHandle, Manager, PhysicalPosition, PhysicalSize, Runtime, Url, WebviewUrl, WebviewWindowBuilder,
+    AppHandle, Manager, PhysicalPosition, PhysicalSize, Runtime, Url, Webview, WebviewUrl, WebviewWindowBuilder, Window,
 };
 
 use crate::{
@@ -17,26 +17,27 @@ use crate::{
     AUTOSTART_ARG, MAIN_WINDOW,
 };
 
-/// Settings shared by Messenger's web view and the popups it opens (calls,
-/// media), which are built by different builders with the same methods.
+/// Settings shared by the services' web views and the popups they open
+/// (calls, media), which are built by different builders with the same methods.
 macro_rules! configure {
-    ($builder:expr, $app:expr, $label:expr) => {{
+    ($builder:expr, $app:expr, $label:expr, $service:expr) => {{
         let app: &AppHandle<_> = $app;
+        let service: Service = $service;
         let navigation_app = app.clone();
         let popup_app = app.clone();
         let label: String = $label.to_owned();
         let builder = $builder
             // Call popups need the script too: Facebook checks call support again
             // there. (On macOS a popup shares its opener's scripts and skips these.)
-            .initialization_script(initialization_script(app))
+            .initialization_script(initialization_script(app, service))
             .on_navigation(move |url| {
                 if is_close_window_url(url) {
                     close_popup(&navigation_app, &label);
                     return false;
                 }
-                links::allow_navigation(&navigation_app, url)
+                links::allow_navigation(&navigation_app, service, url)
             })
-            .on_new_window(move |url, features| open_popup(&popup_app, url, features))
+            .on_new_window(move |url, features| open_popup(&popup_app, service, url, features))
             // Without a download handler, macOS cancels every download.
             .on_download(|_, _| true)
             // Hidden windows must keep receiving messages (macOS 14+ only).
@@ -53,7 +54,11 @@ pub const SETTINGS_WINDOW: &str = "settings";
 /// Meta shut messenger.com down in April 2026; chats on the web live here now.
 const MESSAGES_URL: &str = "https://www.facebook.com/messages/";
 
+/// Instagram's chats, opened when the Instagram service is turned on.
+const INSTAGRAM_URL: &str = "https://www.instagram.com/direct/inbox/";
+
 const INJECTED_SCRIPT: &str = include_str!("inject.js");
+const INSTAGRAM_SCRIPT: &str = include_str!("inject-instagram.js");
 
 /// The app icon, shown on fMess's loading screen in place of Facebook's.
 const SPLASH_LOGO: &[u8] = include_bytes!("../icons/128x128@2x.png");
@@ -67,6 +72,10 @@ pub fn messages_url() -> Url {
     Url::parse(MESSAGES_URL).expect("MESSAGES_URL is valid")
 }
 
+pub fn instagram_url() -> Url {
+    Url::parse(INSTAGRAM_URL).expect("INSTAGRAM_URL is valid")
+}
+
 pub fn create_main_window<R: Runtime>(app: &AppHandle<R>, settings: &Settings) -> tauri::Result<()> {
     let launched_at_login = std::env::args().any(|arg| arg == AUTOSTART_ARG);
     let builder = WindowBuilder::new(app, MAIN_WINDOW)
@@ -77,15 +86,12 @@ pub fn create_main_window<R: Runtime>(app: &AppHandle<R>, settings: &Settings) -
     let messenger = WebviewBuilder::new(Service::Messenger.label(), WebviewUrl::External(messages_url()))
         .on_page_load(|webview, payload| match payload.event() {
             PageLoadEvent::Started => {
-                if should_leave_feed(payload.url()) {
+                static LAST_REDIRECT: AtomicU64 = AtomicU64::new(0);
+                if links::is_facebook_feed(payload.url()) && may_redirect(&LAST_REDIRECT) {
                     let _ = webview.navigate(messages_url());
                 }
             }
-            PageLoadEvent::Finished => {
-                // The settings may have changed since the window opened.
-                let settings = settings::current(webview.app_handle());
-                let _ = webview.eval(settings::page_settings_script(webview.app_handle(), &settings));
-            }
+            PageLoadEvent::Finished => apply_page_settings(&webview),
         });
     // Messenger's colours from the first frame, before the page paints.
     let background = match settings::messenger_theme(settings.messenger_dark_mode.as_deref()) {
@@ -104,10 +110,13 @@ pub fn create_main_window<R: Runtime>(app: &AppHandle<R>, settings: &Settings) -
         .hidden_title(true);
     let window = builder.build()?;
     let size = window.inner_size()?;
-    let messenger = configure!(messenger, app, Service::Messenger.label());
+    let messenger = configure!(messenger, app, Service::Messenger.label(), Service::Messenger);
     let webview = window.add_child(messenger, PhysicalPosition::new(0, 0), size)?;
     if settings.zoom != 1.0 {
         let _ = webview.set_zoom(settings.zoom);
+    }
+    if settings.instagram {
+        add_instagram(app, &window, settings)?;
     }
     // After the services, whose icons it shows.
     let rail = match background {
@@ -118,6 +127,36 @@ pub fn create_main_window<R: Runtime>(app: &AppHandle<R>, settings: &Settings) -
     services::layout(&window);
     services::select(app, services::selected(app));
     Ok(())
+}
+
+/// Instagram's chats, beside Messenger's and hidden until selected; it keeps
+/// running so its messages arrive. services::layout places it.
+pub fn add_instagram<R: Runtime>(app: &AppHandle<R>, window: &Window<R>, settings: &Settings) -> tauri::Result<Webview<R>> {
+    let label = Service::Instagram.label();
+    let builder = WebviewBuilder::new(label, WebviewUrl::External(instagram_url())).on_page_load(|webview, payload| {
+        match payload.event() {
+            PageLoadEvent::Started => {
+                static LAST_REDIRECT: AtomicU64 = AtomicU64::new(0);
+                if links::is_instagram_home(payload.url()) && may_redirect(&LAST_REDIRECT) {
+                    let _ = webview.navigate(instagram_url());
+                }
+            }
+            PageLoadEvent::Finished => apply_page_settings(&webview),
+        }
+    });
+    let builder = configure!(builder, app, label, Service::Instagram);
+    let webview = window.add_child(builder, PhysicalPosition::new(0, 0), PhysicalSize::new(0, 0))?;
+    let _ = webview.hide();
+    if settings.zoom != 1.0 {
+        let _ = webview.set_zoom(settings.zoom);
+    }
+    Ok(webview)
+}
+
+/// The settings may have changed since the web view opened.
+fn apply_page_settings<R: Runtime>(webview: &Webview<R>) {
+    let app = webview.app_handle();
+    let _ = webview.eval(settings::page_settings_script(app, &settings::current(app)));
 }
 
 /// The bar down the left (ui/rail.html), which services::layout places.
@@ -208,17 +247,14 @@ fn set_title_visible<R: Runtime>(window: &tauri::Window<R>, visible: bool) {
     });
 }
 
-/// Facebook lands on the news feed after logging in, but fMess is for chats.
-/// Redirect at most once every few seconds so a server-side bounce can't loop.
-fn should_leave_feed(url: &Url) -> bool {
-    static LAST_REDIRECT: AtomicU64 = AtomicU64::new(0);
-    if !links::is_facebook_feed(url) {
-        return false;
-    }
+/// Facebook lands on the news feed after logging in, and Instagram on its
+/// home page, but fMess is for chats. Redirect at most once every few seconds
+/// so a server-side bounce can't loop.
+fn may_redirect(last_redirect: &AtomicU64) -> bool {
     let now = SystemTime::now()
         .duration_since(UNIX_EPOCH)
         .map_or(0, |elapsed| elapsed.as_secs());
-    let last = LAST_REDIRECT.swap(now, Ordering::Relaxed);
+    let last = last_redirect.swap(now, Ordering::Relaxed);
     now.saturating_sub(last) >= 5
 }
 
@@ -241,9 +277,10 @@ pub fn prefer_overlay_scrollbars() {
     unsafe { defaults.setObject_forKey(Some(value), &NSString::from_str("AppleShowScrollBars")) };
 }
 
-/// inject.js, preceded by what it needs from fMess: the title bar inset, its
-/// settings, and the logo and colours of the loading screen.
-fn initialization_script<R: Runtime>(app: &AppHandle<R>) -> String {
+/// The service's page script (inject.js or inject-instagram.js), preceded by
+/// what it needs from fMess: the title bar inset, its settings, and the logo
+/// and colours of Messenger's loading screen.
+fn initialization_script<R: Runtime>(app: &AppHandle<R>, service: Service) -> String {
     use base64::Engine;
 
     let settings = settings::current(app);
@@ -252,8 +289,17 @@ fn initialization_script<R: Runtime>(app: &AppHandle<R>) -> String {
         Some(_) => "false",
         None => "null",
     };
-    let logo = base64::engine::general_purpose::STANDARD.encode(SPLASH_LOGO);
     let debug = cfg!(debug_assertions);
+    if service == Service::Instagram {
+        return format!(
+            "window.__fmessTitleBarInset = {TITLE_BAR_INSET};\n\
+             window.__fmessDebug = {debug};\n\
+             window.__fmessSettings = {};\n\
+             {INSTAGRAM_SCRIPT}",
+            settings::page_settings(app, &settings)
+        );
+    }
+    let logo = base64::engine::general_purpose::STANDARD.encode(SPLASH_LOGO);
     format!(
         "window.__fmessTitleBarInset = {TITLE_BAR_INSET};\n\
          window.__fmessDebug = {debug};\n\
@@ -267,10 +313,11 @@ fn initialization_script<R: Runtime>(app: &AppHandle<R>) -> String {
 
 fn open_popup<R: Runtime>(
     app: &AppHandle<R>,
+    service: Service,
     url: Url,
     features: NewWindowFeatures,
 ) -> NewWindowResponse<R> {
-    if !links::opens_in_app(&url) {
+    if !links::opens_in_app(service, &url) {
         links::open_external(app, &url);
         return NewWindowResponse::Deny;
     }
@@ -283,7 +330,7 @@ fn open_popup<R: Runtime>(
     if let Some((x, y)) = centred_on_main_window(app, size) {
         builder = builder.position(x, y);
     }
-    match configure!(builder, app, &label).build() {
+    match configure!(builder, app, &label, service).build() {
         Ok(window) => {
             icon::apply_to(&window);
             NewWindowResponse::Create { window }

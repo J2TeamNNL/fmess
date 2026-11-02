@@ -1,0 +1,23 @@
+{
+  "$schema": "../gen/schemas/remote-schema.json",
+  "identifier": "instagram-web",
+  "description": "Lets instagram.com show and clear native notifications, report its unread chat count, open Settings, use the service shortcuts on Windows and Linux, and drag the window by its title strip, and nothing else.",
+  "webviews": [
+    "instagram"
+  ],
+  "remote": {
+    "urls": [
+      "https://instagram.com",
+      "https://*.instagram.com"
+    ]
+  },
+  "permissions": [
+    "allow-notify",
+    "allow-clear-notifications",
+    "allow-set-unread-count",
+    "allow-open-settings",
+    "allow-menu-shortcut",
+    "core:window:allow-start-dragging",
+    "core:window:allow-internal-toggle-maximize"
+  ]
+}

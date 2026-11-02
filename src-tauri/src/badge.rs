@@ -1,6 +1,6 @@
 use std::{collections::HashMap, sync::Mutex};
 
-use tauri::{Emitter, Manager, Runtime, Webview, Window};
+use tauri::{AppHandle, Emitter, Manager, Runtime, Webview, Window};
 
 use crate::{
     services::{self, Service},
@@ -22,7 +22,18 @@ pub fn set_unread_count<R: Runtime>(webview: Webview<R>, count: i64) {
     #[cfg(debug_assertions)]
     eprintln!("[fmess] unread chats in {}: {count}", service.label());
     UNREAD.lock().unwrap().get_or_insert_with(HashMap::new).insert(service, count);
-    let app = webview.app_handle();
+    changed(webview.app_handle(), service, count);
+}
+
+/// A service that was turned off has no unread chats.
+pub fn forget<R: Runtime>(app: &AppHandle<R>, service: Service) {
+    if let Some(unread) = UNREAD.lock().unwrap().as_mut() {
+        unread.remove(&service);
+    }
+    changed(app, service, 0);
+}
+
+fn changed<R: Runtime>(app: &AppHandle<R>, service: Service, count: i64) {
     let _ = app.emit_to(services::RAIL, "unread", serde_json::json!({ "service": service, "count": count }));
     if let Some(window) = services::main_window(app) {
         refresh(&window);

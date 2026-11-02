@@ -41,7 +41,10 @@ pub struct Settings {
     pub theme_icon: bool,
     /// Widths the panes were dragged to; none keeps Facebook's.
     pub pane_widths: PaneWidths,
-    /// The rail shows Instagram's icon; ⌘2 switches to it either way.
+    /// Instagram's chats run beside Messenger's. Off by default: its web
+    /// view takes a few hundred MB.
+    pub instagram: bool,
+    /// The rail shows Instagram's icon; ⌃⌘2 switches to it either way.
     pub instagram_icon: bool,
     /// The service shown last, shown again at start. Set by the rail.
     pub last_service: Service,
@@ -72,6 +75,7 @@ impl Default for Settings {
             theme: None,
             theme_icon: true,
             pane_widths: PaneWidths::default(),
+            instagram: false,
             instagram_icon: true,
             last_service: Service::Messenger,
         }
@@ -109,13 +113,48 @@ pub struct SettingsView {
 }
 
 pub fn init<R: Runtime>(app: &AppHandle<R>) -> Settings {
-    let settings = settings_path(app)
+    let settings: Settings = settings_path(app)
         .and_then(|path| fs::read(path).ok())
         .and_then(|bytes| serde_json::from_slice(&bytes).ok())
         .unwrap_or_default();
+    #[cfg(debug_assertions)]
+    let settings = debug_override(settings);
     app.manage(SettingsState(Mutex::new(Settings::clone(&settings))));
     app.manage(MessengerPrefsState::default());
     settings
+}
+
+/// Debug builds only: FMESS_SETTINGS=<json> sets some settings for this run,
+/// such as `{"instagram": true, "lastService": "instagram"}`, and keeps every
+/// change in memory, so the settings file stays as it was.
+#[cfg(debug_assertions)]
+fn debug_override(settings: Settings) -> Settings {
+    let Ok(json) = std::env::var("FMESS_SETTINGS") else {
+        return settings;
+    };
+    let overridden = serde_json::from_str::<serde_json::Value>(&json)
+        .and_then(|value| merge(&settings, value))
+        .map_err(|err| eprintln!("[fmess] FMESS_SETTINGS: {err}"));
+    match overridden {
+        Ok(overridden) => {
+            IN_MEMORY.store(true, std::sync::atomic::Ordering::Relaxed);
+            overridden
+        }
+        Err(()) => settings,
+    }
+}
+
+#[cfg(debug_assertions)]
+static IN_MEMORY: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
+
+/// `settings` with the fields `changes` gives.
+#[cfg(debug_assertions)]
+fn merge(settings: &Settings, changes: serde_json::Value) -> serde_json::Result<Settings> {
+    let mut value = serde_json::to_value(settings)?;
+    if let (Some(fields), serde_json::Value::Object(changes)) = (value.as_object_mut(), changes) {
+        fields.extend(changes);
+    }
+    serde_json::from_value(value)
 }
 
 pub fn current<R: Runtime>(app: &AppHandle<R>) -> Settings {
@@ -150,6 +189,9 @@ pub fn update_settings<R: Runtime>(
     if settings.theme != previous.theme || settings.theme_icon != previous.theme_icon {
         icon::apply(&app);
     }
+    if settings.instagram != previous.instagram {
+        services::set_instagram(&app, settings.instagram);
+    }
     if settings.theme != previous.theme || settings.instagram_icon != previous.instagram_icon {
         services::update_rail(&app);
     }
@@ -158,13 +200,15 @@ pub fn update_settings<R: Runtime>(
             badge::refresh(&window);
         }
     }
-    if let Some(webview) = services::webview(&app, Service::Messenger) {
+    for webview in services::webviews(&app) {
         if settings.zoom != previous.zoom {
             let _ = webview.set_zoom(settings.zoom);
         }
         if settings.block_typing != previous.block_typing || settings.theme != previous.theme {
             let _ = webview.eval(page_settings_script(&app, &settings));
         }
+    }
+    if let Some(webview) = services::webview(&app, Service::Messenger) {
         if settings.mac_calls != previous.mac_calls {
             // The call gate is patched as Facebook loads, so reload to apply
             // it; the page's settings from when the window opened are older,
@@ -258,7 +302,7 @@ pub fn zoom_by<R: Runtime>(app: &AppHandle<R>, step: i32) {
     if let Err(err) = change(app, |settings| settings.zoom = zoom) {
         eprintln!("could not save the text size: {err}");
     }
-    if let Some(webview) = services::webview(app, Service::Messenger) {
+    for webview in services::webviews(app) {
         let _ = webview.set_zoom(zoom);
     }
 }
@@ -286,7 +330,7 @@ pub fn clear_theme<R: Runtime>(app: &AppHandle<R>) -> Result<(), String> {
     change(app, |settings| settings.theme = None)?;
     icon::apply(app);
     services::update_rail(app);
-    if let Some(webview) = services::webview(app, Service::Messenger) {
+    for webview in services::webviews(app) {
         let _ = webview.eval(page_settings_script(app, &current(app)));
     }
     Ok(())
@@ -320,6 +364,10 @@ fn view<R: Runtime>(app: &AppHandle<R>, settings: Settings) -> SettingsView {
 }
 
 fn save<R: Runtime>(app: &AppHandle<R>, settings: &Settings) -> Result<(), String> {
+    #[cfg(debug_assertions)]
+    if IN_MEMORY.load(std::sync::atomic::Ordering::Relaxed) {
+        return Ok(());
+    }
     let path = settings_path(app).ok_or("no config directory")?;
     let json = serde_json::to_vec_pretty(settings).expect("settings serialize to JSON");
     write_whole(&path, &json).map_err(|err| format!("could not save settings to {}: {err}", path.display()))
@@ -343,6 +391,27 @@ fn settings_path<R: Runtime>(app: &AppHandle<R>) -> Option<PathBuf> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn instagram_is_opt_in() {
+        let settings: Settings = serde_json::from_str("{}").unwrap();
+        assert!(!settings.instagram);
+        assert!(settings.instagram_icon);
+    }
+
+    #[cfg(debug_assertions)]
+    #[test]
+    fn overrides_only_the_given_settings() {
+        let settings = Settings {
+            zoom: 1.25,
+            ..Settings::default()
+        };
+        let merged = merge(&settings, serde_json::json!({ "instagram": true, "lastService": "instagram" })).unwrap();
+        assert!(merged.instagram);
+        assert_eq!(merged.last_service, Service::Instagram);
+        assert_eq!(merged.zoom, 1.25);
+        assert!(merge(&settings, serde_json::json!({ "instagram": "yes" })).is_err());
+    }
 
     #[test]
     fn writes_settings_whole() {

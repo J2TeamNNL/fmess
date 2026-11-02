@@ -1,5 +1,7 @@
+use std::{collections::VecDeque, sync::Mutex};
+
 use serde::Deserialize;
-use tauri::{AppHandle, Manager, Runtime};
+use tauri::{AppHandle, Manager, Runtime, Webview};
 use tauri_plugin_notification::NotificationExt;
 
 use crate::{
@@ -28,12 +30,46 @@ pub struct Group {
     picture: Option<String>,
 }
 
-/// Called by inject.js whenever the page creates a web `Notification`. `icon`
-/// is its picture and `image` a photo in the message (base64); `message`
-/// says who wrote in which chat, when the page knows.
+/// Which service raised each recent notification, for clicks on it.
+static SENT: Mutex<VecDeque<(i32, Service)>> = Mutex::new(VecDeque::new());
+
+/// Instagram's chats are told apart from Messenger's in the notification
+/// center by this prefix on their thread, which outlives fMess's memory.
+const INSTAGRAM_THREAD: &str = "instagram:";
+
+fn thread_key(service: Service, thread: String) -> String {
+    match service {
+        Service::Messenger => thread,
+        Service::Instagram => format!("{INSTAGRAM_THREAD}{thread}"),
+    }
+}
+
+/// The service and the page's own thread id of a notification.
+fn split_thread_key(id: i32, thread: Option<String>) -> (Service, Option<String>) {
+    match thread.as_deref().and_then(|thread| thread.strip_prefix(INSTAGRAM_THREAD)) {
+        Some(thread) => (Service::Instagram, Some(thread.to_owned())),
+        None => {
+            let sent = SENT.lock().unwrap();
+            let service = sent.iter().find(|(sent, _)| *sent == id).map_or(Service::Messenger, |(_, service)| *service);
+            (service, thread)
+        }
+    }
+}
+
+fn remember(id: i32, service: Service) {
+    let mut sent = SENT.lock().unwrap();
+    sent.push_back((id, service));
+    if sent.len() > 500 {
+        sent.pop_front();
+    }
+}
+
+/// Called by the services' pages whenever they create a web `Notification`.
+/// `icon` is its picture and `image` a photo in the message (base64);
+/// `message` says who wrote in which chat, when the page knows.
 #[tauri::command]
 pub async fn notify<R: Runtime>(
-    app: AppHandle<R>,
+    webview: Webview<R>,
     id: i32,
     title: String,
     body: String,
@@ -41,16 +77,25 @@ pub async fn notify<R: Runtime>(
     image: Option<String>,
     message: Option<Message>,
 ) -> Result<(), String> {
+    let app = webview.app_handle();
+    // Popups (call windows) notify for Messenger.
+    let service = Service::from_label(webview.label()).unwrap_or(Service::Messenger);
     #[cfg(debug_assertions)]
     eprintln!(
-        "[fmess] notify #{id}: {title} (thread {:?}, group {})",
+        "[fmess] notify #{id} from {}: {title} (thread {:?}, group {})",
+        service.label(),
         message.as_ref().map(|message| &message.thread),
         message.as_ref().is_some_and(|message| message.group.is_some())
     );
-    let settings = settings::current(&app);
+    let settings = settings::current(app);
     if !settings.notifications {
         return Ok(());
     }
+    remember(id, service);
+    let message = message.map(|message| Message {
+        thread: thread_key(service, message.thread),
+        ..message
+    });
     #[cfg(target_os = "macos")]
     if communication::available() {
         use base64::Engine;
@@ -60,6 +105,8 @@ pub async fn notify<R: Runtime>(
                 id,
                 title,
                 body,
+                // Replying sends in Messenger's chats only.
+                replyable: service == Service::Messenger,
                 image: decode(image),
                 message: message.map(|message| communication::Sender {
                     thread: message.thread,
@@ -161,16 +208,39 @@ pub fn register_app_id<R: Runtime>(app: &AppHandle<R>) {
     }
 }
 
-/// Called by inject.js when a chat is read in fMess: its notifications go, as
-/// in the old desktop app.
+/// Called by the services' pages when a chat is read in fMess: its
+/// notifications go, as in the old desktop app.
 #[tauri::command]
-pub fn clear_notifications(thread: String) {
+pub fn clear_notifications<R: Runtime>(webview: Webview<R>, thread: String) {
+    let service = Service::from_label(webview.label()).unwrap_or(Service::Messenger);
     #[cfg(target_os = "macos")]
     if communication::available() {
-        communication::clear(thread);
+        let thread = thread_key(service, thread);
+        communication::clear_where(move |_, delivered| delivered == thread);
     }
     #[cfg(not(target_os = "macos"))]
-    let _ = thread;
+    let _ = (service, thread);
+}
+
+/// Removes the notifications of a service that was turned off. Only macOS
+/// lets fMess take back notifications it showed.
+pub fn clear_service(service: Service) {
+    let ids: Vec<String> = SENT
+        .lock()
+        .unwrap()
+        .iter()
+        .filter(|(_, sent)| *sent == service)
+        .map(|(id, _)| id.to_string())
+        .collect();
+    #[cfg(target_os = "macos")]
+    if communication::available() {
+        let prefixed = service == Service::Instagram;
+        communication::clear_where(move |id, thread| {
+            ids.iter().any(|sent| sent == id) || (prefixed && thread.starts_with(INSTAGRAM_THREAD))
+        });
+    }
+    #[cfg(not(target_os = "macos"))]
+    let _ = ids;
 }
 
 /// A click on a notification brings fMess forward and replays the click in
@@ -200,8 +270,12 @@ pub fn route_clicks<R: Runtime>(app: &AppHandle<R>) -> tauri_plugin_notification
 /// bringing fMess forward.
 #[cfg(target_os = "macos")]
 fn send_reply<R: Runtime>(app: &AppHandle<R>, id: i32, thread: String, text: String) {
+    if thread.starts_with(INSTAGRAM_THREAD) {
+        return;
+    }
     // Answering a chat reads it, as opening it does.
-    communication::clear(thread.clone());
+    let read = thread.clone();
+    communication::clear_where(move |_, delivered| delivered == read);
     let app_for_main = app.clone();
     let _ = app.run_on_main_thread(move || {
         if let Some(webview) = services::webview(&app_for_main, Service::Messenger) {
@@ -211,12 +285,16 @@ fn send_reply<R: Runtime>(app: &AppHandle<R>, id: i32, thread: String, text: Str
     });
 }
 
+/// Shows the service that raised the notification, whichever is selected,
+/// and lets its page open the chat.
 fn open_clicked<R: Runtime>(app: &AppHandle<R>, id: i32, thread: Option<String>) {
     let app_for_main = app.clone();
+    let (service, thread) = split_thread_key(id, thread);
     // Clicks arrive on a background thread.
     let _ = app.run_on_main_thread(move || {
         show_main_window(&app_for_main);
-        if let Some(webview) = services::webview(&app_for_main, Service::Messenger) {
+        services::select(&app_for_main, service);
+        if let Some(webview) = services::webview(&app_for_main, service) {
             let thread = serde_json::to_string(&thread).expect("JSON serializes");
             let _ = webview.eval(format!("window.__fmessNotificationClicked?.({id}, {thread})"));
         }
@@ -256,6 +334,8 @@ mod communication {
         pub id: i32,
         pub title: String,
         pub body: String,
+        /// Offers a reply field (Messenger's chats).
+        pub replyable: bool,
         /// A photo in the message, shown in the notification.
         pub image: Option<Vec<u8>>,
         pub message: Option<Sender>,
@@ -278,6 +358,7 @@ mod communication {
                 id,
                 title: "fMess".to_owned(),
                 body: "New message".to_owned(),
+                replyable: false,
                 image: None,
                 message: None,
                 attachments_dir: None,
@@ -395,7 +476,9 @@ mod communication {
         content.setBody(&NSString::from_str(&notification.body));
         if let Some(sender) = &notification.message {
             content.setThreadIdentifier(&NSString::from_str(&sender.thread));
-            content.setCategoryIdentifier(&NSString::from_str(MESSAGE_CATEGORY));
+            if notification.replyable {
+                content.setCategoryIdentifier(&NSString::from_str(MESSAGE_CATEGORY));
+            }
         }
         // Messenger plays its own sound in the page.
         if let (Some(image), Some(dir)) = (&notification.image, &notification.attachments_dir) {
@@ -511,15 +594,16 @@ mod communication {
         attachment.ok()
     }
 
-    /// Removes the notifications of a chat that has been read.
-    pub fn clear(thread: String) {
+    /// Removes the delivered notifications `remove` picks by id and thread:
+    /// those of a chat that has been read, or of a service turned off.
+    pub fn clear_where(remove: impl Fn(&str, &str) -> bool + 'static) {
         let center = UNUserNotificationCenter::currentNotificationCenter();
         let remove = RcBlock::new(move |delivered: std::ptr::NonNull<NSArray<UNNotification>>| {
             let delivered = unsafe { delivered.as_ref() };
             let ids: Vec<Retained<NSString>> = delivered
                 .iter()
                 .map(|notification| notification.request())
-                .filter(|request| request.content().threadIdentifier().to_string() == thread)
+                .filter(|request| remove(&request.identifier().to_string(), &request.content().threadIdentifier().to_string()))
                 .map(|request| request.identifier())
                 .collect();
             if !ids.is_empty() {
@@ -528,5 +612,29 @@ mod communication {
             }
         });
         center.getDeliveredNotificationsWithCompletionHandler(&remove);
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn instagram_threads_carry_their_service() {
+        let key = thread_key(Service::Instagram, "340282366841710300949128".into());
+        assert_eq!(key, "instagram:340282366841710300949128");
+        assert_eq!(
+            split_thread_key(1, Some(key)),
+            (Service::Instagram, Some("340282366841710300949128".to_owned()))
+        );
+        assert_eq!(thread_key(Service::Messenger, "123".into()), "123");
+        assert_eq!(split_thread_key(2, Some("123".into())), (Service::Messenger, Some("123".to_owned())));
+    }
+
+    #[test]
+    fn notifications_without_a_thread_go_to_the_service_that_raised_them() {
+        remember(-7, Service::Instagram);
+        assert_eq!(split_thread_key(-7, None), (Service::Instagram, None));
+        assert_eq!(split_thread_key(-8, None), (Service::Messenger, None));
     }
 }

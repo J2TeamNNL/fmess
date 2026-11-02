@@ -3,7 +3,7 @@ use std::sync::Mutex;
 use serde::{Deserialize, Serialize};
 use tauri::{AppHandle, Emitter, LogicalPosition, LogicalSize, Manager, Rect, Runtime, Url, Webview, Window};
 
-use crate::{badge, settings, themes, MAIN_WINDOW};
+use crate::{badge, notify, settings, themes, webview as pages, MAIN_WINDOW};
 
 /// The web view of the bar down the left (ui/rail.html), which switches
 /// between the services and is drawn by the theme.
@@ -46,6 +46,11 @@ static ACCOUNT: Mutex<Option<Account>> = Mutex::new(None);
 
 pub fn webview<R: Runtime>(app: &AppHandle<R>, service: Service) -> Option<Webview<R>> {
     app.get_webview(service.label())
+}
+
+/// The web views of the services that are on.
+pub fn webviews<R: Runtime>(app: &AppHandle<R>) -> Vec<Webview<R>> {
+    Service::ALL.into_iter().filter_map(|service| webview(app, service)).collect()
 }
 
 pub fn main_window<R: Runtime>(app: &AppHandle<R>) -> Option<Window<R>> {
@@ -126,6 +131,37 @@ pub fn selected<R: Runtime>(app: &AppHandle<R>) -> Service {
         last
     } else {
         Service::Messenger
+    }
+}
+
+/// Opens Instagram's web view or closes it, after the Settings window turned
+/// the service on or off. Closing forgets its unread chats and notifications.
+pub fn set_instagram<R: Runtime>(app: &AppHandle<R>, on: bool) {
+    match (on, webview(app, Service::Instagram)) {
+        (true, None) => {
+            // Built away from the main thread, as the Settings window is: on
+            // Windows, building a web view there from a command deadlocks.
+            let app = app.clone();
+            tauri::async_runtime::spawn(async move {
+                let Some(window) = main_window(&app) else {
+                    return;
+                };
+                if let Err(err) = pages::add_instagram(&app, &window, &settings::current(&app)) {
+                    eprintln!("could not open Instagram: {err}");
+                }
+                update_rail(&app);
+            });
+        }
+        (false, Some(instagram)) => {
+            if selected(app) == Service::Instagram {
+                select(app, Service::Messenger);
+            }
+            let _ = instagram.close();
+            badge::forget(app, Service::Instagram);
+            notify::clear_service(Service::Instagram);
+            update_rail(app);
+        }
+        _ => {}
     }
 }
 
