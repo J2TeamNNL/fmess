@@ -23,6 +23,15 @@
     wait.observe(document, { childList: true });
   };
 
+  // Below 900px wide Instagram draws an avatars-only inbox: its list reads
+  // matchMedia('(max-width: 900px)') once, when the inbox mounts. fMess's
+  // window is that narrow, so that one query says "no" and the full list shows.
+  if (!popup) {
+    const matchMedia = window.matchMedia.bind(window);
+    const never = (media) => ({ matches: false, media, onchange: null, addEventListener() {}, removeEventListener() {}, addListener() {}, removeListener() {}, dispatchEvent: () => false });
+    window.matchMedia = (query) => (/^\s*\(\s*max-width:\s*900px\s*\)\s*$/.test(query) ? never(query) : matchMedia(query));
+  }
+
   // One theme serves every service and the rail: each picks its own part by
   // this attribute. On macOS the title bar overlays the page; as on
   // Messenger, its strip drags the window, and themes can draw in it.
@@ -237,7 +246,8 @@
   const rectOf = (el) => el.getBoundingClientRect();
   const listPane = () =>
     [...document.querySelectorAll('[role="navigation"]')].find((nav) => nav.querySelector('a[href="/direct/requests/"]')) ??
-    [...document.querySelectorAll('[role="navigation"]')].find((nav) => nav.querySelector('label input'));
+    [...document.querySelectorAll('[role="navigation"]')].find((nav) => nav.querySelector('label input')) ??
+    [...document.querySelectorAll('[role="navigation"]')].find((nav) => nav.querySelector('[role="button"] img'));
   // Thread ids in URLs are the thread keys React hands the list rows.
   const threadKeyOf = (el) => {
     try {
@@ -254,7 +264,8 @@
   // The chats in the list: buttons with a picture, outside any other button
   // (the ⋯ that shows on hover is a button inside the row).
   const chatRows = () => {
-    const host = listPane()?.querySelector('h1')?.parentElement?.nextElementSibling;
+    const list = listPane();
+    const host = list?.querySelector('h1')?.parentElement?.nextElementSibling ?? list;
     if (!host) return [];
     return [...host.querySelectorAll('[role="button"]')].filter(
       (row) => row.querySelector('img') && !row.parentElement.closest('[role="button"]') && rectOf(row).height > 48,
@@ -322,20 +333,28 @@
     }
   };
 
+  const LIST_MARKS = ['list', 'list-header', 'list-account', 'new-message', 'search', 'notes', 'list-title', 'requests', 'row'];
+  const THREAD_MARKS = ['empty', 'chat', 'chat-header', 'audio-call', 'video-call', 'info', 'messages', 'composer', 'emoji', 'voice-clip', 'attach', 'sticker', 'send', 'more-actions', 'details'];
+  // Marks on elements that no longer qualify (a closed chat, a list that
+  // changed layout) would style the wrong thing.
+  const clearMarks = (names) => {
+    for (const el of document.querySelectorAll(names.map((name) => `[${UI}="${name}"]`).join())) el.removeAttribute(UI);
+  };
   const markList = (list, view) => {
     mark(list, 'list');
-    const inner = list.firstElementChild;
-    const header = inner?.firstElementChild;
-    mark(header, 'list-header');
-    const buttons = header ? [...header.querySelectorAll('[role="button"]')] : [];
-    mark(buttons[0], 'list-account');
-    if (buttons.length > 1) mark(buttons[buttons.length - 1], 'new-message');
-    const search = list.querySelector('label');
-    mark(search, 'search');
     const title = list.querySelector('h1')?.parentElement;
-    mark(title, 'list-title');
-    mark(title?.previousElementSibling, 'notes');
-    mark(title?.querySelector('a[href="/direct/requests/"]'), 'requests');
+    flag(document.documentElement, 'data-fmess-compact', !title);
+    if (title) {
+      const header = list.firstElementChild?.firstElementChild;
+      mark(header, 'list-header');
+      const buttons = header ? [...header.querySelectorAll('[role="button"]')] : [];
+      mark(buttons[0], 'list-account');
+      if (buttons.length > 1) mark(buttons[buttons.length - 1], 'new-message');
+      mark(list.querySelector('label'), 'search');
+      mark(title, 'list-title');
+      mark(title.previousElementSibling, 'notes');
+      mark(title.querySelector('a[href="/direct/requests/"]'), 'requests');
+    }
     const current = view === 'thread' ? /\/direct\/t\/(\d+)/.exec(location.pathname)?.[1] : null;
     for (const row of chatRows()) {
       mark(row, 'row');
@@ -374,8 +393,9 @@
     const field = view === 'thread' ? shell.querySelector('[role="textbox"][contenteditable="true"]') : null;
     const pane = shell.children[1];
     if (!field) {
-      tidy(pane, 'chat');
+      clearMarks(THREAD_MARKS.filter((name) => name !== 'empty'));
       if (view === 'inbox') mark(pane, 'empty');
+      else tidy(pane, 'empty');
       return;
     }
     tidy(pane, 'empty');
@@ -417,7 +437,10 @@
     if (root.getAttribute('data-fmess-view') !== view) root.setAttribute('data-fmess-view', view);
     markNav();
     const list = view === 'other' ? null : listPane();
-    if (!list) return (rowUnread = 0);
+    if (!list) {
+      clearMarks([...LIST_MARKS, ...THREAD_MARKS]);
+      return (rowUnread = 0);
+    }
     markList(list, view);
     markThread(list, view);
     rowUnread = chatRows().filter((row) => row.hasAttribute('data-fmess-unread')).length;
