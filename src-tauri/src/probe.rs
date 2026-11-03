@@ -10,16 +10,27 @@
 // FMESS_SNAPSHOT=<file.png> (macOS) then saves a picture of the page as the
 // probe left it, through WebKit, which needs no screen-recording permission.
 // Always, on stderr: each navigation of every window ([nav]), each popup
-// ([popup]) and the page's JS errors ([page]), URLs without query values.
+// ([popup]) and the page's JS errors ([page]), URLs without query values
+// (see loggable).
 use std::{thread, time::Duration};
 
 use tauri::{AppHandle, LogicalSize, Manager, Runtime, Url};
 
-/// A URL as it may be printed: query keys only (values can be tokens), no fragment.
+/// A URL as it may be printed: query keys only (values can be tokens), no
+/// fragment. Off Facebook only the host, as a path can say what was shared,
+/// and only the scheme of mailto:, tel: or data: (an address, a number, a file).
 pub fn loggable(url: &Url) -> String {
-    let mut out = format!("{}:", url.scheme());
-    if let Some(host) = url.host_str() {
-        out += &format!("//{host}");
+    let host = match (url.scheme(), url.host_str()) {
+        ("about", _) => return url.as_str().to_owned(),
+        ("http" | "https", Some(host)) => host,
+        (scheme, _) => return format!("{scheme}:…"),
+    };
+    let on_facebook = ["facebook.com", "messenger.com", "fbcdn.net", "fbsbx.com", "facebook.net"]
+        .iter()
+        .any(|domain| host == *domain || host.ends_with(&format!(".{domain}")));
+    let mut out = format!("{}://{host}", url.scheme());
+    if !on_facebook {
+        return out + "/…";
     }
     out += url.path();
     let keys: Vec<_> = url.query_pairs().map(|(key, _)| key.into_owned()).collect();
@@ -155,4 +166,27 @@ fn snapshot<R: Runtime>(window: &tauri::WebviewWindow<R>, path: String) {
             let _: () = msg_send![view, takeSnapshotWithConfiguration: &*config, completionHandler: &*done];
         }
     });
+}
+
+#[cfg(test)]
+mod tests {
+    use super::loggable;
+    use tauri::Url;
+
+    fn log(url: &str) -> String {
+        loggable(&Url::parse(url).unwrap())
+    }
+
+    #[test]
+    fn logged_urls_keep_no_private_parts() {
+        assert_eq!(
+            log("https://www.facebook.com/messages/t/123/?token=abc&x=1#frag"),
+            "https://www.facebook.com/messages/t/123/?token,x"
+        );
+        assert_eq!(log("https://example.com/private/path?q=secret"), "https://example.com/…");
+        assert_eq!(log("mailto:someone@example.com"), "mailto:…");
+        assert_eq!(log("tel:+84123456789"), "tel:…");
+        assert_eq!(log("data:text/plain,hello"), "data:…");
+        assert_eq!(log("about:blank"), "about:blank");
+    }
 }
