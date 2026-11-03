@@ -34,6 +34,34 @@
       }
       return nativeAdd.call(this, type, listener, options);
     };
+
+    // The page's errors, printed by probe.rs. Query strings are cut, as they
+    // can carry tokens.
+    const errors = (window.__fmessErrors = []);
+    const show = (part) => {
+      if (part instanceof Error) return `${part.name}: ${part.message}`;
+      if (typeof part === 'string') return part;
+      try {
+        return JSON.stringify(part);
+      } catch {
+        return String(part);
+      }
+    };
+    const note = (kind, parts) => {
+      if (errors.length >= 200) return;
+      const text = parts.map(show).join(' ').replace(/\?[^\s"')]*/g, '?…').slice(0, 500);
+      errors.push(`${kind} ${text}`);
+    };
+    window.addEventListener('error', (event) => {
+      const where = event.filename ? `(${event.filename}:${event.lineno})` : '';
+      note('error', [event.error ?? event.message, where]);
+    });
+    window.addEventListener('unhandledrejection', (event) => note('unhandledrejection', [event.reason]));
+    const nativeError = console.error;
+    console.error = function (...args) {
+      note('console.error', args);
+      return nativeError.apply(this, args);
+    };
   }
 
   // WebView2 (Windows) runs this before the page has its <html> element;

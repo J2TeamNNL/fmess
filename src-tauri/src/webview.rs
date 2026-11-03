@@ -252,7 +252,10 @@ fn configure<'a, R: Runtime, M: Manager<R>>(
                 close_popup(&navigation_app, &label);
                 return false;
             }
-            links::allow_navigation(&navigation_app, url)
+            let allowed = links::allow_navigation(&navigation_app, url);
+            #[cfg(debug_assertions)]
+            crate::probe::log_navigation(&label, url, allowed);
+            allowed
         })
         .on_new_window(move |url, features| open_popup(&popup_app, url, features))
         // Without a download handler, macOS cancels every download.
@@ -327,9 +330,13 @@ fn open_popup<R: Runtime>(
     features: NewWindowFeatures,
 ) -> NewWindowResponse<R> {
     if !links::opens_in_app(&url) {
+        #[cfg(debug_assertions)]
+        eprintln!("[popup] opened externally {}", crate::probe::loggable(&url));
         links::open_external(app, &url);
         return NewWindowResponse::Deny;
     }
+    #[cfg(debug_assertions)]
+    eprintln!("[popup] in app {}", crate::probe::loggable(&url));
     static NEXT_POPUP: AtomicUsize = AtomicUsize::new(1);
     let label = format!("popup-{}", NEXT_POPUP.fetch_add(1, Ordering::Relaxed));
     let size = features.size().map(|size| (size.width, size.height));

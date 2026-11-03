@@ -9,11 +9,62 @@
 // FMESS_WINDOW_SIZE=<width>x<height> sizes the window first, and
 // FMESS_SNAPSHOT=<file.png> (macOS) then saves a picture of the page as the
 // probe left it, through WebKit, which needs no screen-recording permission.
+// Always, on stderr: each navigation of every window ([nav]), each popup
+// ([popup]) and the page's JS errors ([page]), URLs without query values.
 use std::{thread, time::Duration};
 
-use tauri::{AppHandle, LogicalSize, Manager, Runtime};
+use tauri::{AppHandle, LogicalSize, Manager, Runtime, Url};
+
+/// A URL as it may be printed: query keys only (values can be tokens), no fragment.
+pub fn loggable(url: &Url) -> String {
+    let mut out = format!("{}:", url.scheme());
+    if let Some(host) = url.host_str() {
+        out += &format!("//{host}");
+    }
+    out += url.path();
+    let keys: Vec<_> = url.query_pairs().map(|(key, _)| key.into_owned()).collect();
+    if !keys.is_empty() {
+        let keys = keys.join(",");
+        let keys: String = keys.chars().take(80).collect();
+        out += &format!("?{keys}");
+    }
+    out
+}
+
+pub fn log_navigation(label: &str, url: &Url, allowed: bool) {
+    let verdict = if allowed {
+        "allowed"
+    } else if matches!(url.scheme(), "http" | "https" | "mailto" | "tel") {
+        "opened externally"
+    } else {
+        "blocked"
+    };
+    eprintln!("[nav] {label} {verdict} {}", loggable(url));
+}
+
+/// Prints what inject.js collected in window.__fmessErrors, from every window.
+fn watch_page_errors<R: Runtime>(app: AppHandle<R>) {
+    thread::spawn(move || loop {
+        thread::sleep(Duration::from_secs(2));
+        for (label, window) in app.webview_windows() {
+            let _ = window.eval_with_callback(
+                "JSON.stringify((window.__fmessErrors || []).splice(0))",
+                move |result| {
+                    let entries = serde_json::from_str::<String>(&result)
+                        .ok()
+                        .and_then(|json| serde_json::from_str::<Vec<String>>(&json).ok())
+                        .unwrap_or_default();
+                    for entry in entries {
+                        eprintln!("[page] {label} {entry}");
+                    }
+                },
+            );
+        }
+    });
+}
 
 pub fn run<R: Runtime>(app: AppHandle<R>) {
+    watch_page_errors(app.clone());
     let Some(path) = std::env::var_os("FMESS_PROBE") else {
         return;
     };
