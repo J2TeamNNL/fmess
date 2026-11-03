@@ -35,21 +35,28 @@
       return nativeAdd.call(this, type, listener, options);
     };
 
-    // The page's errors, printed by probe.rs. Query strings are cut, as they
-    // can carry tokens.
+    // The page's errors, printed by probe.rs. Query strings and URL fragments
+    // are cut, as they can carry tokens, and objects show only their type, as
+    // they can hold names or message text.
     const errors = (window.__fmessErrors = []);
     const show = (part) => {
       if (part instanceof Error) return `${part.name}: ${part.message}`;
-      if (typeof part === 'string') return part;
+      if (typeof part === 'function') return '[function]';
+      if (part === null || typeof part !== 'object') return String(part);
       try {
-        return JSON.stringify(part);
+        return `[${part.constructor?.name || 'object'}]`;
       } catch {
-        return String(part);
+        return '[object]';
       }
     };
     const note = (kind, parts) => {
       if (errors.length >= 200) return;
-      const text = parts.map(show).join(' ').replace(/\?[^\s"')]*/g, '?…').slice(0, 500);
+      const text = parts
+        .map(show)
+        .join(' ')
+        .replace(/\?[^\s"')]*/g, '?…')
+        .replace(/(\S)#[^\s"')]*/g, '$1#…')
+        .slice(0, 500);
       errors.push(`${kind} ${text}`);
     };
     window.addEventListener('error', (event) => {
